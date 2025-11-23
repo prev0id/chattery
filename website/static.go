@@ -5,12 +5,24 @@ import (
 )
 
 const (
-	RootPath = "/"
-	SrcPath  = "/src/"
+	RootPath     = "/"
+	AuthPath     = "/sign"
+	NotFoundPath = "/404"
+	SettingsPath = "/settings"
+	SrcPath      = "/src/"
 )
 
 //go:embed index.html
 var IndexHTML []byte
+
+//go:embed auth.html
+var Auth []byte
+
+//go:embed 404.html
+var NotFound []byte
+
+//go:embed settings.html
+var Settings []byte
 
 //go:embed src/*
 var Src embed.FS

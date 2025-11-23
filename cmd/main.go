@@ -14,6 +14,9 @@ const address = ":8080"
 
 func main() {
 	http.HandleFunc(static.RootPath, handleRoot)
+	http.HandleFunc(static.SettingsPath, handleSettings)
+	http.HandleFunc(static.AuthPath, handleAuth)
+	http.HandleFunc(static.NotFoundPath, handle404)
 	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
 
 	slog.Info("starting server", slog.String("address", address))
@@ -33,6 +36,18 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	w.Write(static.IndexHTML)
 }
 
+func handle404(w http.ResponseWriter, _ *http.Request) {
+	w.Write(static.NotFound)
+}
+
+func handleSettings(w http.ResponseWriter, _ *http.Request) {
+	w.Write(static.Settings)
+}
+
+func handleAuth(w http.ResponseWriter, _ *http.Request) {
+	w.Write(static.Auth)
+}
+
 func handleStream(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -41,6 +56,5 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(string(data))
-
 	w.WriteHeader(http.StatusOK)
 }
