@@ -10,7 +10,7 @@ import (
 	static "chattery/website"
 )
 
-const address = ":8080"
+const address = "localhost:8080"
 
 func main() {
 	http.HandleFunc(static.RootPath, handleRoot)
@@ -19,7 +19,7 @@ func main() {
 	http.HandleFunc(static.NotFoundPath, handle404)
 	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
 
-	slog.Info("starting server", slog.String("address", address))
+	slog.Info("starting server", slog.String("address", "http://"+address))
 
 	if err := http.ListenAndServe(address, nil); err != nil {
 		log.Fatalf("http.ListenAndServe: %s", err.Error())

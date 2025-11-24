@@ -27,23 +27,26 @@ class Footer extends HTMLElement {
               href="https://deev.pro"
               target="_blank"
               class="underline dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-              >Deev Semyon.</a
             >
+              Deev Semyon.
+            </a>
             ©MIT Licensed.
           </p>
 
           <div class="flex -mx-2">
             <a
-              href="#"
+              href="https://github.com/prev0id/chattery"
+              target="_blank"
               class="mx-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
               aria-label="Github"
             >
               <icon-element name="github"></icon-element>
             </a>
             <a
-              href="#"
+              href="https://github.com/prev0id/chattery/blob/master/LICENSE"
+              target="_blank"
               class="mx-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-              aria-label="Facebook"
+              aria-label="Copyright"
             >
               <icon-element name="copyright"></icon-element>
             </a>
