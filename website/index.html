@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>Chattery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./src/css/main.css" />
     <script type="module" src="./src/js/components/sidebar.js"></script>
@@ -9,29 +10,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
   </head>
   <body class="flex">
-    <!--<nav>
-      <a href="/" data-link>Home</a>
-      <a href="/chat" data-link>Chat</a>
-    </nav>-->
-    <!--<main id="app"></main>
-    <script type="module" src="./src/js/main.js"></script>-->
-
-    <aside class="flex sticky top-0 self-start">
+    <aside class="flex sticky top-0 self-start" x-data="{tabs:[{icon:'users', href:'#', selected: true},{icon:'groups', href:'#', selected: false},{icon:'settings', href:'#', selected: false}], groups:[]}">
       <div class="flex flex-col items-center w-16 h-screen py-8 bg-white dark:bg-gray-900 dark:border-gray-700">
         <nav class="flex flex-col items-center flex-1 space-y-8">
           <a href="#">
             <img class="w-auto h-6" src="https://lipsum.app/640x480/000/fff" alt="" />
           </a>
 
-          <a href="#" class="p-1.5 inline-block text-blue-500 bg-blue-100 rounded-lg dark:text-blue-400 dark:bg-gray-800">
-            <icon-element name="users"></icon-element>
-          </a>
-          <a href="#" class="p-1.5 inline-block text-gray-500 focus:outline-nones rounded-lg dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100">
-            <icon-element name="groups"></icon-element>
-          </a>
-          <a href="#" class="p-1.5 inline-block text-gray-500 focus:outline-nones rounded-lg dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100">
-            <icon-element name="settings"></icon-element>
-          </a>
+          <template x-for="tab in tabs">
+            <a :href="tab.href" :class="tab.selected ? 'text-blue-500 bg-blue-100 dark:text-blue-400 dark:bg-gray-800' : 'text-gray-500 focus:outline-nones dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100'" class="p-1.5 inline-block rounded-lg">
+              <icon-element :name="tab.icon"></icon-element>
+            </a>
+          </template>
         </nav>
 
         <div class="flex flex-col items-center mt-4 space-y-8">
@@ -83,8 +73,10 @@
     </aside>
     <div class="flex-1 flex flex-col">
       <main class="flex-1 p-6 bg-gray-50">
-        <h1 class="text-2xl font-bold mb-4">Main Content</h1>
+        <h1 class="text-2xl font-bold mb-4">Call</h1>
         <p>content</p>
+
+        <video></video>
 
         <div class="flex justify-center items-center gap-3 sm:gap-x-5">
           <div class="flex bg-white border divide-x rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:divide-gray-700">
