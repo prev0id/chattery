@@ -9,16 +9,12 @@ class Footer extends HTMLElement {
 
   render() {
     this.innerHTML = html`
-      <footer class="p-4 border-t bg-white dark:bg-gray-900">
+      <footer class="p-5 border-t bg-white dark:bg-gray-900">
         <div
-          class="container flex flex-col items-center justify-between p-6 mx-auto space-y-4 sm:space-y-0 sm:flex-row"
+          class="container flex flex-col items-center justify-between mx-auto space-y-4 sm:space-y-0 sm:flex-row"
         >
-          <a href="#">
-            <img
-              class="w-auto h-7"
-              src="https://lipsum.app/640x480/000/fff"
-              alt=""
-            />
+          <a href="/">
+            <img class="w-auto h-12" src="./src/assets/Fullname.png" alt="" />
           </a>
 
           <p class="text-sm text-gray-600 dark:text-gray-300">

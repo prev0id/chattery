@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Chattery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./src/assets/logo.svg" />
     <link rel="stylesheet" href="./src/css/main.css" />
     <script type="module" src="./src/js/components/sidebar.js"></script>
     <script type="module" src="./src/js/components/footer.js"></script>
@@ -13,8 +14,8 @@
     <aside class="flex sticky top-0 self-start" x-data="{tabs:[{icon:'users', href:'#', selected: true},{icon:'groups', href:'#', selected: false},{icon:'settings', href:'#', selected: false}], groups:[]}">
       <div class="flex flex-col items-center w-16 h-screen py-8 bg-white dark:bg-gray-900 dark:border-gray-700">
         <nav class="flex flex-col items-center flex-1 space-y-8">
-          <a href="#">
-            <img class="w-auto h-6" src="https://lipsum.app/640x480/000/fff" alt="" />
+          <a href="/">
+            <img class="w-auto h-10" src="src/assets/Logo Square.png" alt="" />
           </a>
 
           <template x-for="tab in tabs">
