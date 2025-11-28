@@ -18,9 +18,6 @@ var IndexHTML []byte
 //go:embed auth.html
 var Auth []byte
 
-//go:embed 404.html
-var NotFound []byte
-
 //go:embed settings.html
 var Settings []byte
 

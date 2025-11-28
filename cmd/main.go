@@ -16,7 +16,7 @@ func main() {
 	http.HandleFunc(static.RootPath, handleRoot)
 	http.HandleFunc(static.SettingsPath, handleSettings)
 	http.HandleFunc(static.AuthPath, handleAuth)
-	http.HandleFunc(static.NotFoundPath, handle404)
+	// http.HandleFunc(static.NotFoundPath, handle404)
 	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
 
 	slog.Info("starting server", slog.String("address", "http://"+address))
@@ -36,9 +36,9 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	w.Write(static.IndexHTML)
 }
 
-func handle404(w http.ResponseWriter, _ *http.Request) {
-	w.Write(static.NotFound)
-}
+// func handle404(w http.ResponseWriter, _ *http.Request) {
+// 	w.Write(static.NotFound)
+// }
 
 func handleSettings(w http.ResponseWriter, _ *http.Request) {
 	w.Write(static.Settings)

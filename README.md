@@ -14,3 +14,6 @@
 [23.11.2025]
 + https://github.com/merakiuilabs/merakiui
 + https://lucide.dev/
+
+[28.11.2025]
++ https://habr.com/ru/articles/658769/
