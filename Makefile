@@ -8,3 +8,10 @@ start-tailwind:
 	    -i ./website/app.css \
 		-o ./website/src/css/main.css \
 		--watch --minify
+
+.PHONY: generate-proto
+generate-proto:
+	protoc \
+		--proto_path='api' \
+		--go_out='internal/pb' \
+		websocket/websocket.proto

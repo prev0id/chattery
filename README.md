@@ -17,3 +17,6 @@
 
 [28.11.2025]
 + https://habr.com/ru/articles/658769/
+
+[29.11.2025]
++ https://habr.com/ru/articles/790272/

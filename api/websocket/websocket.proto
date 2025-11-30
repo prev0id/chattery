@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package websocket;
+
+option go_package = "api/websocketpb";
+
+message Message {
+  string id = 1;
+  Type type = 2;
+  oneof content {
+    JoinChat join_chat = 3;
+    LeaveChat leave_chat = 4;
+    IceCandidate ice_candidate = 5;
+    Offer offer = 6;
+    Answer answer = 7;
+    JoinRoom join_room = 8;
+    LeaveRoom leave_room = 9;
+    UserJoinedRoom user_joined_room = 10;
+    UserLeavedRoom user_leaved_room = 11;
+  }
+}
+
+enum Type {
+  ENUM_TYPE_UNDEFINED = 0;
+  ENUM_TYPE_JOIN_CHAT = 1;
+  ENUM_TYPE_LEAVE_CHAT = 2;
+  ENUM_TYPE_ICE_CANDIDATE = 3;
+  ENUM_TYPE_OFFER = 4;
+  ENUM_TYPE_ANSWER = 5;
+  ENUM_TYPE_JOIN_ROOM = 6;
+  ENUM_TYPE_LEAVE_ROOM = 7;
+  ENUM_TYPE_USER_JOINED_ROOM = 8;
+  ENUM_TYPE_USER_LEAVED_ROOM = 9;
+}
+
+
+message JoinChat {
+  string chat_id = 1;
+}
+
+message LeaveChat {
+  string chat_id = 1;
+}
+
+message SendMessage {
+  string chat_id = 1;
+  string content = 2;
+}
+
+message ReceiveMessage {
+  string chat_id = 1;
+  string content = 2;
+}
+
+message IceCandidate {
+}
+
+message Offer {
+}
+
+message Answer {
+}
+
+message JoinRoom {
+  string RoomID = 1;
+}
+
+message LeaveRoom {
+  string RoomID = 1;
+}
+
+message UserJoinedRoom {
+}
+
+message UserLeavedRoom {
+}

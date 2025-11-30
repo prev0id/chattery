@@ -14,113 +14,34 @@
             defer
             src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"
         ></script>
+        <script defer type="module" src="./src/js/main.js"></script>
     </head>
     <body class="flex">
         <sidebar-element></sidebar-element>
         <div
             class="flex-1 flex flex-col min-h-screen justify-between bg-gray-50 dark:bg-gray-900"
         >
-            <notfound-page class="flex-1"></notfound-page>
-            <!--<call-page class="flex-1 p-6"> </call-page>-->
-            <!--<main class="flex-1 p-6"> <h1 class="text-2xl font-bold mb-4">Call</h1>
-                <p>content</p>
+            <div class="container">
+                <h1>Simple Chat Demo</h1>
 
-                <div class="flex justify-center items-center gap-3 sm:gap-x-5">
-                    <div
-                        class="flex bg-white border divide-x rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:divide-gray-700"
-                    >
-                        <div x-data="{ tooltip_open: false }" class="relative">
-                            <button
-                                @mouseenter="tooltip_open=true"
-                                @mouseleave="tooltip_open=false"
-                                class="rounded-l-lg px-4 py-2 font-medium text-gray-600 sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 hover:bg-gray-100"
-                            >
-                                <icon-element name="micro_on"></icon-element>
-                                <icon-element
-                                    name="micro_off"
-                                    class="hidden"
-                                ></icon-element>
-                            </button>
-                            <p
-                                x-show="tooltip_open"
-                                class="absolute px-5 py-3 text-center text-gray-600 truncate -translate-x-1/2 bg-white rounded-lg shadow-lg -top-14 left-1/2 dark:shadow-none shadow-gray-200 dark:bg-gray-800 dark:text-white"
-                            >
-                                Turn On Microphone
-                            </p>
-                        </div>
-                        <div x-data="{ tooltip_open: false }" class="relative">
-                            <button
-                                @mouseenter="tooltip_open=true"
-                                @mouseleave="tooltip_open=false"
-                                class="px-4 py-2 font-medium text-gray-600 sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 hover:bg-gray-100"
-                            >
-                                <icon-element
-                                    name="screenshare_on"
-                                ></icon-element>
-                                <icon-element
-                                    name="screenshare_off"
-                                    class="hidden"
-                                ></icon-element>
-                                <p
-                                    x-show="tooltip_open"
-                                    class="absolute px-5 py-3 text-center text-gray-600 truncate -translate-x-1/2 bg-white rounded-lg shadow-lg -top-14 left-1/2 dark:shadow-none shadow-gray-200 dark:bg-gray-800 dark:text-white"
-                                >
-                                    Turn On Screenshare
-                                </p>
-                            </button>
-                        </div>
-                        <div x-data="{ tooltip_open: false }" class="relative">
-                            <button
-                                @mouseenter="tooltip_open=true"
-                                @mouseleave="tooltip_open=false"
-                                class="rounded-r-lg px-4 py-2 font-medium text-gray-600 sm:px-6 dark:hover:bg-gray-800 dark:text-gray-300 hover:bg-gray-100"
-                            >
-                                <icon-element name="webcam_on"></icon-element>
-                                <icon-element
-                                    name="webcam_off"
-                                    class="hidden"
-                                ></icon-element>
-                            </button>
-                            <p
-                                x-show="tooltip_open"
-                                class="absolute px-5 py-3 text-center text-gray-600 truncate -translate-x-1/2 bg-white rounded-lg shadow-lg -top-14 left-1/2 dark:shadow-none shadow-gray-200 dark:bg-gray-800 dark:text-white"
-                            >
-                                Turn On Webcam
-                            </p>
-                        </div>
-                    </div>
-                    <div x-data="{ tooltip_open: false }" class="relative">
-                        <button
-                            @mouseenter="tooltip_open=true"
-                            @mouseleave="tooltip_open=false"
-                            class="text-blue-600 hover:bg-blue-100 rounded-lg border px-4 py-2"
-                        >
-                            <icon-element name="call_settings"></icon-element>
-                        </button>
-                        <p
-                            x-show="tooltip_open"
-                            class="absolute px-5 py-3 text-center text-gray-600 truncate -translate-x-1/2 bg-white rounded-lg shadow-lg -top-14 left-1/2 dark:shadow-none shadow-gray-200 dark:bg-gray-800 dark:text-white"
-                        >
-                            Settings
-                        </p>
-                    </div>
-                    <div x-data="{ tooltip_open: false }" class="relative">
-                        <button
-                            @mouseenter="tooltip_open=true"
-                            @mouseleave="tooltip_open=false"
-                            class="text-red-600 hover:bg-red-100 rounded-lg border px-4 py-2"
-                        >
-                            <icon-element name="leave_call"></icon-element>
-                        </button>
-                        <p
-                            x-show="tooltip_open"
-                            class="absolute px-5 py-3 text-center text-gray-600 truncate -translate-x-1/2 bg-white rounded-lg shadow-lg -top-14 left-1/2 dark:shadow-none shadow-gray-200 dark:bg-gray-800 dark:text-white"
-                        >
-                            Leave Call
-                        </p>
-                    </div>
+                <div class="controls">
+                    <input
+                        type="text"
+                        id="chatId"
+                        placeholder="Chat ID"
+                        value="room-123"
+                    />
+                    <button onclick="joinChat()">Join Chat</button>
+                    <button onclick="leaveChat()">Leave Chat</button>
                 </div>
-            </main>-->
+
+                <div id="messages"></div>
+
+                <div style="margin-top: 20px; font-size: 12px; color: #666">
+                    Connection status: <span id="status">Connecting...</span>
+                </div>
+            </div>
+
             <footer-element
                 class="p-5 border-t bg-white dark:bg-gray-900"
             ></footer-element>

@@ -1,23 +1,29 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
 
+	"chattery/internal/pb/api/websocketpb"
+	"chattery/internal/service/signaling"
 	static "chattery/website"
 )
 
 const address = "localhost:8080"
 
 func main() {
+	appCtx := context.Background()
+
 	http.HandleFunc(static.RootPath, handleRoot)
 	http.HandleFunc(static.SettingsPath, handleSettings)
 	http.HandleFunc(static.AuthPath, handleAuth)
 	// http.HandleFunc(static.NotFoundPath, handle404)
 	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
+	http.HandleFunc("/ws", websocketHandler(appCtx))
 
 	slog.Info("starting server", slog.String("address", "http://"+address))
 
@@ -57,4 +63,23 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(string(data))
 	w.WriteHeader(http.StatusOK)
+}
+
+func websocketHandler(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		signalingService, err := signaling.NewService(w, r)
+		if err != nil {
+			slog.Error("websocket.New", slog.String("error", err.Error()))
+		}
+
+		signalingService.RegisterMessageCallback(websocketpb.Type_ENUM_TYPE_JOIN_CHAT, func(_ context.Context, msg *websocketpb.Message) {
+			fmt.Printf("JOIN: %+v\n", msg)
+		})
+
+		signalingService.RegisterMessageCallback(websocketpb.Type_ENUM_TYPE_LEAVE_CHAT, func(_ context.Context, msg *websocketpb.Message) {
+			fmt.Printf("LEAVE: %+v\n", msg)
+		})
+
+		signalingService.ListenAndServe(ctx)
+	}
 }

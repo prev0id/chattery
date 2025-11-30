@@ -2,7 +2,15 @@ module chattery
 
 go 1.25.3
 
-tool github.com/air-verse/air
+tool (
+	github.com/air-verse/air
+	google.golang.org/protobuf/cmd/protoc-gen-go
+)
+
+require (
+	github.com/gorilla/websocket v1.5.3
+	google.golang.org/protobuf v1.36.10
+)
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -22,5 +30,4 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
 )
