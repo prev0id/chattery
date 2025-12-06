@@ -15,14 +15,19 @@ import (
 	"chattery/backend/user_service/internal/config"
 	"chattery/backend/user_service/internal/pb"
 	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
+	"chattery/backend/user_service/internal/service/user"
 )
 
 type Server struct {
 	user_servicepb.UnimplementedUserServiceServer
+
+	service *user.Service
 }
 
-func StartChatServer(ctx context.Context) error {
-	server := &Server{}
+func StartUserServer(ctx context.Context, service *user.Service) error {
+	server := &Server{
+		service: service,
+	}
 
 	if err := server.handleGRPC(); err != nil {
 		return fmt.Errorf("server.handleGRPC: %w", err)
@@ -59,7 +64,7 @@ func (s *Server) handleHTTP(ctx context.Context) error {
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 	if err := user_servicepb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, config.GRPCAddress, opts); err != nil {
-		return fmt.Errorf("chat_servicepb.RegisterChatServiceHandlerFromEndpoint: %w", err)
+		return fmt.Errorf("user_servicepb.RegisterUserServiceHandlerFromEndpoint: %w", err)
 	}
 
 	pb.RegisterSwaggerHandlers(mux)

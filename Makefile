@@ -61,3 +61,7 @@ migrate: migrate-user-service
 .PHONY: migrate-user-service
 migrate-user-service:
 	GOOSE_DRIVER=postgres GOOSE_DBSTRING='$(POSTGRES_STRING)' goose -dir '$(BACKEND_PATH)/user_service/$(MIGRATIONS_PATH)' up
+
+.PHONY: generate-sqlc
+generate-sqlc:
+	cd '$(BACKEND_PATH)/user_service' && sqlc generate

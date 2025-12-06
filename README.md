@@ -29,11 +29,12 @@
         - [x] Roll up migrations
     - [ ] Service
         - [x] GRPC service
-        - [ ] PG adapter
+        - [x] PG adapter
         - [ ] S3 adapter
-        - [ ] SignUp handler
+        - [x] SignUp handler
         - [ ] LogIn handler
         - [ ] LogOut handler
         - [ ] Update handler
         - [ ] Validate handler
         - [ ] Upload image handler
+        - [ ] Validations to signup
