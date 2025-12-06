@@ -1,15 +1,37 @@
 # Chatter - Group chatting app
 
+![Logo](./docs/attachments/logo.svg)
+
+Документация к проекту расположена в [docs](./docs)
+
+## Архитектура
+
+Микросервисная архитектура
+- User Service - сервис для хранения пользовательских данных
+- Chat Service - сервис роботы с чатами
+- Signaling Service - сервис с websocket соединениями для чатов и сигналинга webrtc
+- Call Service - сервис с WebRTC для обработки чатов
+
+![architecture diagram](./docs/attachments/architecture.png)
+
 ## TODO
-Single node service:
-- [ ] postgres integration for local development
-- [ ] sqlc [https://github.com/sqlc-dev/sqlc]
-- [ ] auth service
-- [ ] connection validation
 
-Multiple nodes:
-- [ ] Proto
-- [ ] Signaling service
-
-think about
-- [ ] https/wss support prob caddy, maybe kamal?
+- [ ] User service
+    - [ ] Infra
+        - [x] Add PostgreSQL
+        - [x] Add S3
+        - [ ] Dockerfile
+        - [ ] Add to docker-compose.yml
+    - [ ] Contracts
+        - [x] GRPC generation
+        - [ ] GRPC contracts
+        - [ ] Migrations
+        - [ ] Roll up migrations
+    - [ ] Service
+        - [x] GRPC service
+        - [ ] PG adapter
+        - [ ] S3 adapter
+        - [ ] SignUp handler
+        - [ ] LogIn handler
+        - [ ] LogOut handler
+        - [ ] Update handler

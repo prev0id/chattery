@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package chat_service;
+
+option go_package = "chattery/user_service/api;user_servicepb";
+
+import "google/api/annotations.proto";
+
+service UserService {
+  rpc SignUpV1(SignUpV1Request) returns (SignUpV1Response) {
+    option (google.api.http) = {
+      post: "/v1/signup"
+      body: "*"
+    };
+  }
+  rpc LogInV1(LogInV1Request) returns (LogInV1Response) {
+    option (google.api.http) = {
+      post: "/v1/login"
+      body: "*"
+    };
+  }
+  rpc LogOutV1(LogOutV1Request) returns (LogOutV1Response) {
+    option (google.api.http) = {
+      post: "/v1/logout"
+      body: "*"
+    };
+  }
+  rpc UpdateV1(UpdateV1Request) returns (UpdateV1Response) {
+    option (google.api.http) = {
+      post: "/v1/update"
+      body: "*"
+    };
+  }
+}
+
+message SignUpV1Request {
+}
+
+message SignUpV1Response {
+}
+
+message LogInV1Request {
+}
+
+message LogInV1Response {
+}
+
+message LogOutV1Request {
+}
+
+message LogOutV1Response {
+}
+
+message UpdateV1Request {
+}
+
+message UpdateV1Response {
+}
