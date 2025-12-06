@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"chattery/backend/user_service/internal/config"
+	"chattery/backend/user_service/internal/pb"
 	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
 )
 
@@ -60,6 +61,8 @@ func (s *Server) handleHTTP(ctx context.Context) error {
 	if err := user_servicepb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, config.GRPCAddress, opts); err != nil {
 		return fmt.Errorf("chat_servicepb.RegisterChatServiceHandlerFromEndpoint: %w", err)
 	}
+
+	pb.RegisterSwaggerHandlers(mux)
 
 	go func() {
 		slog.Info("starting HTTP server", slog.String("address", config.HTTPAddress))
