@@ -15,3 +15,7 @@ SET login=$2,
     image_id=$5,
     updated_at=now()
 WHERE id=$1;
+
+-- name: GetUserByLogin :one
+SELECT * FROM users
+WHERE login = $1;

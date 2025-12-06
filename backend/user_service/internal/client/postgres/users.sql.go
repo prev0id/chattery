@@ -29,6 +29,26 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const getUserByLogin = `-- name: GetUserByLogin :one
+SELECT id, login, password, username, image_id, created_at, updated_at FROM users
+WHERE login = $1
+`
+
+func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByLogin, login)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Login,
+		&i.Password,
+		&i.Username,
+		&i.ImageID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const insertUser = `-- name: InsertUser :one
 INSERT INTO users(login, password, username)
 VALUES ($1, $2, $3)

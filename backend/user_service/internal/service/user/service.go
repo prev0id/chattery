@@ -22,14 +22,14 @@ const (
 type Service struct {
 	db         *postgres_adapter.Adapter
 	expiration time.Duration
-	key        string
+	key        []byte
 }
 
 func New(db *postgres_adapter.Adapter) *Service {
 	return &Service{
 		db:         db,
 		expiration: config.Expiration,
-		key:        config.SigningKey,
+		key:        []byte(config.SigningKey),
 	}
 }
 
@@ -44,19 +44,34 @@ func (s *Service) CreateUser(ctx context.Context, user domain.User) (domain.Sess
 	if err != nil {
 		return domain.Session{}, fmt.Errorf("s.createSessionForUser: %w", err)
 	}
+	return session, nil
+}
 
+func (s *Service) Login(ctx context.Context, login, password string) (domain.Session, error) {
+	user, err := s.db.GetUserByLogin(ctx, login)
+	if err != nil {
+		return domain.Session{}, fmt.Errorf("s.db.GetUserByLogin: %w", err)
+	}
+
+	if !user.PasswordEqual(password) {
+		return domain.Session{}, domain.ErrPasswordsDontMatch
+	}
+
+	session, err := s.createSessionForUser(user)
+	if err != nil {
+		return domain.Session{}, fmt.Errorf("s.createSessionForUser: %w", err)
+	}
 	return session, nil
 }
 
 func (s *Service) createSessionForUser(user domain.User) (domain.Session, error) {
 	now := time.Now()
-	maxAge := now.Add(s.expiration)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, domain.Claims{
 		UserID:   user.ID,
 		Username: user.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(maxAge),
+			ExpiresAt: jwt.NewNumericDate(now.Add(s.expiration)),
 			IssuedAt:  jwt.NewNumericDate(now),
 		},
 	})
@@ -70,7 +85,7 @@ func (s *Service) createSessionForUser(user domain.User) (domain.Session, error)
 		Name:     sessionName,
 		Value:    ss,
 		Path:     "/",
-		MaxAge:   maxAge.Second(),
+		MaxAge:   int(s.expiration.Seconds()),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,

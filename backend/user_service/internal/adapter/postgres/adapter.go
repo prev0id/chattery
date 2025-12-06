@@ -56,6 +56,17 @@ func (a *Adapter) GetUserByID(ctx context.Context, id domain.UserID) (domain.Use
 	return convertUserFromDB(user), nil
 }
 
+func (a *Adapter) GetUserByLogin(ctx context.Context, login string) (domain.User, error) {
+	user, err := a.db.GetUserByLogin(ctx, login)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.User{}, domain.ErrUserNotFound
+	}
+	if err != nil {
+		return domain.User{}, fmt.Errorf("a.db.GetUserByLogin: %w", err)
+	}
+	return convertUserFromDB(user), nil
+}
+
 func convertUserFromDB(user postgres_client.User) domain.User {
 	return domain.User{
 		ID:       domain.UserID(user.ID),

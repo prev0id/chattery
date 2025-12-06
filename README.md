@@ -32,7 +32,7 @@
         - [x] PG adapter
         - [ ] S3 adapter
         - [x] SignUp handler
-        - [ ] LogIn handler
+        - [x] LogIn handler
         - [ ] LogOut handler
         - [ ] Update handler
         - [ ] Validate handler

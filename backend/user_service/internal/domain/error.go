@@ -12,6 +12,7 @@ var (
 	ErrUserNotFound          = errors.New("user not found")
 	ErrLoginAlreadyExists    = errors.New("login already exists")
 	ErrUsernameAlreadyExists = errors.New("username already exists")
+	ErrPasswordsDontMatch    = errors.New("passwords don't match")
 )
 
 var errToGRPCCode = map[error]codes.Code{
