@@ -22,11 +22,11 @@
         - [x] Add S3
         - [ ] Dockerfile
         - [ ] Add to docker-compose.yml
-    - [ ] Contracts
+    - [x] Contracts
         - [x] GRPC generation
         - [x] GRPC contracts
-        - [ ] Migrations
-        - [ ] Roll up migrations
+        - [x] Migrations
+        - [x] Roll up migrations
     - [ ] Service
         - [x] GRPC service
         - [ ] PG adapter
