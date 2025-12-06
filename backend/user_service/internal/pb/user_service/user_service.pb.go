@@ -24,6 +24,9 @@ const (
 
 type SignUpV1Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Login         string                 `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -58,8 +61,30 @@ func (*SignUpV1Request) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *SignUpV1Request) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *SignUpV1Request) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *SignUpV1Request) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
 type SignUpV1Response struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -94,8 +119,17 @@ func (*SignUpV1Response) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *SignUpV1Response) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type LogInV1Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -130,8 +164,23 @@ func (*LogInV1Request) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{2}
 }
 
+func (x *LogInV1Request) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *LogInV1Request) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
 type LogInV1Response struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -166,8 +215,16 @@ func (*LogInV1Response) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{3}
 }
 
+func (x *LogInV1Response) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type LogOutV1Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -200,6 +257,13 @@ func (x *LogOutV1Request) ProtoReflect() protoreflect.Message {
 // Deprecated: Use LogOutV1Request.ProtoReflect.Descriptor instead.
 func (*LogOutV1Request) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LogOutV1Request) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
 }
 
 type LogOutV1Response struct {
@@ -240,6 +304,7 @@ func (*LogOutV1Response) Descriptor() ([]byte, []int) {
 
 type UpdateV1Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -274,8 +339,19 @@ func (*UpdateV1Request) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{6}
 }
 
+func (x *UpdateV1Request) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type UpdateV1Response struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Login         string                 `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	Password      string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -310,27 +386,391 @@ func (*UpdateV1Response) Descriptor() ([]byte, []int) {
 	return file_user_service_user_service_proto_rawDescGZIP(), []int{7}
 }
 
+func (x *UpdateV1Response) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+func (x *UpdateV1Response) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UpdateV1Response) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *UpdateV1Response) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type ValidateV1Request struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateV1Request) Reset() {
+	*x = ValidateV1Request{}
+	mi := &file_user_service_user_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateV1Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateV1Request) ProtoMessage() {}
+
+func (x *ValidateV1Request) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_user_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateV1Request.ProtoReflect.Descriptor instead.
+func (*ValidateV1Request) Descriptor() ([]byte, []int) {
+	return file_user_service_user_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ValidateV1Request) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+type ValidateV1Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Login         string                 `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	ImageId       string                 `protobuf:"bytes,3,opt,name=image_id,json=imageId,proto3" json:"image_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateV1Response) Reset() {
+	*x = ValidateV1Response{}
+	mi := &file_user_service_user_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateV1Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateV1Response) ProtoMessage() {}
+
+func (x *ValidateV1Response) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_user_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateV1Response.ProtoReflect.Descriptor instead.
+func (*ValidateV1Response) Descriptor() ([]byte, []int) {
+	return file_user_service_user_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ValidateV1Response) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ValidateV1Response) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *ValidateV1Response) GetImageId() string {
+	if x != nil {
+		return x.ImageId
+	}
+	return ""
+}
+
+type UploadProfileImageV1Request struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Content       []byte                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadProfileImageV1Request) Reset() {
+	*x = UploadProfileImageV1Request{}
+	mi := &file_user_service_user_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadProfileImageV1Request) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadProfileImageV1Request) ProtoMessage() {}
+
+func (x *UploadProfileImageV1Request) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_user_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadProfileImageV1Request.ProtoReflect.Descriptor instead.
+func (*UploadProfileImageV1Request) Descriptor() ([]byte, []int) {
+	return file_user_service_user_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UploadProfileImageV1Request) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+func (x *UploadProfileImageV1Request) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *UploadProfileImageV1Request) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type UploadProfileImageV1Response struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ImageId       string                 `protobuf:"bytes,1,opt,name=image_id,json=imageId,proto3" json:"image_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadProfileImageV1Response) Reset() {
+	*x = UploadProfileImageV1Response{}
+	mi := &file_user_service_user_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadProfileImageV1Response) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadProfileImageV1Response) ProtoMessage() {}
+
+func (x *UploadProfileImageV1Response) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_user_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadProfileImageV1Response.ProtoReflect.Descriptor instead.
+func (*UploadProfileImageV1Response) Descriptor() ([]byte, []int) {
+	return file_user_service_user_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UploadProfileImageV1Response) GetImageId() string {
+	if x != nil {
+		return x.ImageId
+	}
+	return ""
+}
+
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Path          string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	MaxAge        int64                  `protobuf:"varint,4,opt,name=max_age,json=maxAge,proto3" json:"max_age,omitempty"`
+	Secure        bool                   `protobuf:"varint,5,opt,name=secure,proto3" json:"secure,omitempty"`
+	HttpOnly      bool                   `protobuf:"varint,6,opt,name=http_only,json=httpOnly,proto3" json:"http_only,omitempty"`
+	SameSite      int64                  `protobuf:"varint,7,opt,name=same_site,json=sameSite,proto3" json:"same_site,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_user_service_user_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_user_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_user_service_user_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Session) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Session) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *Session) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *Session) GetMaxAge() int64 {
+	if x != nil {
+		return x.MaxAge
+	}
+	return 0
+}
+
+func (x *Session) GetSecure() bool {
+	if x != nil {
+		return x.Secure
+	}
+	return false
+}
+
+func (x *Session) GetHttpOnly() bool {
+	if x != nil {
+		return x.HttpOnly
+	}
+	return false
+}
+
+func (x *Session) GetSameSite() int64 {
+	if x != nil {
+		return x.SameSite
+	}
+	return 0
+}
+
 var File_user_service_user_service_proto protoreflect.FileDescriptor
 
 const file_user_service_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1fuser_service/user_service.proto\x12\fchat_service\x1a\x1cgoogle/api/annotations.proto\"\x11\n" +
-	"\x0fSignUpV1Request\"\x12\n" +
-	"\x10SignUpV1Response\"\x10\n" +
-	"\x0eLogInV1Request\"\x11\n" +
-	"\x0fLogInV1Response\"\x11\n" +
-	"\x0fLogOutV1Request\"\x12\n" +
-	"\x10LogOutV1Response\"\x11\n" +
-	"\x0fUpdateV1Request\"\x12\n" +
-	"\x10UpdateV1Response2\x91\x03\n" +
+	"\x1fuser_service/user_service.proto\x12\fchat_service\x1a\x1cgoogle/api/annotations.proto\"_\n" +
+	"\x0fSignUpV1Request\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
+	"\x05login\x18\x02 \x01(\tR\x05login\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"C\n" +
+	"\x10SignUpV1Response\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\"B\n" +
+	"\x0eLogInV1Request\x12\x14\n" +
+	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"B\n" +
+	"\x0fLogInV1Response\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\"B\n" +
+	"\x0fLogOutV1Request\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\"\x12\n" +
+	"\x10LogOutV1Response\"B\n" +
+	"\x0fUpdateV1Request\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\"\x91\x01\n" +
+	"\x10UpdateV1Response\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
+	"\x05login\x18\x03 \x01(\tR\x05login\x12\x1a\n" +
+	"\bpassword\x18\x04 \x01(\tR\bpassword\"D\n" +
+	"\x11ValidateV1Request\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\"a\n" +
+	"\x12ValidateV1Response\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
+	"\x05login\x18\x02 \x01(\tR\x05login\x12\x19\n" +
+	"\bimage_id\x18\x03 \x01(\tR\aimageId\"|\n" +
+	"\x1bUploadProfileImageV1Request\x12/\n" +
+	"\asession\x18\x01 \x01(\v2\x15.chat_service.SessionR\asession\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\fR\acontent\"9\n" +
+	"\x1cUploadProfileImageV1Response\x12\x19\n" +
+	"\bimage_id\x18\x01 \x01(\tR\aimageId\"\xb2\x01\n" +
+	"\aSession\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\x12\x12\n" +
+	"\x04path\x18\x03 \x01(\tR\x04path\x12\x17\n" +
+	"\amax_age\x18\x04 \x01(\x03R\x06maxAge\x12\x16\n" +
+	"\x06secure\x18\x05 \x01(\bR\x06secure\x12\x1b\n" +
+	"\thttp_only\x18\x06 \x01(\bR\bhttpOnly\x12\x1b\n" +
+	"\tsame_site\x18\a \x01(\x03R\bsameSite2\x90\x05\n" +
 	"\vUserService\x12`\n" +
 	"\bSignUpV1\x12\x1d.chat_service.SignUpV1Request\x1a\x1e.chat_service.SignUpV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/v1/signup\x12\\\n" +
 	"\aLogInV1\x12\x1c.chat_service.LogInV1Request\x1a\x1d.chat_service.LogInV1Response\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/login\x12`\n" +
 	"\bLogOutV1\x12\x1d.chat_service.LogOutV1Request\x1a\x1e.chat_service.LogOutV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/v1/logout\x12`\n" +
-	"\bUpdateV1\x12\x1d.chat_service.UpdateV1Request\x1a\x1e.chat_service.UpdateV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
-	"/v1/updateB*Z(chattery/user_service/api;user_servicepbb\x06proto3"
+	"\bUpdateV1\x12\x1d.chat_service.UpdateV1Request\x1a\x1e.chat_service.UpdateV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\x1a\n" +
+	"/v1/update\x12h\n" +
+	"\n" +
+	"ValidateV1\x12\x1f.chat_service.ValidateV1Request\x1a .chat_service.ValidateV1Response\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/validate\x12\x92\x01\n" +
+	"\x14UploadProfileImageV1\x12).chat_service.UploadProfileImageV1Request\x1a*.chat_service.UploadProfileImageV1Response\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/upload_profile_imageB*Z(chattery/user_service/api;user_servicepbb\x06proto3"
 
 var (
 	file_user_service_user_service_proto_rawDescOnce sync.Once
@@ -344,31 +784,47 @@ func file_user_service_user_service_proto_rawDescGZIP() []byte {
 	return file_user_service_user_service_proto_rawDescData
 }
 
-var file_user_service_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_user_service_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_user_service_user_service_proto_goTypes = []any{
-	(*SignUpV1Request)(nil),  // 0: chat_service.SignUpV1Request
-	(*SignUpV1Response)(nil), // 1: chat_service.SignUpV1Response
-	(*LogInV1Request)(nil),   // 2: chat_service.LogInV1Request
-	(*LogInV1Response)(nil),  // 3: chat_service.LogInV1Response
-	(*LogOutV1Request)(nil),  // 4: chat_service.LogOutV1Request
-	(*LogOutV1Response)(nil), // 5: chat_service.LogOutV1Response
-	(*UpdateV1Request)(nil),  // 6: chat_service.UpdateV1Request
-	(*UpdateV1Response)(nil), // 7: chat_service.UpdateV1Response
+	(*SignUpV1Request)(nil),              // 0: chat_service.SignUpV1Request
+	(*SignUpV1Response)(nil),             // 1: chat_service.SignUpV1Response
+	(*LogInV1Request)(nil),               // 2: chat_service.LogInV1Request
+	(*LogInV1Response)(nil),              // 3: chat_service.LogInV1Response
+	(*LogOutV1Request)(nil),              // 4: chat_service.LogOutV1Request
+	(*LogOutV1Response)(nil),             // 5: chat_service.LogOutV1Response
+	(*UpdateV1Request)(nil),              // 6: chat_service.UpdateV1Request
+	(*UpdateV1Response)(nil),             // 7: chat_service.UpdateV1Response
+	(*ValidateV1Request)(nil),            // 8: chat_service.ValidateV1Request
+	(*ValidateV1Response)(nil),           // 9: chat_service.ValidateV1Response
+	(*UploadProfileImageV1Request)(nil),  // 10: chat_service.UploadProfileImageV1Request
+	(*UploadProfileImageV1Response)(nil), // 11: chat_service.UploadProfileImageV1Response
+	(*Session)(nil),                      // 12: chat_service.Session
 }
 var file_user_service_user_service_proto_depIdxs = []int32{
-	0, // 0: chat_service.UserService.SignUpV1:input_type -> chat_service.SignUpV1Request
-	2, // 1: chat_service.UserService.LogInV1:input_type -> chat_service.LogInV1Request
-	4, // 2: chat_service.UserService.LogOutV1:input_type -> chat_service.LogOutV1Request
-	6, // 3: chat_service.UserService.UpdateV1:input_type -> chat_service.UpdateV1Request
-	1, // 4: chat_service.UserService.SignUpV1:output_type -> chat_service.SignUpV1Response
-	3, // 5: chat_service.UserService.LogInV1:output_type -> chat_service.LogInV1Response
-	5, // 6: chat_service.UserService.LogOutV1:output_type -> chat_service.LogOutV1Response
-	7, // 7: chat_service.UserService.UpdateV1:output_type -> chat_service.UpdateV1Response
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	12, // 0: chat_service.SignUpV1Response.session:type_name -> chat_service.Session
+	12, // 1: chat_service.LogInV1Response.session:type_name -> chat_service.Session
+	12, // 2: chat_service.LogOutV1Request.session:type_name -> chat_service.Session
+	12, // 3: chat_service.UpdateV1Request.session:type_name -> chat_service.Session
+	12, // 4: chat_service.UpdateV1Response.session:type_name -> chat_service.Session
+	12, // 5: chat_service.ValidateV1Request.session:type_name -> chat_service.Session
+	12, // 6: chat_service.UploadProfileImageV1Request.session:type_name -> chat_service.Session
+	0,  // 7: chat_service.UserService.SignUpV1:input_type -> chat_service.SignUpV1Request
+	2,  // 8: chat_service.UserService.LogInV1:input_type -> chat_service.LogInV1Request
+	4,  // 9: chat_service.UserService.LogOutV1:input_type -> chat_service.LogOutV1Request
+	6,  // 10: chat_service.UserService.UpdateV1:input_type -> chat_service.UpdateV1Request
+	8,  // 11: chat_service.UserService.ValidateV1:input_type -> chat_service.ValidateV1Request
+	10, // 12: chat_service.UserService.UploadProfileImageV1:input_type -> chat_service.UploadProfileImageV1Request
+	1,  // 13: chat_service.UserService.SignUpV1:output_type -> chat_service.SignUpV1Response
+	3,  // 14: chat_service.UserService.LogInV1:output_type -> chat_service.LogInV1Response
+	5,  // 15: chat_service.UserService.LogOutV1:output_type -> chat_service.LogOutV1Response
+	7,  // 16: chat_service.UserService.UpdateV1:output_type -> chat_service.UpdateV1Response
+	9,  // 17: chat_service.UserService.ValidateV1:output_type -> chat_service.ValidateV1Response
+	11, // 18: chat_service.UserService.UploadProfileImageV1:output_type -> chat_service.UploadProfileImageV1Response
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_user_service_user_service_proto_init() }
@@ -382,7 +838,7 @@ func file_user_service_user_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_service_user_service_proto_rawDesc), len(file_user_service_user_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

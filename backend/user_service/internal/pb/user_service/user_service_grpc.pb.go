@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_SignUpV1_FullMethodName = "/chat_service.UserService/SignUpV1"
-	UserService_LogInV1_FullMethodName  = "/chat_service.UserService/LogInV1"
-	UserService_LogOutV1_FullMethodName = "/chat_service.UserService/LogOutV1"
-	UserService_UpdateV1_FullMethodName = "/chat_service.UserService/UpdateV1"
+	UserService_SignUpV1_FullMethodName             = "/chat_service.UserService/SignUpV1"
+	UserService_LogInV1_FullMethodName              = "/chat_service.UserService/LogInV1"
+	UserService_LogOutV1_FullMethodName             = "/chat_service.UserService/LogOutV1"
+	UserService_UpdateV1_FullMethodName             = "/chat_service.UserService/UpdateV1"
+	UserService_ValidateV1_FullMethodName           = "/chat_service.UserService/ValidateV1"
+	UserService_UploadProfileImageV1_FullMethodName = "/chat_service.UserService/UploadProfileImageV1"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -33,6 +35,8 @@ type UserServiceClient interface {
 	LogInV1(ctx context.Context, in *LogInV1Request, opts ...grpc.CallOption) (*LogInV1Response, error)
 	LogOutV1(ctx context.Context, in *LogOutV1Request, opts ...grpc.CallOption) (*LogOutV1Response, error)
 	UpdateV1(ctx context.Context, in *UpdateV1Request, opts ...grpc.CallOption) (*UpdateV1Response, error)
+	ValidateV1(ctx context.Context, in *ValidateV1Request, opts ...grpc.CallOption) (*ValidateV1Response, error)
+	UploadProfileImageV1(ctx context.Context, in *UploadProfileImageV1Request, opts ...grpc.CallOption) (*UploadProfileImageV1Response, error)
 }
 
 type userServiceClient struct {
@@ -83,6 +87,26 @@ func (c *userServiceClient) UpdateV1(ctx context.Context, in *UpdateV1Request, o
 	return out, nil
 }
 
+func (c *userServiceClient) ValidateV1(ctx context.Context, in *ValidateV1Request, opts ...grpc.CallOption) (*ValidateV1Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateV1Response)
+	err := c.cc.Invoke(ctx, UserService_ValidateV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UploadProfileImageV1(ctx context.Context, in *UploadProfileImageV1Request, opts ...grpc.CallOption) (*UploadProfileImageV1Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadProfileImageV1Response)
+	err := c.cc.Invoke(ctx, UserService_UploadProfileImageV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -91,6 +115,8 @@ type UserServiceServer interface {
 	LogInV1(context.Context, *LogInV1Request) (*LogInV1Response, error)
 	LogOutV1(context.Context, *LogOutV1Request) (*LogOutV1Response, error)
 	UpdateV1(context.Context, *UpdateV1Request) (*UpdateV1Response, error)
+	ValidateV1(context.Context, *ValidateV1Request) (*ValidateV1Response, error)
+	UploadProfileImageV1(context.Context, *UploadProfileImageV1Request) (*UploadProfileImageV1Response, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -112,6 +138,12 @@ func (UnimplementedUserServiceServer) LogOutV1(context.Context, *LogOutV1Request
 }
 func (UnimplementedUserServiceServer) UpdateV1(context.Context, *UpdateV1Request) (*UpdateV1Response, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateV1 not implemented")
+}
+func (UnimplementedUserServiceServer) ValidateV1(context.Context, *ValidateV1Request) (*ValidateV1Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateV1 not implemented")
+}
+func (UnimplementedUserServiceServer) UploadProfileImageV1(context.Context, *UploadProfileImageV1Request) (*UploadProfileImageV1Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method UploadProfileImageV1 not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -206,6 +238,42 @@ func _UserService_UpdateV1_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ValidateV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ValidateV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ValidateV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ValidateV1(ctx, req.(*ValidateV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UploadProfileImageV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadProfileImageV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UploadProfileImageV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UploadProfileImageV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UploadProfileImageV1(ctx, req.(*UploadProfileImageV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +296,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateV1",
 			Handler:    _UserService_UpdateV1_Handler,
+		},
+		{
+			MethodName: "ValidateV1",
+			Handler:    _UserService_ValidateV1_Handler,
+		},
+		{
+			MethodName: "UploadProfileImageV1",
+			Handler:    _UserService_UploadProfileImageV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

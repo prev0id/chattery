@@ -113,7 +113,7 @@
       }
     },
     "/v1/update": {
-      "post": {
+      "put": {
         "operationId": "UserService_UpdateV1",
         "responses": {
           "200": {
@@ -143,32 +143,222 @@
           "UserService"
         ]
       }
+    },
+    "/v1/upload_profile_image": {
+      "post": {
+        "operationId": "UserService_UploadProfileImageV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chat_serviceUploadProfileImageV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chat_serviceUploadProfileImageV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/v1/validate": {
+      "post": {
+        "operationId": "UserService_ValidateV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chat_serviceValidateV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/chat_serviceValidateV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
     }
   },
   "definitions": {
     "chat_serviceLogInV1Request": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
     },
     "chat_serviceLogInV1Response": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        }
+      }
     },
     "chat_serviceLogOutV1Request": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        }
+      }
     },
     "chat_serviceLogOutV1Response": {
       "type": "object"
     },
+    "chat_serviceSession": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "maxAge": {
+          "type": "string",
+          "format": "int64"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "httpOnly": {
+          "type": "boolean"
+        },
+        "sameSite": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "chat_serviceSignUpV1Request": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
     },
     "chat_serviceSignUpV1Response": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        }
+      }
     },
     "chat_serviceUpdateV1Request": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        }
+      }
     },
     "chat_serviceUpdateV1Response": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        },
+        "username": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "chat_serviceUploadProfileImageV1Request": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        },
+        "type": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "chat_serviceUploadProfileImageV1Response": {
+      "type": "object",
+      "properties": {
+        "imageId": {
+          "type": "string"
+        }
+      }
+    },
+    "chat_serviceValidateV1Request": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/chat_serviceSession"
+        }
+      }
+    },
+    "chat_serviceValidateV1Response": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "imageId": {
+          "type": "string"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

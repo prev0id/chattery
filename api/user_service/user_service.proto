@@ -27,32 +27,87 @@ service UserService {
   }
   rpc UpdateV1(UpdateV1Request) returns (UpdateV1Response) {
     option (google.api.http) = {
-      post: "/v1/update"
+      put: "/v1/update"
+      body: "*"
+    };
+  }
+  rpc ValidateV1(ValidateV1Request) returns (ValidateV1Response) {
+    option (google.api.http) = {
+      post: "/v1/validate"
+      body: "*"
+    };
+  }
+  rpc UploadProfileImageV1(UploadProfileImageV1Request) returns (UploadProfileImageV1Response) {
+    option (google.api.http) = {
+      post: "/v1/upload_profile_image"
       body: "*"
     };
   }
 }
 
 message SignUpV1Request {
+  string username = 1;
+  string login = 2;
+  string password = 3;
 }
 
 message SignUpV1Response {
+  Session session = 1;
 }
 
 message LogInV1Request {
+  string login = 1;
+  string password = 2;
 }
 
 message LogInV1Response {
+  Session session = 1;
 }
 
 message LogOutV1Request {
+  Session session = 1;
 }
 
 message LogOutV1Response {
 }
 
 message UpdateV1Request {
+  Session session = 1;
 }
 
 message UpdateV1Response {
+  Session session = 1;
+  string username = 2;
+  string login = 3;
+  string password = 4;
+}
+
+message ValidateV1Request {
+  Session session = 1;
+}
+
+message ValidateV1Response {
+  string username = 1;
+  string login = 2;
+  string image_id = 3;
+}
+
+message UploadProfileImageV1Request {
+  Session session = 1;
+  string type = 2;
+  bytes content = 3;
+}
+
+message UploadProfileImageV1Response {
+  string image_id = 1;
+}
+
+message Session {
+    string name = 1;
+		string value = 2;
+		string path = 3;
+		int64 max_age = 4;
+		bool secure = 5;
+		bool http_only = 6;
+		int64 same_site = 7;
 }

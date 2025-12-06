@@ -24,7 +24,7 @@
         - [ ] Add to docker-compose.yml
     - [ ] Contracts
         - [x] GRPC generation
-        - [ ] GRPC contracts
+        - [x] GRPC contracts
         - [ ] Migrations
         - [ ] Roll up migrations
     - [ ] Service
@@ -35,3 +35,5 @@
         - [ ] LogIn handler
         - [ ] LogOut handler
         - [ ] Update handler
+        - [ ] Validate handler
+        - [ ] Upload image handler
