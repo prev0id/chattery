@@ -27,3 +27,22 @@ func convertSessionToPB(session domain.Session) *user_servicepb.Session {
 		SameSite: int64(session.SameSite),
 	}
 }
+
+func convertClaimsToUserInfo(claims domain.Claims) *user_servicepb.UserInfo {
+	return &user_servicepb.UserInfo{
+		UserId:   int64(claims.UserID),
+		Username: claims.Username,
+		ImageId:  string(claims.ImageID),
+	}
+}
+
+func convertUserFromUpdateRequest(request *user_servicepb.UpdateV1Request) domain.User {
+	user := domain.User{
+		Login:    request.GetLogin(),
+		Username: request.GetUsername(),
+	}
+	if request.GetLogin() != "" && request.GetPassword() != "" {
+		user.SetRawPassword(request.GetPassword())
+	}
+	return user
+}

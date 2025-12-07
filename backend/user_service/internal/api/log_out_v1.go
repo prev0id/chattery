@@ -1,10 +1,14 @@
 package api
 
 import (
-	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
 	"context"
+
+	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
 )
 
 func (s *Server) LogOutV1(ctx context.Context, request *user_servicepb.LogOutV1Request) (*user_servicepb.LogOutV1Response, error) {
-	return nil, nil
+	session := s.service.CreateSessionInvalidation()
+	return &user_servicepb.LogOutV1Response{
+		Session: convertSessionToPB(session),
+	}, nil
 }

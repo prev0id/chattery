@@ -4,8 +4,6 @@ GEN_PATH=internal/pb
 MIGRATIONS_PATH=migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 
-
-
 .PHONY: run
 run:
 	go tool air -c .air.toml
@@ -27,6 +25,9 @@ generate-proto:
 .PHONY: down-docker
 down-docker:
 	docker-compose down -v
+
+.PHONY: up
+up: up-docker up-migrate
 
 .PHONY: up-docker
 up-docker:
@@ -55,8 +56,8 @@ get-grpc-deps:
 	wget -qP '$(API_PATH)/google/api' https://raw.githubusercontent.com/googleapis/googleapis/refs/heads/master/google/api/http.proto
 	wget -qP '$(API_PATH)/google/api' https://raw.githubusercontent.com/googleapis/googleapis/refs/heads/master/google/api/httpbody.proto
 
-.PHONY: migrate
-migrate: migrate-user-service
+.PHONY: up-migrate
+up-migrate: migrate-user-service
 
 .PHONY: migrate-user-service
 migrate-user-service:

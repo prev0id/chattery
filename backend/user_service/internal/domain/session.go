@@ -19,6 +19,7 @@ type Session struct {
 type Claims struct {
 	jwt.RegisteredClaims
 
-	UserID   UserID `json:"user_id"`
-	Username string `json:"username"`
+	UserID   UserID  `json:"user_id"`
+	Username string  `json:"username"`
+	ImageID  ImageID `json:"image_id"`
 }

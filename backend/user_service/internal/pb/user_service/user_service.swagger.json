@@ -16,6 +16,41 @@
     "application/json"
   ],
   "paths": {
+    "/v1/get_users_info": {
+      "get": {
+        "operationId": "UserService_GetUsersInfoV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/chat_serviceGetUsersInfoV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
     "/v1/login": {
       "post": {
         "operationId": "UserService_LogInV1",
@@ -210,6 +245,18 @@
     }
   },
   "definitions": {
+    "chat_serviceGetUsersInfoV1Response": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/chat_serviceUserInfo"
+          }
+        }
+      }
+    },
     "chat_serviceLogInV1Request": {
       "type": "object",
       "properties": {
@@ -230,15 +277,15 @@
       }
     },
     "chat_serviceLogOutV1Request": {
+      "type": "object"
+    },
+    "chat_serviceLogOutV1Response": {
       "type": "object",
       "properties": {
         "session": {
           "$ref": "#/definitions/chat_serviceSession"
         }
       }
-    },
-    "chat_serviceLogOutV1Response": {
-      "type": "object"
     },
     "chat_serviceSession": {
       "type": "object",
@@ -295,14 +342,6 @@
       "properties": {
         "session": {
           "$ref": "#/definitions/chat_serviceSession"
-        }
-      }
-    },
-    "chat_serviceUpdateV1Response": {
-      "type": "object",
-      "properties": {
-        "session": {
-          "$ref": "#/definitions/chat_serviceSession"
         },
         "username": {
           "type": "string"
@@ -314,6 +353,9 @@
           "type": "string"
         }
       }
+    },
+    "chat_serviceUpdateV1Response": {
+      "type": "object"
     },
     "chat_serviceUploadProfileImageV1Request": {
       "type": "object",
@@ -338,6 +380,21 @@
         }
       }
     },
+    "chat_serviceUserInfo": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "username": {
+          "type": "string"
+        },
+        "imageId": {
+          "type": "string"
+        }
+      }
+    },
     "chat_serviceValidateV1Request": {
       "type": "object",
       "properties": {
@@ -349,14 +406,8 @@
     "chat_serviceValidateV1Response": {
       "type": "object",
       "properties": {
-        "username": {
-          "type": "string"
-        },
-        "login": {
-          "type": "string"
-        },
-        "imageId": {
-          "type": "string"
+        "info": {
+          "$ref": "#/definitions/chat_serviceUserInfo"
         }
       }
     },

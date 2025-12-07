@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	postgres_client "chattery/backend/user_service/internal/client/postgres"
-	"chattery/backend/user_service/internal/domain"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	postgres_client "chattery/backend/user_service/internal/client/postgres"
+	"chattery/backend/user_service/internal/domain"
 )
 
 const (
@@ -65,6 +65,20 @@ func (a *Adapter) GetUserByLogin(ctx context.Context, login string) (domain.User
 		return domain.User{}, fmt.Errorf("a.db.GetUserByLogin: %w", err)
 	}
 	return convertUserFromDB(user), nil
+}
+
+func (a *Adapter) UpdateUser(ctx context.Context, user domain.User) error {
+	err := a.db.UpdateUser(ctx, postgres_client.UpdateUserParams{
+		ID:       int64(user.ID),
+		Login:    user.Login,
+		Password: user.Password,
+		Username: user.Username,
+		ImageID:  string(user.ImageID),
+	})
+	if err != nil {
+		return fmt.Errorf("a.db.UpdateUser: %w", err)
+	}
+	return nil
 }
 
 func convertUserFromDB(user postgres_client.User) domain.User {

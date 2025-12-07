@@ -43,6 +43,11 @@ service UserService {
       body: "*"
     };
   }
+  rpc GetUsersInfoV1(GetUsersInfoV1Request) returns (GetUsersInfoV1Response) {
+    option (google.api.http) = {
+      get: "/v1/get_users_info"
+    };
+  }
 }
 
 message SignUpV1Request {
@@ -65,21 +70,20 @@ message LogInV1Response {
 }
 
 message LogOutV1Request {
-  Session session = 1;
 }
 
 message LogOutV1Response {
+  Session session = 1;
 }
 
 message UpdateV1Request {
   Session session = 1;
-}
-
-message UpdateV1Response {
-  Session session = 1;
   string username = 2;
   string login = 3;
   string password = 4;
+}
+
+message UpdateV1Response {
 }
 
 message ValidateV1Request {
@@ -87,9 +91,7 @@ message ValidateV1Request {
 }
 
 message ValidateV1Response {
-  string username = 1;
-  string login = 2;
-  string image_id = 3;
+  UserInfo info = 1;
 }
 
 message UploadProfileImageV1Request {
@@ -100,6 +102,20 @@ message UploadProfileImageV1Request {
 
 message UploadProfileImageV1Response {
   string image_id = 1;
+}
+
+message GetUsersInfoV1Request {
+  repeated int64 ids = 1;
+}
+
+message GetUsersInfoV1Response {
+ repeated UserInfo info = 1;
+}
+
+message UserInfo {
+  int64 user_id = 1;
+  string username = 2;
+  string image_id = 3;
 }
 
 message Session {

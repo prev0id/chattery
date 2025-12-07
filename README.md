@@ -33,8 +33,8 @@
         - [ ] S3 adapter
         - [x] SignUp handler
         - [x] LogIn handler
-        - [ ] LogOut handler
-        - [ ] Update handler
-        - [ ] Validate handler
+        - [x] LogOut handler
+        - [x] Update handler
+        - [x] Validate handler
         - [ ] Upload image handler
         - [ ] Validations to signup

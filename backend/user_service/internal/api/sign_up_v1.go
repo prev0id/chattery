@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"chattery/backend/user_service/internal/domain"
 	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
+	"chattery/backend/user_service/internal/utils"
 )
 
 func (s *Server) SignUpV1(ctx context.Context, request *user_servicepb.SignUpV1Request) (*user_servicepb.SignUpV1Response, error) {
@@ -12,7 +12,7 @@ func (s *Server) SignUpV1(ctx context.Context, request *user_servicepb.SignUpV1R
 
 	session, err := s.service.CreateUser(ctx, user)
 	if err != nil {
-		return nil, domain.HandleGRPCError(err)
+		return nil, utils.HandleGRPCError(err)
 	}
 
 	return &user_servicepb.SignUpV1Response{
