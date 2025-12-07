@@ -888,19 +888,16 @@ const file_user_service_user_service_proto_rawDesc = "" +
 	"\amax_age\x18\x04 \x01(\x03R\x06maxAge\x12\x16\n" +
 	"\x06secure\x18\x05 \x01(\bR\x06secure\x12\x1b\n" +
 	"\thttp_only\x18\x06 \x01(\bR\bhttpOnly\x12\x1b\n" +
-	"\tsame_site\x18\a \x01(\x03R\bsameSite2\x89\x06\n" +
-	"\vUserService\x12`\n" +
-	"\bSignUpV1\x12\x1d.chat_service.SignUpV1Request\x1a\x1e.chat_service.SignUpV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
-	"/v1/signup\x12\\\n" +
-	"\aLogInV1\x12\x1c.chat_service.LogInV1Request\x1a\x1d.chat_service.LogInV1Response\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/login\x12`\n" +
-	"\bLogOutV1\x12\x1d.chat_service.LogOutV1Request\x1a\x1e.chat_service.LogOutV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
-	"/v1/logout\x12`\n" +
-	"\bUpdateV1\x12\x1d.chat_service.UpdateV1Request\x1a\x1e.chat_service.UpdateV1Response\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\x1a\n" +
-	"/v1/update\x12h\n" +
+	"\tsame_site\x18\a \x01(\x03R\bsameSite2\x94\x06\n" +
+	"\vUserService\x12e\n" +
+	"\bSignUpV1\x12\x1d.chat_service.SignUpV1Request\x1a\x1e.chat_service.SignUpV1Response\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/user/create\x12a\n" +
+	"\aLogInV1\x12\x1c.chat_service.LogInV1Request\x1a\x1d.chat_service.LogInV1Response\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/user/login\x12e\n" +
+	"\bLogOutV1\x12\x1d.chat_service.LogOutV1Request\x1a\x1e.chat_service.LogOutV1Response\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/user/logout\x12e\n" +
+	"\bUpdateV1\x12\x1d.chat_service.UpdateV1Request\x1a\x1e.chat_service.UpdateV1Response\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/v1/user/update\x12m\n" +
 	"\n" +
-	"ValidateV1\x12\x1f.chat_service.ValidateV1Request\x1a .chat_service.ValidateV1Response\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/validate\x12\x92\x01\n" +
-	"\x14UploadProfileImageV1\x12).chat_service.UploadProfileImageV1Request\x1a*.chat_service.UploadProfileImageV1Response\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/upload_profile_image\x12w\n" +
-	"\x0eGetUsersInfoV1\x12#.chat_service.GetUsersInfoV1Request\x1a$.chat_service.GetUsersInfoV1Response\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/get_users_infoB*Z(chattery/user_service/api;user_servicepbb\x06proto3"
+	"ValidateV1\x12\x1f.chat_service.ValidateV1Request\x1a .chat_service.ValidateV1Response\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/user/validate\x12\x88\x01\n" +
+	"\x14UploadProfileImageV1\x12).chat_service.UploadProfileImageV1Request\x1a*.chat_service.UploadProfileImageV1Response\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/user/image\x12s\n" +
+	"\x0eGetUsersInfoV1\x12#.chat_service.GetUsersInfoV1Request\x1a$.chat_service.GetUsersInfoV1Response\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/users/listB*Z(chattery/user_service/api;user_servicepbb\x06proto3"
 
 var (
 	file_user_service_user_service_proto_rawDescOnce sync.Once

@@ -9,43 +9,43 @@ import "google/api/annotations.proto";
 service UserService {
   rpc SignUpV1(SignUpV1Request) returns (SignUpV1Response) {
     option (google.api.http) = {
-      post: "/v1/signup"
+      post: "/v1/user/create"
       body: "*"
     };
   }
   rpc LogInV1(LogInV1Request) returns (LogInV1Response) {
     option (google.api.http) = {
-      post: "/v1/login"
+      post: "/v1/user/login"
       body: "*"
     };
   }
   rpc LogOutV1(LogOutV1Request) returns (LogOutV1Response) {
     option (google.api.http) = {
-      post: "/v1/logout"
+      post: "/v1/user/logout"
       body: "*"
     };
   }
   rpc UpdateV1(UpdateV1Request) returns (UpdateV1Response) {
     option (google.api.http) = {
-      put: "/v1/update"
+      put: "/v1/user/update"
       body: "*"
     };
   }
   rpc ValidateV1(ValidateV1Request) returns (ValidateV1Response) {
     option (google.api.http) = {
-      post: "/v1/validate"
+      post: "/v1/user/validate"
       body: "*"
     };
   }
   rpc UploadProfileImageV1(UploadProfileImageV1Request) returns (UploadProfileImageV1Response) {
     option (google.api.http) = {
-      post: "/v1/upload_profile_image"
+      post: "/v1/user/image"
       body: "*"
     };
   }
   rpc GetUsersInfoV1(GetUsersInfoV1Request) returns (GetUsersInfoV1Response) {
     option (google.api.http) = {
-      get: "/v1/get_users_info"
+      get: "/v1/users/list"
     };
   }
 }
