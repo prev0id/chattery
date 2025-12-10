@@ -1,8 +1,8 @@
 package api
 
 import (
+	user_servicepb "chattery/backend/common/pb/user_service"
 	"chattery/backend/user_service/internal/domain"
-	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
 )
 
 func convertUserFromSignUpRequest(request *user_servicepb.SignUpV1Request) domain.User {
