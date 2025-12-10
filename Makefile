@@ -1,12 +1,18 @@
 BACKEND_PATH=./backend
 API_PATH=./api
-GEN_PATH=internal/pb
+GEN_PATH=$(BACKEND_PATH)/common/pb
 MIGRATIONS_PATH=migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 
 .PHONY: run
 run:
 	go tool air -c .air.toml
+
+.PHONY: build
+build:
+	npx @tailwindcss/cli -i ./website/app.css -o ./website/src/css/main.css --minify
+	go tool templ generate
+	go build -o ./bin/chattery ./cmd/main.go
 
 .PHONY: start-tailwind
 start-tailwind:
@@ -34,18 +40,15 @@ up-docker:
 	docker-compose up -d
 
 .PHONY: generate
-generate: generate-user-service
-
-.PHONY: generate-user-service
-generate-user-service:
+generate:
 	protoc -I '$(API_PATH)' \
-    	--go_out '$(BACKEND_PATH)/user_service/$(GEN_PATH)' \
+    	--go_out '$(GEN_PATH)' \
     	--go_opt paths=source_relative \
-    	--go-grpc_out '$(BACKEND_PATH)/user_service/$(GEN_PATH)' \
+    	--go-grpc_out '$(GEN_PATH)' \
     	--go-grpc_opt paths=source_relative \
-    	--grpc-gateway_out '$(BACKEND_PATH)/user_service/$(GEN_PATH)' \
+    	--grpc-gateway_out '$(GEN_PATH)' \
     	--grpc-gateway_opt paths=source_relative \
-    	--openapiv2_out '$(BACKEND_PATH)/user_service/$(GEN_PATH)' \
+    	--openapiv2_out '$(GEN_PATH)' \
         '$(API_PATH)/user_service/user_service.proto'
 
 .PHONY: get-grpc-deps

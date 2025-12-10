@@ -11,6 +11,7 @@ import (
 	"chattery/internal/pb/api/websocketpb"
 	"chattery/internal/service/signaling"
 	static "chattery/website"
+	"chattery/website/layout"
 )
 
 const address = "localhost:8080"
@@ -24,6 +25,8 @@ func main() {
 	// http.HandleFunc(static.NotFoundPath, handle404)
 	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
 	http.HandleFunc("/ws", websocketHandler(appCtx))
+	http.HandleFunc("/chat", handleChat)
+	http.HandleFunc("/not_found", handleNotFound)
 
 	slog.Info("starting server", slog.String("address", "http://"+address))
 
@@ -82,4 +85,16 @@ func websocketHandler(ctx context.Context) http.HandlerFunc {
 
 		signalingService.ListenAndServe(ctx)
 	}
+}
+
+func handleNotFound(w http.ResponseWriter, r *http.Request) {
+	layout.Base(
+		layout.NotFound(),
+	).Render(r.Context(), w)
+}
+
+func handleChat(w http.ResponseWriter, r *http.Request) {
+	layout.Base(
+		layout.Chat(),
+	).Render(r.Context(), w)
 }

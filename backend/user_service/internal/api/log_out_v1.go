@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
+	user_servicepb "chattery/backend/common/pb/user_service"
 )
 
 func (s *Server) LogOutV1(ctx context.Context, request *user_servicepb.LogOutV1Request) (*user_servicepb.LogOutV1Response, error) {

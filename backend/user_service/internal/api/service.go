@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	common_pb "chattery/backend/common/pb"
+	user_servicepb "chattery/backend/common/pb/user_service"
 	"chattery/backend/user_service/internal/config"
-	"chattery/backend/user_service/internal/pb"
-	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
 	"chattery/backend/user_service/internal/service/user"
 )
 
@@ -67,7 +67,7 @@ func (s *Server) handleHTTP(ctx context.Context) error {
 		return fmt.Errorf("user_servicepb.RegisterUserServiceHandlerFromEndpoint: %w", err)
 	}
 
-	pb.RegisterSwaggerHandlers(mux)
+	common_pb.RegisterSwaggerHandlers(mux, common_pb.UserServiceSwaggerJSON)
 
 	go func() {
 		slog.Info("starting HTTP server", slog.String("address", config.HTTPAddress))

@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	user_servicepb "chattery/backend/user_service/internal/pb/user_service"
+	user_servicepb "chattery/backend/common/pb/user_service"
 	"chattery/backend/user_service/internal/utils"
 )
 
