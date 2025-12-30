@@ -1,21 +1,20 @@
--- name: GetUserByID :one
-SELECT * FROM users
-WHERE id = $1;
-
--- name: InsertUser :one
+-- name: CreateUser :exec
 INSERT INTO users(login, password, username)
-VALUES ($1, $2, $3)
-RETURNING id;
+VALUES ($1, $2, $3);
 
 -- name: UpdateUser :exec
 UPDATE users
 SET login=$2,
     password=$3,
     username=$4,
-    image_id=$5,
+    avatar_id=$5,
     updated_at=now()
-WHERE id=$1;
+WHERE username=$1;
 
--- name: GetUserByLogin :one
+-- name: UserByUsername :one
+SELECT * FROM users
+WHERE username = $1;
+
+-- name: UserByLogin :one
 SELECT * FROM users
 WHERE login = $1;
