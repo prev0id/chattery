@@ -4,6 +4,7 @@ import (
 	"chattery/internal/client/postgres"
 	"chattery/internal/config"
 	"chattery/internal/domain"
+	"chattery/internal/utils/errs"
 	"chattery/internal/utils/sliceutil"
 	"context"
 	"fmt"
@@ -27,7 +28,7 @@ func (a *Adapter) AddParticipant(ctx context.Context, chatID domain.ChatID, user
 	}
 
 	if err := a.db.AddParticipant(ctx, req); err != nil {
-		return fmt.Errorf("a.db.AddParticipant: %w", err)
+		return errs.E(err, errs.Debug("a.db.AddParticipant"))
 	}
 
 	return nil
@@ -36,7 +37,7 @@ func (a *Adapter) AddParticipant(ctx context.Context, chatID domain.ChatID, user
 func (a *Adapter) Chats(ctx context.Context) ([]*domain.Chat, error) {
 	chats, err := a.db.Chats(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("a.db.Chats: %w", err)
+		return nil, errs.E(err, errs.Debug("a.db.Chats"))
 	}
 
 	return sliceutil.Map(chats, convertChat), nil
@@ -45,7 +46,7 @@ func (a *Adapter) Chats(ctx context.Context) ([]*domain.Chat, error) {
 func (a *Adapter) CreateChat(ctx context.Context, chat *domain.Chat) (domain.ChatID, error) {
 	id, err := a.db.CreateChat(ctx, chat.Type.String())
 	if err != nil {
-		return 0, fmt.Errorf("a.db.CreateChat: %w", err)
+		return 0, errs.E(err, errs.Debug("a.db.CreateChat"))
 	}
 
 	return domain.ChatID(id), nil

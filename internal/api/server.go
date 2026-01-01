@@ -3,16 +3,21 @@ package api
 import (
 	"chattery/internal/config"
 	"fmt"
+	"log/slog"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v3"
 )
 
 type service interface {
-	Register(*fiber.App)
+	Pattern() string
+	Route(chi.Router)
 }
 
 type Server struct {
-	app     *fiber.App
+	mux     *chi.Mux
 	address string
 }
 
@@ -21,24 +26,29 @@ func NewServer(cfg *config.Config) *Server {
 		address: cfg.HTTPAddress,
 	}
 
-	server.app = fiber.New(fiber.Config{
-		Prefork:       true,
-		ServerHeader:  cfg.AppName,
-		CaseSensitive: true,
-	})
+	server.mux = chi.NewRouter()
+	server.mux.Use(
+		httplog.RequestLogger(slog.Default(), nil),
+		middleware.RequestID,
+		middleware.StripSlashes,
+		middleware.Recoverer,
+		middleware.Heartbeat("/ping"),
+	)
 
 	return server
 }
 
 func (s *Server) Register(services ...service) {
 	for _, svc := range services {
-		svc.Register(s.app)
+		s.mux.Route(svc.Pattern(), svc.Route)
 	}
 }
 
 func (s *Server) Run() error {
-	if err := s.app.Listen(s.address); err != nil {
-		return fmt.Errorf("s.app.Listen: %w", err)
+	slog.Info("starting server", slog.String("address", s.address))
+
+	if err := http.ListenAndServe(s.address, s.mux); err != nil {
+		return fmt.Errorf("http.ListenAndServe: %w", err)
 	}
 	return nil
 }
