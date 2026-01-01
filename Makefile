@@ -68,4 +68,4 @@ migrate-user-service:
 
 .PHONY: generate-sqlc
 generate-sqlc:
-	cd '$(BACKEND_PATH)/user_service' && sqlc generate
+	sqlc generate

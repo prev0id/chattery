@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries"
+    schema: "migrations"
+    gen:
+      go:
+        package: "postgres"
+        out: "internal/client/postgres"
+        sql_package: "pgx/v5"
+        emit_interface: true
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: true
+        emit_sql_as_comment: true
+        overrides:
+          - db_type: "pg_catalog.timestamp"
+            go_type:
+              type: "time.Time"
