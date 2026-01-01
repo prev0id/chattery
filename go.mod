@@ -17,7 +17,6 @@ require (
 	github.com/boj/redistore v1.4.1
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/httplog/v3 v3.3.0
-	github.com/go-chi/render v1.0.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gomodule/redigo v1.9.3
 	github.com/gorilla/websocket v1.5.3
@@ -37,7 +36,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/air-verse/air v1.63.4 // indirect
-	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect

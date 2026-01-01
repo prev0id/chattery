@@ -4,8 +4,8 @@ import (
 	"chattery/internal/api"
 	chatapi "chattery/internal/api/chat"
 	"chattery/internal/config"
+	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
-	"log"
 )
 
 func main() {
@@ -22,6 +22,6 @@ func main() {
 	)
 
 	if err := server.Run(); err != nil {
-		log.Fatalf("server.Run: %s", err.Error())
+		errors.E(err).Debug("server.Run").LogFatal()
 	}
 }

@@ -3,11 +3,11 @@ package session
 import (
 	"chattery/internal/config"
 	"chattery/internal/domain"
-	"chattery/internal/utils/errs"
+	"chattery/internal/utils/errors"
+	"chattery/internal/utils/render"
 	"net/http"
 
 	"github.com/boj/redistore"
-	"github.com/go-chi/render"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -23,7 +23,7 @@ type Store struct {
 func New(cfg *config.Config, pool *redis.Pool) (*Store, error) {
 	store, err := redistore.NewRediStoreWithPool(pool, []byte(cfg.SessionSecretKey))
 	if err != nil {
-		return nil, errs.E(err, errs.Debug("redistore.NewRediStoreWithPool"))
+		return nil, errors.E(err).Debug("redistore.NewRediStoreWithPool")
 	}
 
 	return &Store{sessions: store}, nil
@@ -37,7 +37,7 @@ func (s *Store) SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessions.Get(r, sessionName)
 		if err != nil {
-			render.Render(w, r, errs.FromError(err))
+			render.Error(w, r, err)
 			return
 		}
 
@@ -64,5 +64,7 @@ func (s *Store) AuthRequiredMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+
+		// TODO
 	})
 }

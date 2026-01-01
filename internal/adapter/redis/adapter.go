@@ -1,7 +1,7 @@
 package redisadapter
 
 import (
-	"chattery/internal/utils/errs"
+	"chattery/internal/utils/errors"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -23,7 +23,7 @@ func (r *Adapter) Publish(channel string, msg []byte) error {
 	defer conn.Close()
 
 	if _, err := conn.Do("PUBLISH", channel, msg); err != nil {
-		return errs.E(err, errs.Internal, "conn.Do PUBLISH")
+		return errors.E(err).Debug("conn.Do PUBLISH")
 	}
 	return nil
 }
