@@ -151,3 +151,7 @@ func (e *Error) LogFatal() {
 	e.Log("got unrecoverable error")
 	os.Exit(1)
 }
+
+func Is(kind Kind, err error) bool {
+	return E(err).kind == kind
+}

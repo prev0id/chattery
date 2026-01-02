@@ -21,7 +21,7 @@ type Store struct {
 }
 
 func New(cfg *config.Config, pool *redis.Pool) (*Store, error) {
-	store, err := redistore.NewRediStoreWithPool(pool, []byte(cfg.SessionSecretKey))
+	store, err := redistore.NewRediStoreWithPool(pool, []byte(cfg.Session.SecretKey))
 	if err != nil {
 		return nil, errors.E(err).Debug("redistore.NewRediStoreWithPool")
 	}
@@ -37,7 +37,7 @@ func (s *Store) SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessions.Get(r, sessionName)
 		if err != nil {
-			render.Error(w, r, err)
+			render.Error(w, r, errors.E(err).Kind(errors.Unauthorized).Message("invalid session"))
 			return
 		}
 
@@ -55,16 +55,26 @@ func (s *Store) SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+
+		session.Save(r, w)
 	})
+}
+
+func (s *Store) WriteUsernameToSession(r *http.Request, user domain.Username) error {
+	session, err := s.sessions.Get(r, sessionName)
+	if err != nil {
+		return errors.E(err).Kind(errors.Unauthorized).Message("invalid session")
+	}
+	session.Values[usernameSessionKey] = user.String()
+	return nil
 }
 
 func (s *Store) AuthRequiredMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if UsernameFromContext(r.Context()) != domain.UnknownUsername {
+		if UsernameFromContext(r.Context()) != domain.UserUnknown {
 			next.ServeHTTP(w, r)
 			return
 		}
-
-		// TODO
+		render.Error(w, r, errors.E().Kind(errors.Unauthorized).Message("login required"))
 	})
 }

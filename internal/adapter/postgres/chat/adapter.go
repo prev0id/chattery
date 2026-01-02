@@ -16,7 +16,7 @@ type Adapter struct {
 
 func New(cfg *config.Config, db postgres.Querier) *Adapter {
 	return &Adapter{
-		limit: cfg.MessagesLimit,
+		limit: cfg.Chat.MessagesLimit,
 	}
 }
 

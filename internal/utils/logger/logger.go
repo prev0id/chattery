@@ -17,8 +17,8 @@ func Init(cfg *config.Config) {
 			ReplaceAttr: logFormat.ReplaceAttr,
 		},
 	)).With(
-		slog.String("app", cfg.AppName),
-		slog.String("version", cfg.AppVersion),
+		slog.String("app.name", cfg.App.Name),
+		slog.String("app.version", cfg.App.Version),
 	)
 	slog.SetDefault(logger)
 }

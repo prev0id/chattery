@@ -4,6 +4,7 @@ import (
 	"chattery/internal/config"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -23,7 +24,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config) *Server {
 	server := &Server{
-		address: cfg.HTTPAddress,
+		address: net.JoinHostPort(cfg.Http.Host, cfg.Http.Host),
 	}
 
 	server.mux = chi.NewRouter()
