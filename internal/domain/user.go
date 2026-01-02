@@ -1,18 +1,18 @@
 package domain
 
+type User struct {
+	Username Username
+	ImageID  ImageID
+	Login    string
+	Password Password
+}
+
 type Username string
 
 func (u Username) String() string { return string(u) }
 
-const UnknownUsername Username = ""
+const UserUnknown Username = ""
 
-type Password string
+type ImageID string
 
-type User struct {
-	Username Username
-}
-
-type Friend struct {
-	Username Username
-	ChatID   ChatID
-}
+type Login string
