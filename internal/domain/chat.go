@@ -4,6 +4,8 @@ import "time"
 
 type ChatID int64
 
+const ChatUnknown ChatID = 0
+
 func (id ChatID) I64() int64 { return int64(id) }
 
 type ChatType string

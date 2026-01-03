@@ -1,27 +1,45 @@
 package main
 
 import (
+	chatadapter "chattery/internal/adapter/postgres/chat"
 	"chattery/internal/api"
 	chatapi "chattery/internal/api/chat"
+	"chattery/internal/client/redis"
 	"chattery/internal/config"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
+	"chattery/internal/utils/transaction"
+	"context"
 )
 
 func main() {
+	appCtx := context.Background()
+
 	cfg := config.Init()
 
 	logger.Init(cfg)
 
-	server := api.NewServer(cfg)
+	postgresConn, err := database.PostgresConnection(appCtx, cfg)
+	if err != nil {
+		logger.Fatal(err, "database.PostgresConnection")
+	}
+	redisConn, err := database.RedisConnection(appCtx, cfg)
+	if err != nil {
+		logger.Fatal(err, "database.RedisConnection")
+	}
 
-	chatApi := chatapi.New()
+	transactionManager := transaction.NewManager(postgresConn)
+	_ = redis.New(redisConn)
 
-	server.Register(
-		chatApi,
-	)
+	_ = chatadapter.New(cfg, transactionManager)
+
+	server := api.
+		NewServer(cfg).
+		Register(
+			chatapi.New(),
+		)
 
 	if err := server.Run(); err != nil {
-		errors.E(err).Debug("server.Run").LogFatal()
+		logger.Fatal(err, "server.Run")
 	}
 }

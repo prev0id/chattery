@@ -1,10 +1,13 @@
 package chatapi
 
 import (
+	"chattery/internal/service/signaling"
+
 	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
+	signaling *signaling.Service
 }
 
 func New() *Server {

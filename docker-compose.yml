@@ -43,6 +43,10 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_USER=redis_user
+      - REDIS_USER_PASSWORD=redis_user_password
+      - REDIS_DISABLE_DEFAULT_USER="true"
 
 volumes:
   postgres_data:

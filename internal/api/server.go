@@ -12,6 +12,8 @@ import (
 	"github.com/go-chi/httplog/v3"
 )
 
+const MiB = 1024 * 1024
+
 type service interface {
 	Pattern() string
 	Route(chi.Router)
@@ -24,11 +26,11 @@ type Server struct {
 
 func NewServer(cfg *config.Config) *Server {
 	server := &Server{
-		address: net.JoinHostPort(cfg.Http.Host, cfg.Http.Host),
+		address: net.JoinHostPort(cfg.Http.Host, cfg.Http.Port),
 	}
-
 	server.mux = chi.NewRouter()
 	server.mux.Use(
+		middleware.RequestSize(2*MiB),
 		httplog.RequestLogger(slog.Default(), nil),
 		middleware.RequestID,
 		middleware.StripSlashes,
@@ -39,10 +41,11 @@ func NewServer(cfg *config.Config) *Server {
 	return server
 }
 
-func (s *Server) Register(services ...service) {
+func (s *Server) Register(services ...service) *Server {
 	for _, svc := range services {
 		s.mux.Route(svc.Pattern(), svc.Route)
 	}
+	return s
 }
 
 func (s *Server) Run() error {

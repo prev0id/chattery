@@ -2,11 +2,8 @@ package errors
 
 import (
 	"chattery/internal/domain"
-	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"os"
 )
 
 type Kind int8
@@ -129,27 +126,6 @@ func (e *Error) GetMessage() string {
 
 func (e *Error) GetError() error {
 	return e.err
-}
-
-func (e *Error) Log(message string, attr ...slog.Attr) *Error {
-	attr = append(attr,
-		slog.Group("error",
-			slog.String("user", e.user.String()),
-			slog.String("kind", e.kind.String()),
-			slog.Any("debug", e.debug),
-			slog.String("message", e.message),
-			slog.Any("err", e.err),
-		),
-	)
-
-	slog.LogAttrs(context.Background(), slog.LevelError, message, attr...)
-
-	return e
-}
-
-func (e *Error) LogFatal() {
-	e.Log("got unrecoverable error")
-	os.Exit(1)
 }
 
 func Is(kind Kind, err error) bool {

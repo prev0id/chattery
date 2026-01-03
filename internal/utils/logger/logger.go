@@ -2,6 +2,8 @@ package logger
 
 import (
 	"chattery/internal/config"
+	"chattery/internal/utils/errors"
+	"context"
 	"log/slog"
 	"os"
 
@@ -21,4 +23,24 @@ func Init(cfg *config.Config) {
 		slog.String("app.version", cfg.App.Version),
 	)
 	slog.SetDefault(logger)
+}
+
+func Error(err error, message string, attr ...slog.Attr) {
+	e := errors.E(err)
+	attr = append(attr,
+		slog.Group("error",
+			slog.String("user", e.GetUser().String()),
+			slog.String("kind", e.GetKind().String()),
+			slog.Any("debug", e.GetDebug()),
+			slog.String("message", e.GetMessage()),
+			slog.Any("err", e.GetError()),
+		),
+	)
+
+	slog.LogAttrs(context.Background(), slog.LevelError, message, attr...)
+}
+
+func Fatal(err error, message string, attr ...slog.Attr) {
+	Error(err, message, attr...)
+	os.Exit(1)
 }

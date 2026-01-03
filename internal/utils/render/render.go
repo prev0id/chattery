@@ -2,6 +2,7 @@ package render
 
 import (
 	"chattery/internal/utils/errors"
+	"chattery/internal/utils/logger"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func JSON(w http.ResponseWriter, r *http.Request, value any) {
+func Json(w http.ResponseWriter, r *http.Request, value any) {
 	if value == nil {
 		return
 	}
@@ -36,9 +37,9 @@ type responseError struct {
 func Error(w http.ResponseWriter, r *http.Request, err error) {
 	requestID := middleware.GetReqID(r.Context())
 
-	domainErr := errors.E(err).Log("request ended with an error", slog.String("request_id", requestID))
+	logger.Error(err, "request ended with an error", slog.String("request_id", requestID))
 
-	response, _ := json.Marshal(responseError{Message: domainErr.Error()})
+	response, _ := json.Marshal(responseError{Message: err.Error()})
 
 	setContentTypeJSON(w)
 	w.Write(response)
@@ -46,4 +47,17 @@ func Error(w http.ResponseWriter, r *http.Request, err error) {
 
 func setContentTypeJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func JsonBytes(value any) ([]byte, error) {
+	response, err := json.Marshal(value)
+	if err != nil {
+		return nil, errors.E(err).Debug("json.Marshal")
+	}
+	return response, nil
+}
+
+func JsonString(value any) (string, error) {
+	bytes, err := JsonBytes(value)
+	return string(bytes), err
 }

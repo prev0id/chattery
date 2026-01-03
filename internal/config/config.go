@@ -6,11 +6,12 @@ import (
 )
 
 type Config struct {
-	App     App
-	Redis   Redis
-	Session Session
-	Http    Http
-	Chat    Chat
+	App      App
+	Redis    Redis
+	Session  Session
+	Http     Http
+	Chat     Chat
+	Postgres Postgres
 }
 
 type App struct {
@@ -27,6 +28,10 @@ type Redis struct {
 	Address  string
 	Username string
 	Password string
+}
+
+type Postgres struct {
+	URL string
 }
 
 type Session struct {
@@ -46,7 +51,7 @@ func Init() *Config {
 		},
 		Http: Http{
 			Host: bind.EnvString("HTTP_HOST", "localhost"),
-			Port: bind.EnvString("HTTP_PORT", ":8080"),
+			Port: bind.EnvString("HTTP_PORT", "8080"),
 		},
 		Session: Session{
 			Expiration: bind.EnvDuration("SESSION_EXPIRATION", 5*time.Minute),
@@ -54,11 +59,14 @@ func Init() *Config {
 		},
 		Redis: Redis{
 			Address:  bind.EnvString("REDIS_ADDRESS", "localhost:6379"),
-			Username: bind.EnvString("REDIS_USERNAME", "redis_user"),
+			Username: bind.EnvString("REDIS_USERNAME", "default"),
 			Password: bind.EnvString("REDIS_PASSWORD", "redis_password"),
 		},
 		Chat: Chat{
 			MessagesLimit: bind.EnvInt("MESSAGES_LIMIT", 20),
+		},
+		Postgres: Postgres{
+			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),
 		},
 	}
 }
