@@ -47,7 +47,7 @@ func (m *Manager) InTransaction(ctx context.Context, fn func(context.Context) er
 
 func rollback(ctx context.Context, tx pgx.Tx) {
 	if err := tx.Rollback(ctx); err != nil {
-		logger.Error(err, "tx.Rollback")
+		logger.ErrorCtx(ctx, err, "tx.Rollback")
 	}
 }
 

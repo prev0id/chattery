@@ -28,7 +28,7 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	ctx, subscriber := s.signaling.Subscribe(ctx, username, conn)
 	defer s.signaling.Unsubscribe(subscriber)
 
-	// s.chat.Register(ctx, user, subscriber)
+	s.chat.Register(ctx, subscriber)
 	// s.webrtc.Register(ctx, user, subscriber)
 
 	go subscriber.Writer(ctx)

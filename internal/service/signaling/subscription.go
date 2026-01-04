@@ -3,7 +3,6 @@ package signaling
 import (
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
-	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
 	"context"
@@ -23,19 +22,16 @@ func (sub *Subscriber) Writer(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			err := errors.E(ctx.Err()).User(sub.user)
-			logger.Error(err, "[subscriber] ctx.Done")
+			logger.Error(ctx.Err(), "[subscriber] ctx.Done")
 			return
 
 		case event := <-sub.writes:
 			message, err := render.JsonBytes(event)
 			if err != nil {
-				err = errors.E(err).User(sub.user)
 				logger.Error(err, "[subscriber] render.JsonBytes")
 				continue
 			}
 			if err := sub.ws.Write(ctx, websocket.MessageText, message); err != nil {
-				err = errors.E(err).User(sub.user)
 				logger.Error(err, "[subscriber] sub.ws.Write")
 				sub.cancel()
 				return

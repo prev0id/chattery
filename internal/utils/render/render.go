@@ -4,10 +4,7 @@ import (
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 	"encoding/json"
-	"log/slog"
 	"net/http"
-
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 func Json(w http.ResponseWriter, r *http.Request, value any) {
@@ -35,9 +32,7 @@ type responseError struct {
 }
 
 func Error(w http.ResponseWriter, r *http.Request, err error) {
-	requestID := middleware.GetReqID(r.Context())
-
-	logger.Error(err, "request ended with an error", slog.String("request_id", requestID))
+	logger.ErrorCtx(r.Context(), err, "request ended with an error")
 
 	response, _ := json.Marshal(responseError{Message: err.Error()})
 

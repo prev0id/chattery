@@ -12,8 +12,9 @@ import (
 )
 
 type client interface {
-	Get(ctx context.Context, key string) (string, error)
+	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
 	Set(ctx context.Context, key, value string, expiration time.Duration) error
+	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channel string, message string) error
 	Subscribe(ctx context.Context, channel string, sink chan<- string)
 }
@@ -33,12 +34,21 @@ func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, user
 	return nil
 }
 
-func (r *Adapter) UsernameForSession(ctx context.Context, session domain.Session) (domain.Username, error) {
-	user, err := r.client.Get(ctx, sessionKey(session))
+func (r *Adapter) UsernameForSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username {
+	user, err := r.client.GetEx(ctx, sessionKey(session), expiration)
 	if err != nil {
-		return domain.UserUnknown, errors.E(err).Debug("r.client.Get")
+		logger.Error(err, "r.client.GetEx")
+		return domain.UserUnknown
 	}
-	return domain.Username(user), nil
+	return domain.Username(user)
+}
+
+func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) error {
+	if err := r.client.Delete(ctx, sessionKey(session)); err != nil {
+		return errors.E(err).Debug("r.client.Delete")
+	}
+	return nil
+
 }
 
 func (r *Adapter) SendMessage(ctx context.Context, chat domain.ChatID, message domain.Message) error {

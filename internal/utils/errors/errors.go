@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"chattery/internal/domain"
 	"fmt"
 	"net/http"
 )
@@ -19,6 +18,8 @@ const (
 
 func (k Kind) StatusCode() int {
 	switch k {
+	case Internal:
+		return http.StatusInternalServerError
 	case InvalidRequest:
 		return http.StatusBadRequest
 	case Unauthorized:
@@ -29,8 +30,6 @@ func (k Kind) StatusCode() int {
 		return http.StatusConflict
 	case NotFound:
 		return http.StatusNotFound
-	case Internal:
-		return http.StatusInternalServerError
 	default:
 		return http.StatusInternalServerError
 	}
@@ -38,6 +37,8 @@ func (k Kind) StatusCode() int {
 
 func (k Kind) String() string {
 	switch k {
+	case Internal:
+		return "internal error"
 	case InvalidRequest:
 		return "invalid request"
 	case Unauthorized:
@@ -54,7 +55,6 @@ func (k Kind) String() string {
 }
 
 type Error struct {
-	user    domain.Username
 	kind    Kind
 	debug   []string
 	message string
@@ -90,15 +90,6 @@ func (e *Error) Kind(kind Kind) *Error {
 
 func (e *Error) GetKind() Kind {
 	return e.kind
-}
-
-func (e *Error) User(user domain.Username) *Error {
-	e.user = user
-	return e
-}
-
-func (e *Error) GetUser() domain.Username {
-	return e.user
 }
 
 func (e *Error) Debug(messages ...string) *Error {

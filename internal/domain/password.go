@@ -6,7 +6,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Password []byte
+type (
+	Login    string
+	Password []byte
+)
 
 func NewPassword(raw string, login Login) Password {
 	rawWithSalt := addSalt(raw, login)
