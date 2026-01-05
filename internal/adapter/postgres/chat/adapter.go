@@ -1,12 +1,13 @@
 package chatadapter
 
 import (
+	"context"
+
 	"chattery/internal/client/postgres"
 	"chattery/internal/config"
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/sliceutil"
-	"context"
 )
 
 type queryProvider interface {

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"chattery/internal/config"
 	"fmt"
 	"log/slog"
 	"net"
@@ -10,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v3"
+
+	"chattery/internal/config"
 )
 
 const MiB = 1024 * 1024

@@ -1,8 +1,9 @@
 package config
 
 import (
-	"chattery/internal/utils/bind"
 	"time"
+
+	"chattery/internal/utils/bind"
 )
 
 type Config struct {

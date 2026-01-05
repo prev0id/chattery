@@ -1,17 +1,20 @@
-package chatapi
+package signalingapi
 
 import (
-	"chattery/internal/service/session"
-	"chattery/internal/utils/errors"
-	"chattery/internal/utils/render"
 	"net/http"
 
 	"github.com/coder/websocket"
+
+	"chattery/internal/domain"
+	"chattery/internal/service/subscription"
+	"chattery/internal/utils/errors"
+	"chattery/internal/utils/render"
 )
 
 func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	username := session.UsernameFromContext(ctx)
+	username := domain.UsernameFromContext(ctx)
+	session := domain.GetSessionFromRequest(r)
 
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{})
 	if err != nil {
@@ -22,15 +25,12 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, r, err)
 		return
 	}
-
 	defer conn.CloseNow()
 
-	ctx, subscriber := s.signaling.Subscribe(ctx, username, conn)
-	defer s.signaling.Unsubscribe(subscriber)
+	ctx, subscriber := subscription.New(ctx, username, session, conn)
 
 	s.chat.Register(ctx, subscriber)
 	// s.webrtc.Register(ctx, user, subscriber)
 
-	go subscriber.Writer(ctx)
 	subscriber.Reader(ctx)
 }

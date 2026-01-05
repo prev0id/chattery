@@ -1,10 +1,11 @@
 package bind
 
 import (
-	"chattery/internal/utils/errors"
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"chattery/internal/utils/errors"
 )
 
 func Json[T any](request *http.Request) (*T, error) {

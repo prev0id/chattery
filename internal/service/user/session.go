@@ -1,28 +1,26 @@
 package user
 
 import (
+	"context"
+	"net/http"
+	"time"
+
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
-	"context"
-	"net/http"
-	"time"
 )
-
-const sessionCookieName = "__Session"
 
 func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(sessionCookieName)
-		if err != nil {
+		session := domain.GetSessionFromRequest(r)
+		if session == domain.NoSession {
 			clearSessionCookie(w)
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		ctx := r.Context()
-		session := domain.Session(cookie.Value)
 		// save expiration before GetEx
 		expiresAt := time.Now().Add(s.expiration)
 
@@ -72,7 +70,7 @@ func (s *Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
 
 func clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
+		Name:     domain.SessionCookieName,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
@@ -84,7 +82,7 @@ func clearSessionCookie(w http.ResponseWriter) {
 
 func writeSessionsCookie(w http.ResponseWriter, session domain.Session, expiresAt time.Time) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
+		Name:     domain.SessionCookieName,
 		Value:    session.String(),
 		Path:     "/",
 		Expires:  expiresAt,

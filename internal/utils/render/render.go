@@ -1,10 +1,11 @@
 package render
 
 import (
-	"chattery/internal/utils/errors"
-	"chattery/internal/utils/logger"
 	"encoding/json"
 	"net/http"
+
+	"chattery/internal/utils/errors"
+	"chattery/internal/utils/logger"
 )
 
 func Json(w http.ResponseWriter, r *http.Request, value any) {

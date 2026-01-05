@@ -1,11 +1,12 @@
 package redis
 
 import (
-	"chattery/internal/utils/errors"
 	"context"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+
+	"chattery/internal/utils/errors"
 )
 
 type Client struct {

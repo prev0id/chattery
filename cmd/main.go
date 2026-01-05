@@ -1,17 +1,18 @@
 package main
 
 import (
+	"context"
+
 	chatadapter "chattery/internal/adapter/postgres/chat"
 	redisadapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
-	chatapi "chattery/internal/api/chat"
+	signalingapi "chattery/internal/api/signaling"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
 	"chattery/internal/service/chat"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/transaction"
-	"context"
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 	server := api.
 		NewServer(cfg).
 		Register(
-			chatapi.New(),
+			signalingapi.New(),
 		)
 
 	if err := server.Run(); err != nil {

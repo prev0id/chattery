@@ -1,14 +1,15 @@
 package redisadapter
 
 import (
+	"context"
+	"strconv"
+	"time"
+
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
-	"context"
-	"strconv"
-	"time"
 )
 
 type client interface {

@@ -1,12 +1,13 @@
 package transaction
 
 import (
-	"chattery/internal/client/postgres"
-	"chattery/internal/utils/errors"
-	"chattery/internal/utils/logger"
 	"context"
 
 	"github.com/jackc/pgx/v5"
+
+	"chattery/internal/client/postgres"
+	"chattery/internal/utils/errors"
+	"chattery/internal/utils/logger"
 )
 
 type Manager struct {

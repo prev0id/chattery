@@ -1,10 +1,11 @@
 package user
 
 import (
-	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
 	"context"
 	"time"
+
+	"chattery/internal/domain"
+	"chattery/internal/utils/errors"
 )
 
 type db interface {

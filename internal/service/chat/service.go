@@ -1,8 +1,9 @@
 package chat
 
 import (
-	"chattery/internal/domain"
 	"context"
+
+	"chattery/internal/domain"
 )
 
 type db interface {

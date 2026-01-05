@@ -1,12 +1,13 @@
 package database
 
 import (
-	"chattery/internal/config"
-	"chattery/internal/utils/errors"
 	"context"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
+
+	"chattery/internal/config"
+	"chattery/internal/utils/errors"
 )
 
 func PostgresConnection(ctx context.Context, cfg *config.Config) (*pgx.Conn, error) {
