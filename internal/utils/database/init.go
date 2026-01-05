@@ -2,8 +2,10 @@ package database
 
 import (
 	"context"
+	std_errors "errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/redis/go-redis/v9"
 
 	"chattery/internal/config"
@@ -33,4 +35,26 @@ func RedisConnection(ctx context.Context, cfg *config.Config) (*redis.Client, er
 		return nil, errors.E(err).Debug("client.Ping")
 	}
 	return client, nil
+}
+
+func IsConstraintViolation(err error, constraintName string) bool {
+	if err == nil {
+		return false
+	}
+
+	pgxErr := &pgconn.PgError{}
+	if ok := std_errors.As(err, &pgxErr); ok {
+		return pgxErr.ConstraintName == constraintName
+	}
+	return false
+}
+
+func NotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	if std_errors.Is(err, pgx.ErrNoRows) {
+		return true
+	}
+	return false
 }

@@ -64,4 +64,4 @@ up-migrate:
 
 .PHONY: generate-sqlc
 generate-sqlc:
-	sqlc generate
+	go tool sqlc generate

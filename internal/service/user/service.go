@@ -18,7 +18,7 @@ type db interface {
 
 type cache interface {
 	WriteSession(ctx context.Context, session domain.Session, user domain.Username, expiration time.Duration) error
-	ExpireSession(ctx context.Context, session domain.Session) error
+	ClearSession(ctx context.Context, session domain.Session) error
 	UsernameFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username
 }
 
@@ -34,10 +34,11 @@ type Service struct {
 	expiration time.Duration
 }
 
-func New(dbAdapter db, cacheAdapter cache) *Service {
+func New(dbAdapter db, cacheAdapter cache, transaction txManager) *Service {
 	return &Service{
-		db:    dbAdapter,
-		cache: cacheAdapter,
+		db:          dbAdapter,
+		cache:       cacheAdapter,
+		transaction: transaction,
 	}
 }
 
@@ -95,6 +96,15 @@ func (s *Service) UpdateUser(ctx context.Context, username domain.Username, upda
 
 		if err := s.db.UpdateUser(ctx, username, updated); err != nil {
 			return errors.E(err).Debug("s.db.UpdateUser")
+		}
+		return nil
+	})
+}
+
+func (s *Service) DeleteUser(ctx context.Context, username domain.Username) error {
+	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
+		if err := s.db.DeleteUser(ctx, username); err != nil {
+			return errors.E(err).Debug("s.db.DeleteUser")
 		}
 		return nil
 	})

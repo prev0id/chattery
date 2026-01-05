@@ -35,6 +35,11 @@ type Querier interface {
 	//  INSERT INTO users(login, password, username)
 	//  VALUES ($1, $2, $3)
 	CreateUser(ctx context.Context, arg *CreateUserParams) error
+	//DeleteUserByUsername
+	//
+	//  DELETE FROM users
+	//  WHERE username = $1
+	DeleteUserByUsername(ctx context.Context, username string) (int64, error)
 	//FirstPageOfMessages
 	//
 	//  SELECT id, chat_id, username, text, created_at FROM chat_messages
@@ -52,12 +57,12 @@ type Querier interface {
 	//UpdateUser
 	//
 	//  UPDATE users
-	//  SET login=$2,
-	//      password=$3,
-	//      username=$4,
-	//      avatar_id=$5,
+	//  SET username = $1,
+	//      login = $2,
+	//      password = $3,
+	//      avatar_id = $4,
 	//      updated_at=now()
-	//  WHERE username=$1
+	//  WHERE username = $5
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) error
 	//UserByLogin
 	//

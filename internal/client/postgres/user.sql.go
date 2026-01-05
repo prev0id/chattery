@@ -29,40 +29,57 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) error {
 	return err
 }
 
+const deleteUserByUsername = `-- name: DeleteUserByUsername :execrows
+DELETE FROM users
+WHERE username = $1
+`
+
+// DeleteUserByUsername
+//
+//	DELETE FROM users
+//	WHERE username = $1
+func (q *Queries) DeleteUserByUsername(ctx context.Context, username string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUserByUsername, username)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
-SET login=$2,
-    password=$3,
-    username=$4,
-    avatar_id=$5,
+SET username = $1,
+    login = $2,
+    password = $3,
+    avatar_id = $4,
     updated_at=now()
-WHERE username=$1
+WHERE username = $5
 `
 
 type UpdateUserParams struct {
-	Username   string
-	Login      string
-	Password   []byte
-	Username_2 string
-	AvatarID   string
+	NewUsername string
+	NewLogin    string
+	NewPassword []byte
+	NewAvatarID string
+	OldUsername string
 }
 
 // UpdateUser
 //
 //	UPDATE users
-//	SET login=$2,
-//	    password=$3,
-//	    username=$4,
-//	    avatar_id=$5,
+//	SET username = $1,
+//	    login = $2,
+//	    password = $3,
+//	    avatar_id = $4,
 //	    updated_at=now()
-//	WHERE username=$1
+//	WHERE username = $5
 func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) error {
 	_, err := q.db.Exec(ctx, updateUser,
-		arg.Username,
-		arg.Login,
-		arg.Password,
-		arg.Username_2,
-		arg.AvatarID,
+		arg.NewUsername,
+		arg.NewLogin,
+		arg.NewPassword,
+		arg.NewAvatarID,
+		arg.OldUsername,
 	)
 	return err
 }

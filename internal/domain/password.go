@@ -11,6 +11,8 @@ type (
 	Password []byte
 )
 
+func (l Login) String() string { return string(l) }
+
 func NewPassword(raw string, login Login) Password {
 	rawWithSalt := addSalt(raw, login)
 	encrypted, _ := bcrypt.GenerateFromPassword(rawWithSalt, bcrypt.DefaultCost)

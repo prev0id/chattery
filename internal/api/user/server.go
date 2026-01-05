@@ -1,4 +1,4 @@
-package user
+package userapi
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 )
 
 type userService interface {
-	ValidateCredentials(ctx context.Context, login domain.Login, rawPassword string)
+	ValidateCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) error
 	UpdateUser(ctx context.Context, username domain.Username, updated *domain.User) error
 	DeleteUser(ctx context.Context, username domain.Username) error
 	CreateSession(ctx context.Context, w http.ResponseWriter, user domain.Username) error
-	ClearSession(ctx context.Context, w http.ResponseWriter, session domain.Session)
+	ClearSession(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	AuthRequiredMiddleware(next http.Handler) http.Handler
 }
 
@@ -34,9 +34,14 @@ func (s *Server) Pattern() string {
 }
 
 func (s *Server) Route(router chi.Router) {
-	router.Get("/login", s.Login)
-	router.Get("/logout", s.Logout)
-	router.Get("/create", s.Create)
-	router.Get("/update", s.Update)
-	router.Get("/delete", s.Delete)
+	router.Post("/create", s.Create)
+	router.Post("/login", s.Login)
+
+	router.Group(func(withAuthRouter chi.Router) {
+		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
+
+		withAuthRouter.Post("/logout", s.Logout)
+		withAuthRouter.Put("/update", s.Update)
+		withAuthRouter.Delete("/delete", s.Delete)
+	})
 }

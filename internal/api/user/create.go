@@ -1,4 +1,4 @@
-package user
+package userapi
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/render"
+	"chattery/internal/utils/validate"
 )
 
 type CreateRequest struct {
@@ -42,7 +43,15 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateCreateRequest(req *CreateRequest) error {
-
+	if err := validate.Username(req.Username); err != nil {
+		return err
+	}
+	if err := validate.Password(req.Password); err != nil {
+		return err
+	}
+	if err := validate.Login(req.Login); err != nil {
+		return err
+	}
 	return nil
 }
 

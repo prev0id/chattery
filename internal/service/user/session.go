@@ -51,8 +51,9 @@ func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, user
 	return nil
 }
 
-func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, session domain.Session) {
-	if err := s.cache.ExpireSession(ctx, session); err != nil {
+func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	session := domain.GetSessionFromRequest(r)
+	if err := s.cache.ClearSession(ctx, session); err != nil {
 		logger.ErrorCtx(ctx, err, "s.cache.ExpireSession")
 	}
 	clearSessionCookie(w)

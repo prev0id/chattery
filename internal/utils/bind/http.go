@@ -18,17 +18,16 @@ func Json[T any](request *http.Request) (*T, error) {
 }
 
 func JsonString[T any](raw string) (*T, error) {
-	var res *T
-	if err := json.Unmarshal([]byte(raw), res); err != nil {
-		return nil, errors.E(err).Debug("json.Unmarshal")
-	}
-	return res, nil
+	return JsonBytes[T]([]byte(raw))
 }
 
 func JsonBytes[T any](raw []byte) (*T, error) {
-	var res *T
-	if err := json.Unmarshal(raw, res); err != nil {
-		return nil, errors.E(err).Debug("json.Unmarshal")
+	result := new(T)
+	if err := json.Unmarshal(raw, result); err != nil {
+		return nil, errors.E(err).
+			Kind(errors.InvalidRequest).
+			Message("invalid json provided").
+			Debug("json.Unmarshal")
 	}
-	return res, nil
+	return result, nil
 }

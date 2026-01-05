@@ -35,7 +35,7 @@ func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, user
 	return nil
 }
 
-func (r *Adapter) UsernameForSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username {
+func (r *Adapter) UsernameFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username {
 	user, err := r.client.GetEx(ctx, sessionKey(session), expiration)
 	if err != nil {
 		logger.Error(err, "r.client.GetEx")

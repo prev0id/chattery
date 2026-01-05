@@ -8,16 +8,7 @@ import (
 	"chattery/internal/utils/logger"
 )
 
-func Json(w http.ResponseWriter, r *http.Request, value any) {
-	if value == nil {
-		return
-	}
-
-	if err, ok := value.(error); ok {
-		Error(w, r, err)
-		return
-	}
-
+func Json[T any](w http.ResponseWriter, r *http.Request, value T) {
 	response, err := json.Marshal(value)
 	if err != nil {
 		Error(w, r, errors.E(err).Debug("json.Marshal"))
@@ -35,9 +26,12 @@ type responseError struct {
 func Error(w http.ResponseWriter, r *http.Request, err error) {
 	logger.ErrorCtx(r.Context(), err, "request ended with an error")
 
+	statusCode := errors.E(err).GetKind().StatusCode()
+
 	response, _ := json.Marshal(responseError{Message: err.Error()})
 
 	setContentTypeJSON(w)
+	w.WriteHeader(statusCode)
 	w.Write(response)
 }
 
