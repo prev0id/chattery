@@ -13,28 +13,3 @@
 - Call Service - сервис с WebRTC для обработки чатов
 
 ![architecture diagram](./docs/attachments/architecture.png)
-
-## TODO
-
-- [ ] User service
-    - [ ] Infra
-        - [x] Add PostgreSQL
-        - [x] Add S3
-        - [ ] Dockerfile
-        - [ ] Add to docker-compose.yml
-    - [x] Contracts
-        - [x] GRPC generation
-        - [x] GRPC contracts
-        - [x] Migrations
-        - [x] Roll up migrations
-    - [ ] Service
-        - [x] GRPC service
-        - [x] PG adapter
-        - [ ] S3 adapter
-        - [x] SignUp handler
-        - [x] LogIn handler
-        - [x] LogOut handler
-        - [x] Update handler
-        - [x] Validate handler
-        - [ ] Upload image handler
-        - [ ] Validations to signup

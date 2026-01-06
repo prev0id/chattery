@@ -2,99 +2,56 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"log"
-	"log/slog"
-	"net/http"
 
-	"chattery/internal/pb/api/websocketpb"
-	"chattery/internal/service/signaling"
-	static "chattery/website"
-	"chattery/website/layout"
+	chatadapter "chattery/internal/adapter/postgres/chat"
+	useradapter "chattery/internal/adapter/postgres/user"
+	redisadapter "chattery/internal/adapter/redis"
+	"chattery/internal/api"
+	signalingapi "chattery/internal/api/signaling"
+	userapi "chattery/internal/api/user"
+	"chattery/internal/client/redis"
+	"chattery/internal/config"
+	"chattery/internal/service/chat"
+	"chattery/internal/service/user"
+	"chattery/internal/utils/database"
+	"chattery/internal/utils/logger"
+	"chattery/internal/utils/transaction"
 )
-
-const address = "localhost:8080"
 
 func main() {
 	appCtx := context.Background()
 
-	http.HandleFunc(static.RootPath, handleRoot)
-	http.HandleFunc(static.SettingsPath, handleSettings)
-	http.HandleFunc(static.AuthPath, handleAuth)
-	// http.HandleFunc(static.NotFoundPath, handle404)
-	http.Handle(static.SrcPath, http.FileServer(http.FS(static.Src)))
-	http.HandleFunc("/ws", websocketHandler(appCtx))
-	http.HandleFunc("/chat", handleChat)
-	http.HandleFunc("/not_found", handleNotFound)
+	cfg := config.Init()
 
-	slog.Info("starting server", slog.String("address", "http://"+address))
+	logger.Init(cfg)
 
-	if err := http.ListenAndServe(address, nil); err != nil {
-		log.Fatalf("http.ListenAndServe: %s", err.Error())
-	}
-
-	slog.Info("gracefully stopped")
-}
-
-func handleRoot(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "" && r.URL.Path != static.RootPath {
-		http.Redirect(w, r, static.RootPath, http.StatusFound)
-		return
-	}
-	w.Write(static.IndexHTML)
-}
-
-// func handle404(w http.ResponseWriter, _ *http.Request) {
-// 	w.Write(static.NotFound)
-// }
-
-func handleSettings(w http.ResponseWriter, _ *http.Request) {
-	w.Write(static.Settings)
-}
-
-func handleAuth(w http.ResponseWriter, _ *http.Request) {
-	w.Write(static.Auth)
-}
-
-func handleStream(w http.ResponseWriter, r *http.Request) {
-	data, err := io.ReadAll(r.Body)
+	postgresConn, err := database.PostgresConnection(appCtx, cfg)
 	if err != nil {
-		slog.Error("io.ReadAll", slog.String("error", err.Error()))
-		return
+		logger.Fatal(err, "database.PostgresConnection")
+	}
+	redisConn, err := database.RedisConnection(appCtx, cfg)
+	if err != nil {
+		logger.Fatal(err, "database.RedisConnection")
 	}
 
-	fmt.Println(string(data))
-	w.WriteHeader(http.StatusOK)
-}
+	transactionManager := transaction.NewManager(postgresConn)
+	chatDB := chatadapter.New(cfg, transactionManager)
+	userDB := useradapter.New(transactionManager)
 
-func websocketHandler(ctx context.Context) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		signalingService, err := signaling.NewService(w, r)
-		if err != nil {
-			slog.Error("websocket.New", slog.String("error", err.Error()))
-		}
+	redisClient := redis.New(redisConn)
+	redisAdapter := redisadapter.NewRedisAdapter(redisClient)
 
-		signalingService.RegisterMessageCallback(websocketpb.Type_ENUM_TYPE_JOIN_CHAT, func(_ context.Context, msg *websocketpb.Message) {
-			fmt.Printf("JOIN: %+v\n", msg)
-		})
+	_ = chat.New(chatDB, redisAdapter)
+	userService := user.New(userDB, redisAdapter, transactionManager)
 
-		signalingService.RegisterMessageCallback(websocketpb.Type_ENUM_TYPE_LEAVE_CHAT, func(_ context.Context, msg *websocketpb.Message) {
-			fmt.Printf("LEAVE: %+v\n", msg)
-		})
+	server := api.
+		NewServer(cfg).
+		Register(
+			signalingapi.New(),
+			userapi.New(userService),
+		)
 
-		signalingService.ListenAndServe(ctx)
+	if err := server.Run(); err != nil {
+		logger.Fatal(err, "server.Run")
 	}
-}
-
-func handleNotFound(w http.ResponseWriter, r *http.Request) {
-	layout.Base(
-		layout.NotFound(),
-	).Render(r.Context(), w)
-}
-
-func handleChat(w http.ResponseWriter, r *http.Request) {
-	layout.Base(
-		layout.Chat(),
-	).Render(r.Context(), w)
 }

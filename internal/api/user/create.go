@@ -1,0 +1,66 @@
+package userapi
+
+import (
+	"net/http"
+
+	"chattery/internal/domain"
+	"chattery/internal/utils/bind"
+	"chattery/internal/utils/render"
+	"chattery/internal/utils/validate"
+)
+
+type CreateRequest struct {
+	Username string `json:"username"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	request, err := bind.Json[CreateRequest](r)
+	if err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
+	if err := validateCreateRequest(request); err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
+	user := convertCreateRequest(request)
+
+	userID, err := s.user.CreateUser(ctx, user)
+	if err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
+	if err := s.user.CreateSession(ctx, w, userID); err != nil {
+		render.Error(w, r, err)
+		return
+	}
+}
+
+func validateCreateRequest(req *CreateRequest) error {
+	if err := validate.Username(req.Username); err != nil {
+		return err
+	}
+	if err := validate.Password(req.Password); err != nil {
+		return err
+	}
+	if err := validate.Login(req.Login); err != nil {
+		return err
+	}
+	return nil
+}
+
+func convertCreateRequest(req *CreateRequest) *domain.User {
+	login := domain.Login(req.Login)
+	return &domain.User{
+		Username: domain.Username(req.Username),
+		Login:    login,
+		Password: domain.NewPassword(req.Password, login),
+	}
+}

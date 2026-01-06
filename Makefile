@@ -1,8 +1,7 @@
-BACKEND_PATH=./backend
 API_PATH=./api
-GEN_PATH=$(BACKEND_PATH)/common/pb
 MIGRATIONS_PATH=migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
+DOCKER_COMPOSE_BIN=docker compose
 
 .PHONY: run
 run:
@@ -28,16 +27,16 @@ generate-proto:
 		--go_out='internal/pb' \
 		websocket/websocket.proto
 
-.PHONY: down-docker
-down-docker:
-	docker-compose down -v
+.PHONY: down
+down:
+	$(DOCKER_COMPOSE_BIN) down -v
 
 .PHONY: up
 up: up-docker up-migrate
 
 .PHONY: up-docker
 up-docker:
-	docker-compose up -d
+	$(DOCKER_COMPOSE_BIN) up -d
 
 .PHONY: generate
 generate:
@@ -60,12 +59,9 @@ get-grpc-deps:
 	wget -qP '$(API_PATH)/google/api' https://raw.githubusercontent.com/googleapis/googleapis/refs/heads/master/google/api/httpbody.proto
 
 .PHONY: up-migrate
-up-migrate: migrate-user-service
-
-.PHONY: migrate-user-service
-migrate-user-service:
-	GOOSE_DRIVER=postgres GOOSE_DBSTRING='$(POSTGRES_STRING)' goose -dir '$(BACKEND_PATH)/user_service/$(MIGRATIONS_PATH)' up
+up-migrate:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING='$(POSTGRES_STRING)' goose -dir '$(MIGRATIONS_PATH)' up
 
 .PHONY: generate-sqlc
 generate-sqlc:
-	cd '$(BACKEND_PATH)/user_service' && sqlc generate
+	go tool sqlc generate
