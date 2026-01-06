@@ -40,12 +40,12 @@ func (a *Adapter) UserByLogin(ctx context.Context, login domain.Login) (*domain.
 	}
 	return convertUserFromDB(user), nil
 }
-func (a *Adapter) UserByUsername(ctx context.Context, username domain.Username) (*domain.User, error) {
-	user, err := a.db.Query(ctx).UserByUsername(ctx, username.String())
+func (a *Adapter) UserByID(ctx context.Context, userID domain.UserID) (*domain.User, error) {
+	user, err := a.db.Query(ctx).UserByUsername(ctx, userID.I64())
 	if database.NotFound(err) {
 		return nil, errors.E(err).
 			Kind(errors.NotFound).
-			Messagef("user %s not found", username)
+			Messagef("user %d not found", userID)
 	}
 	if err != nil {
 		return nil, errors.E(err).Debug("Query.UserByUsername")
@@ -53,39 +53,63 @@ func (a *Adapter) UserByUsername(ctx context.Context, username domain.Username) 
 	return convertUserFromDB(user), nil
 }
 
-func (a *Adapter) CreateUser(ctx context.Context, user *domain.User) error {
+func (a *Adapter) CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error) {
 	req := &postgres.CreateUserParams{
 		Login:    user.Login.String(),
 		Password: user.Password,
 		Username: user.Username.String(),
 	}
-	err := a.db.Query(ctx).CreateUser(ctx, req)
-	if err != nil {
-		return errors.E(err).Debug("Query.CreateUser")
+	id, err := a.db.Query(ctx).CreateUser(ctx, req)
+	if database.IsConstraintViolation(err, uniqueLoginConstraint) {
+		return domain.UserIsUnknown, errors.E(err).
+			Kind(errors.Exist).
+			Messagef("user with login %s already exists", user.Login)
 	}
-	return nil
+	if database.IsConstraintViolation(err, uniqueUsernameConstraint) {
+		return domain.UserIsUnknown, errors.E(err).
+			Kind(errors.Exist).
+			Messagef("user with username %s already exists", user.Username)
+	}
+	if err != nil {
+		return domain.UserIsUnknown, errors.E(err).Debug("Query.CreateUser")
+	}
+
+	return domain.UserID(id), nil
 }
 
-func (a *Adapter) UpdateUser(ctx context.Context, username domain.Username, updated *domain.User) error {
+func (a *Adapter) UpdateUser(ctx context.Context, updated *domain.User) error {
 	req := &postgres.UpdateUserParams{
-		OldUsername: username.String(),
-		NewLogin:    updated.Login.String(),
-		NewPassword: updated.Password,
-		NewUsername: updated.Username.String(),
-		NewAvatarID: updated.AvatarID.String(),
+		ID:       updated.ID.I64(),
+		Login:    updated.Login.String(),
+		Password: updated.Password,
+		Username: updated.Username.String(),
+		AvatarID: updated.AvatarID.String(),
 	}
-	if err := a.db.Query(ctx).UpdateUser(ctx, req); err != nil {
+
+	err := a.db.Query(ctx).UpdateUser(ctx, req)
+	if database.IsConstraintViolation(err, uniqueLoginConstraint) {
+		return errors.E(err).
+			Kind(errors.Exist).
+			Messagef("user with login %s already exists", updated.Login)
+	}
+	if database.IsConstraintViolation(err, uniqueUsernameConstraint) {
+		return errors.E(err).
+			Kind(errors.Exist).
+			Messagef("user with username %s already exists", updated.Username)
+	}
+	if err != nil {
 		return errors.E(err).Debug("Query.UpdateUser")
 	}
+
 	return nil
 }
-func (a *Adapter) DeleteUser(ctx context.Context, username domain.Username) error {
-	rows, err := a.db.Query(ctx).DeleteUserByUsername(ctx, username.String())
+func (a *Adapter) DeleteUser(ctx context.Context, userID domain.UserID) error {
+	rows, err := a.db.Query(ctx).DeleteUserByID(ctx, userID.I64())
 	if err != nil {
-		return errors.E(err).Debug("Query.DeleteUserByUsername")
+		return errors.E(err).Debug("Query.DeleteUserByID")
 	}
 	if rows == 0 {
-		return errors.E().Kind(errors.NotFound).Messagef("user %s not found", username)
+		return errors.E().Kind(errors.NotFound).Messagef("user %d not found", userID)
 	}
 	return nil
 }

@@ -9,9 +9,10 @@ import (
 	"context"
 )
 
-const createUser = `-- name: CreateUser :exec
+const createUser = `-- name: CreateUser :one
 INSERT INTO users(login, password, username)
 VALUES ($1, $2, $3)
+RETURNING id
 `
 
 type CreateUserParams struct {
@@ -24,22 +25,25 @@ type CreateUserParams struct {
 //
 //	INSERT INTO users(login, password, username)
 //	VALUES ($1, $2, $3)
-func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser, arg.Login, arg.Password, arg.Username)
-	return err
+//	RETURNING id
+func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Login, arg.Password, arg.Username)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
-const deleteUserByUsername = `-- name: DeleteUserByUsername :execrows
+const deleteUserByID = `-- name: DeleteUserByID :execrows
 DELETE FROM users
-WHERE username = $1
+WHERE id = $1
 `
 
-// DeleteUserByUsername
+// DeleteUserByID
 //
 //	DELETE FROM users
-//	WHERE username = $1
-func (q *Queries) DeleteUserByUsername(ctx context.Context, username string) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteUserByUsername, username)
+//	WHERE id = $1
+func (q *Queries) DeleteUserByID(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUserByID, id)
 	if err != nil {
 		return 0, err
 	}
@@ -48,55 +52,56 @@ func (q *Queries) DeleteUserByUsername(ctx context.Context, username string) (in
 
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
-SET username = $1,
-    login = $2,
-    password = $3,
-    avatar_id = $4,
+SET username=$2,
+    login=$3,
+    password=$4,
+    avatar_id=$5,
     updated_at=now()
-WHERE username = $5
+WHERE id = $1
 `
 
 type UpdateUserParams struct {
-	NewUsername string
-	NewLogin    string
-	NewPassword []byte
-	NewAvatarID string
-	OldUsername string
+	ID       int64
+	Username string
+	Login    string
+	Password []byte
+	AvatarID string
 }
 
 // UpdateUser
 //
 //	UPDATE users
-//	SET username = $1,
-//	    login = $2,
-//	    password = $3,
-//	    avatar_id = $4,
+//	SET username=$2,
+//	    login=$3,
+//	    password=$4,
+//	    avatar_id=$5,
 //	    updated_at=now()
-//	WHERE username = $5
+//	WHERE id = $1
 func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) error {
 	_, err := q.db.Exec(ctx, updateUser,
-		arg.NewUsername,
-		arg.NewLogin,
-		arg.NewPassword,
-		arg.NewAvatarID,
-		arg.OldUsername,
+		arg.ID,
+		arg.Username,
+		arg.Login,
+		arg.Password,
+		arg.AvatarID,
 	)
 	return err
 }
 
 const userByLogin = `-- name: UserByLogin :one
-SELECT username, login, password, avatar_id, created_at, updated_at FROM users
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 WHERE login = $1
 `
 
 // UserByLogin
 //
-//	SELECT username, login, password, avatar_id, created_at, updated_at FROM users
+//	SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 //	WHERE login = $1
 func (q *Queries) UserByLogin(ctx context.Context, login string) (*User, error) {
 	row := q.db.QueryRow(ctx, userByLogin, login)
 	var i User
 	err := row.Scan(
+		&i.ID,
 		&i.Username,
 		&i.Login,
 		&i.Password,
@@ -108,18 +113,19 @@ func (q *Queries) UserByLogin(ctx context.Context, login string) (*User, error) 
 }
 
 const userByUsername = `-- name: UserByUsername :one
-SELECT username, login, password, avatar_id, created_at, updated_at FROM users
-WHERE username = $1
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+WHERE id = $1
 `
 
 // UserByUsername
 //
-//	SELECT username, login, password, avatar_id, created_at, updated_at FROM users
-//	WHERE username = $1
-func (q *Queries) UserByUsername(ctx context.Context, username string) (*User, error) {
-	row := q.db.QueryRow(ctx, userByUsername, username)
+//	SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+//	WHERE id = $1
+func (q *Queries) UserByUsername(ctx context.Context, id int64) (*User, error) {
+	row := q.db.QueryRow(ctx, userByUsername, id)
 	var i User
 	err := row.Scan(
+		&i.ID,
 		&i.Username,
 		&i.Login,
 		&i.Password,

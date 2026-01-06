@@ -15,7 +15,7 @@ import (
 type callback func(ctx context.Context, event *domain.Event) error
 
 type Subscriber struct {
-	user    domain.Username
+	user    domain.UserID
 	session domain.Session
 	ws      *websocket.Conn
 	cancel  func()
@@ -24,12 +24,11 @@ type Subscriber struct {
 	eventListeners map[domain.EventType]callback
 }
 
-func New(ctx context.Context, user domain.Username, session domain.Session, ws *websocket.Conn) (context.Context, *Subscriber) {
-
+func New(ctx context.Context, userID domain.UserID, session domain.Session, ws *websocket.Conn) (context.Context, *Subscriber) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sub := &Subscriber{
-		user:           user,
+		user:           userID,
 		ws:             ws,
 		cancel:         cancel,
 		eventListeners: make(map[domain.EventType]callback),

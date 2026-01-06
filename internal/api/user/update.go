@@ -18,7 +18,7 @@ type UpdateRequest struct {
 func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	username := domain.UsernameFromContext(ctx)
+	userID := domain.UserIDFromContext(ctx)
 
 	request, err := bind.Json[UpdateRequest](r)
 	if err != nil {
@@ -31,21 +31,14 @@ func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated := convertUpdateRequest(request)
+	updated := convertUpdateRequest(request, userID)
 
-	if err := s.user.UpdateUser(ctx, username, updated); err != nil {
+	if err := s.user.UpdateUser(ctx, updated); err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	if updated.Username != domain.UserUnknown {
-		username = updated.Username
-	}
-
-	if err := s.user.CreateSession(ctx, w, updated.Username); err != nil {
-		render.Error(w, r, err)
-		return
-	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func validateUpdateRequest(req *UpdateRequest) error {
@@ -73,9 +66,10 @@ func validateUpdateRequest(req *UpdateRequest) error {
 	return nil
 }
 
-func convertUpdateRequest(req *UpdateRequest) *domain.User {
+func convertUpdateRequest(req *UpdateRequest, userID domain.UserID) *domain.User {
 	login := domain.Login(req.Login)
 	return &domain.User{
+		ID:       userID,
 		Username: domain.Username(req.Username),
 		Login:    login,
 		Password: domain.NewPassword(req.Password, login),

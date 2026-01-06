@@ -1,7 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-    username    TEXT      PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
+    username    TEXT      NOT NULL UNIQUE,
     login       TEXT      NOT NULL UNIQUE,
     password    BYTEA     NOT NULL,
     avatar_id   TEXT      NOT NULL DEFAULT ''::text,

@@ -23,6 +23,8 @@ type pubsub interface {
 type Service struct {
 	db     db
 	pubsub pubsub
+
+	subs map[domain.UserID][]Subscription
 }
 
 func New(dbAdapter db, pubsubAdapter pubsub) *Service {
@@ -30,4 +32,17 @@ func New(dbAdapter db, pubsubAdapter pubsub) *Service {
 		db:     dbAdapter,
 		pubsub: pubsubAdapter,
 	}
+}
+
+type callback func(ctx context.Context, event *domain.Event) error
+
+type Subscription interface {
+	GetUserID() domain.UserID
+	GetSession() domain.Session
+	Write(event domain.Event)
+	SubscribeToEvent(ctx context.Context, type_ domain.EventType, callback callback)
+}
+
+func (s *Service) Register(sub Subscription) {
+	s.subs[sub.GetUserID()] = nil
 }

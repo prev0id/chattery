@@ -10,16 +10,16 @@ import (
 
 type db interface {
 	UserByLogin(ctx context.Context, login domain.Login) (*domain.User, error)
-	UserByUsername(ctx context.Context, username domain.Username) (*domain.User, error)
-	CreateUser(ctx context.Context, user *domain.User) error
-	UpdateUser(ctx context.Context, username domain.Username, updated *domain.User) error
-	DeleteUser(ctx context.Context, username domain.Username) error
+	UserByID(ctx context.Context, user domain.UserID) (*domain.User, error)
+	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
+	UpdateUser(ctx context.Context, updated *domain.User) error
+	DeleteUser(ctx context.Context, user domain.UserID) error
 }
 
 type cache interface {
-	WriteSession(ctx context.Context, session domain.Session, user domain.Username, expiration time.Duration) error
+	WriteSession(ctx context.Context, session domain.Session, user domain.UserID, expiration time.Duration) error
 	ClearSession(ctx context.Context, session domain.Session) error
-	UsernameFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username
+	UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.UserID
 }
 
 type txManager interface {
@@ -58,76 +58,34 @@ func (s *Service) ValidateCredentials(ctx context.Context, login domain.Login, r
 	return user, nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, user *domain.User) error {
-	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
-		if err := s.validateLoginExists(ctx, user); err != nil {
-			return errors.E(err).Debug("s.validateLoginExists")
-		}
-
-		if err := s.validateUsernameExists(ctx, user); err != nil {
-			return errors.E(err).Debug("s.validateUsernameExists")
-		}
-
-		if err := s.db.CreateUser(ctx, user); err != nil {
+func (s *Service) CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error) {
+	var resultID domain.UserID
+	err := s.transaction.InTransaction(ctx, func(ctx context.Context) error {
+		id, err := s.db.CreateUser(ctx, user)
+		if err != nil {
 			return errors.E(err).Debug("s.db.CreateUser")
 		}
+		resultID = id
 		return nil
 	})
+
+	return resultID, err
 }
 
-func (s *Service) UpdateUser(ctx context.Context, username domain.Username, updated *domain.User) error {
+func (s *Service) UpdateUser(ctx context.Context, user *domain.User) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
-		stored, err := s.db.UserByUsername(ctx, username)
-		if err != nil {
-			return errors.E(err).Debug("s.db.UserByUsername")
-		}
-
-		if stored.Username != updated.Username {
-			if err := s.validateUsernameExists(ctx, updated); err != nil {
-				return errors.E(err).Debug("s.validateUsernameExists")
-			}
-		}
-
-		if stored.Login != updated.Login {
-			if err := s.validateLoginExists(ctx, updated); err != nil {
-				return errors.E(err).Debug("s.validateLoginExists")
-			}
-		}
-
-		if err := s.db.UpdateUser(ctx, username, updated); err != nil {
+		if err := s.db.UpdateUser(ctx, user); err != nil {
 			return errors.E(err).Debug("s.db.UpdateUser")
 		}
 		return nil
 	})
 }
 
-func (s *Service) DeleteUser(ctx context.Context, username domain.Username) error {
+func (s *Service) DeleteUser(ctx context.Context, id domain.UserID) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
-		if err := s.db.DeleteUser(ctx, username); err != nil {
+		if err := s.db.DeleteUser(ctx, id); err != nil {
 			return errors.E(err).Debug("s.db.DeleteUser")
 		}
 		return nil
 	})
-}
-
-func (s *Service) validateLoginExists(ctx context.Context, user *domain.User) error {
-	_, err := s.db.UserByLogin(ctx, user.Login)
-	if !errors.Is(errors.NotFound, err) {
-		return errors.E(err).Debug("s.db.UserByLogin")
-	}
-	if err == nil {
-		return errors.E().Kind(errors.Exist).Messagef("user with login %s already exists", user.Login)
-	}
-	return nil
-}
-
-func (s *Service) validateUsernameExists(ctx context.Context, user *domain.User) error {
-	_, err := s.db.UserByUsername(ctx, user.Username)
-	if !errors.Is(errors.NotFound, err) {
-		return errors.E(err).Debug("s.db.UserByUsername")
-	}
-	if err == nil {
-		return errors.E().Kind(errors.Exist).Messagef("user with username %s already exists", user.Username)
-	}
-	return nil
 }

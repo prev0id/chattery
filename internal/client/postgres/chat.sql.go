@@ -198,6 +198,35 @@ func (q *Queries) NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessa
 	return items, nil
 }
 
+const participantsForChat = `-- name: ParticipantsForChat :many
+SELECT chat_id, username, created_at FROM chat_participants
+WHERE chat_id = $1
+`
+
+// ParticipantsForChat
+//
+//	SELECT chat_id, username, created_at FROM chat_participants
+//	WHERE chat_id = $1
+func (q *Queries) ParticipantsForChat(ctx context.Context, chatID int64) ([]*ChatParticipant, error) {
+	rows, err := q.db.Query(ctx, participantsForChat, chatID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ChatParticipant
+	for rows.Next() {
+		var i ChatParticipant
+		if err := rows.Scan(&i.ChatID, &i.Username, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const userChats = `-- name: UserChats :many
 SELECT id, type, created_at, updated_at FROM chats
 WHERE chats.id in (

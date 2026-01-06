@@ -1,15 +1,16 @@
 package logger
 
 import (
-	"chattery/internal/config"
-	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
 	"context"
 	"log/slog"
 	"os"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v3"
+
+	"chattery/internal/config"
+	"chattery/internal/domain"
+	"chattery/internal/utils/errors"
 )
 
 func Init(cfg *config.Config) {
@@ -43,12 +44,12 @@ func Error(err error, message string, attr ...slog.Attr) {
 
 func ErrorCtx(ctx context.Context, err error, message string, attr ...slog.Attr) {
 	requestID := middleware.GetReqID(ctx)
-	username := domain.UsernameFromContext(ctx)
+	userID := domain.UserIDFromContext(ctx)
 
 	Error(err,
 		"request ended with an error",
 		slog.String("request_id", requestID),
-		slog.String("user", username.String()),
+		slog.Int64("user_id", userID.I64()),
 	)
 }
 

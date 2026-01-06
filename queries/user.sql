@@ -1,24 +1,25 @@
--- name: CreateUser :exec
+-- name: CreateUser :one
 INSERT INTO users(login, password, username)
-VALUES ($1, $2, $3);
+VALUES ($1, $2, $3)
+RETURNING id;
 
 -- name: UpdateUser :exec
 UPDATE users
-SET username = @new_username,
-    login = @new_login,
-    password = @new_password,
-    avatar_id = @new_avatar_id,
+SET username=$2,
+    login=$3,
+    password=$4,
+    avatar_id=$5,
     updated_at=now()
-WHERE username = @old_username;
+WHERE id = $1;
 
 -- name: UserByUsername :one
 SELECT * FROM users
-WHERE username = $1;
+WHERE id = $1;
 
 -- name: UserByLogin :one
 SELECT * FROM users
 WHERE login = $1;
 
--- name: DeleteUserByUsername :execrows
+-- name: DeleteUserByID :execrows
 DELETE FROM users
-WHERE username = $1;
+WHERE id = $1;

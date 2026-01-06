@@ -28,20 +28,20 @@ func New(client *redis.Client) *Client {
 // 	return value, nil
 // }
 
-func (c *Client) Set(ctx context.Context, key, value string, expiration time.Duration) error {
+func (c *Client) SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error {
 	if err := c.conn.Set(ctx, key, value, expiration).Err(); err != nil {
 		return errors.E(err).Debug("key:"+key, "c.conn.Set")
 	}
 	return nil
 }
 
-func (c *Client) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
-	value, err := c.conn.GetEx(ctx, key, expiration).Result()
+func (c *Client) GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error) {
+	value, err := c.conn.GetEx(ctx, key, expiration).Int64()
 	if err == redis.Nil {
-		return "", errors.E(err).Kind(errors.NotFound).Debug("key:" + key)
+		return 0, errors.E(err).Kind(errors.NotFound).Debug("key:" + key)
 	}
 	if err != nil {
-		return "", errors.E(err).Debug("key:"+key, "c.conn.GetEx")
+		return 0, errors.E(err).Debug("key:"+key, "c.conn.GetEx")
 	}
 	return value, nil
 }

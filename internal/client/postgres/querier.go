@@ -34,12 +34,13 @@ type Querier interface {
 	//
 	//  INSERT INTO users(login, password, username)
 	//  VALUES ($1, $2, $3)
-	CreateUser(ctx context.Context, arg *CreateUserParams) error
-	//DeleteUserByUsername
+	//  RETURNING id
+	CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error)
+	//DeleteUserByID
 	//
 	//  DELETE FROM users
-	//  WHERE username = $1
-	DeleteUserByUsername(ctx context.Context, username string) (int64, error)
+	//  WHERE id = $1
+	DeleteUserByID(ctx context.Context, id int64) (int64, error)
 	//FirstPageOfMessages
 	//
 	//  SELECT id, chat_id, username, text, created_at FROM chat_messages
@@ -54,26 +55,31 @@ type Querier interface {
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $4
 	NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessagesParams) ([]*ChatMessage, error)
+	//ParticipantsForChat
+	//
+	//  SELECT chat_id, username, created_at FROM chat_participants
+	//  WHERE chat_id = $1
+	ParticipantsForChat(ctx context.Context, chatID int64) ([]*ChatParticipant, error)
 	//UpdateUser
 	//
 	//  UPDATE users
-	//  SET username = $1,
-	//      login = $2,
-	//      password = $3,
-	//      avatar_id = $4,
+	//  SET username=$2,
+	//      login=$3,
+	//      password=$4,
+	//      avatar_id=$5,
 	//      updated_at=now()
-	//  WHERE username = $5
+	//  WHERE id = $1
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) error
 	//UserByLogin
 	//
-	//  SELECT username, login, password, avatar_id, created_at, updated_at FROM users
+	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 	//  WHERE login = $1
 	UserByLogin(ctx context.Context, login string) (*User, error)
 	//UserByUsername
 	//
-	//  SELECT username, login, password, avatar_id, created_at, updated_at FROM users
-	//  WHERE username = $1
-	UserByUsername(ctx context.Context, username string) (*User, error)
+	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+	//  WHERE id = $1
+	UserByUsername(ctx context.Context, id int64) (*User, error)
 	//UserChats
 	//
 	//  SELECT id, type, created_at, updated_at FROM chats

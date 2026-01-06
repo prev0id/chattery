@@ -24,10 +24,10 @@ func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 		// save expiration before GetEx
 		expiresAt := time.Now().Add(s.expiration)
 
-		user := s.cache.UsernameFromSession(ctx, session, s.expiration)
+		userID := s.cache.UserIDFromSession(ctx, session, s.expiration)
 
-		if user != domain.UserUnknown {
-			ctx = domain.UsernameToContext(ctx, domain.Username(user))
+		if userID != domain.UserIsUnknown {
+			ctx = domain.UserIDToContext(ctx, userID)
 			writeSessionsCookie(w, session, expiresAt)
 		} else {
 			clearSessionCookie(w)
@@ -37,12 +37,12 @@ func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, user domain.Username) error {
+func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, userID domain.UserID) error {
 	session := domain.NewSession()
 
 	expiresAt := time.Now().Add(s.expiration)
 
-	if err := s.cache.WriteSession(ctx, session, user, s.expiration); err != nil {
+	if err := s.cache.WriteSession(ctx, session, userID, s.expiration); err != nil {
 		return errors.E(err).Debug("s.cache.WriteSession")
 	}
 
@@ -61,7 +61,7 @@ func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, r *ht
 
 func (s *Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if domain.UsernameFromContext(r.Context()) != domain.UserUnknown {
+		if domain.UserIDFromContext(r.Context()) != domain.UserIsUnknown {
 			next.ServeHTTP(w, r)
 			return
 		}

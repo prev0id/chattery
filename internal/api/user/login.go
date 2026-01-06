@@ -28,8 +28,10 @@ func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.user.CreateSession(ctx, w, user.Username); err != nil {
+	if err := s.user.CreateSession(ctx, w, user.ID); err != nil {
 		render.Error(w, r, err)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }

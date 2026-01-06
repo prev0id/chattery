@@ -31,12 +31,13 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 
 	user := convertCreateRequest(request)
 
-	if err := s.user.CreateUser(ctx, user); err != nil {
+	userID, err := s.user.CreateUser(ctx, user)
+	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	if err := s.user.CreateSession(ctx, w, user.Username); err != nil {
+	if err := s.user.CreateSession(ctx, w, userID); err != nil {
 		render.Error(w, r, err)
 		return
 	}

@@ -13,7 +13,7 @@ import (
 
 func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	username := domain.UsernameFromContext(ctx)
+	userID := domain.UserIDFromContext(ctx)
 	session := domain.GetSessionFromRequest(r)
 
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{})
@@ -27,7 +27,7 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.CloseNow()
 
-	ctx, subscriber := subscription.New(ctx, username, session, conn)
+	ctx, subscriber := subscription.New(ctx, userID, session, conn)
 
 	s.chat.Register(ctx, subscriber)
 	// s.webrtc.Register(ctx, user, subscriber)

@@ -13,8 +13,8 @@ import (
 )
 
 type client interface {
-	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
-	Set(ctx context.Context, key, value string, expiration time.Duration) error
+	GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error)
+	SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error
 	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channel string, message string) error
 	Subscribe(ctx context.Context, channel string, sink chan<- string)
@@ -28,20 +28,20 @@ func NewRedisAdapter(client client) *Adapter {
 	return &Adapter{client: client}
 }
 
-func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, user domain.Username, expiration time.Duration) error {
-	if err := r.client.Set(ctx, sessionKey(session), user.String(), expiration); err != nil {
-		return errors.E(err).Debug("r.client.Set")
+func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, userID domain.UserID, expiration time.Duration) error {
+	if err := r.client.SetI64(ctx, sessionKey(session), userID.I64(), expiration); err != nil {
+		return errors.E(err).Debug("r.client.SetI64")
 	}
 	return nil
 }
 
-func (r *Adapter) UsernameFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.Username {
-	user, err := r.client.GetEx(ctx, sessionKey(session), expiration)
+func (r *Adapter) UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.UserID {
+	userID, err := r.client.GetExI64(ctx, sessionKey(session), expiration)
 	if err != nil {
-		logger.Error(err, "r.client.GetEx")
-		return domain.UserUnknown
+		logger.Error(err, "r.client.GetExI64")
+		return domain.UserIsUnknown
 	}
-	return domain.Username(user)
+	return domain.UserID(userID)
 }
 
 func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) error {
