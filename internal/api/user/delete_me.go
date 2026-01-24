@@ -1,4 +1,4 @@
-package userapi
+package user_api
 
 import (
 	"net/http"
@@ -8,7 +8,8 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Delete(w http.ResponseWriter, r *http.Request) {
+// DeleteMe полное удаление профиля
+func (s *Server) DeleteMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	userID := domain.UserIDFromContext(ctx)

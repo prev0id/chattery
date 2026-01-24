@@ -3,21 +3,23 @@
 CREATE TABLE chats (
     id          BIGSERIAL PRIMARY KEY,
     type        TEXT      NOT NULL DEFAULT ''::TEXT,
+    name        TEXT      NOT NULL DEFAULT ''::TEXT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE chat_participants (
-    chat_id     BIGINT NOT NULL,
-    username    TEXT NOT NULL,
+    chat_id     BIGINT    NOT NULL,
+    user_id     BIGINT    NOT NULL,
+    role        TEXT      NOT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE chat_messages (
     id          BIGSERIAL PRIMARY KEY,
-    chat_id     BIGINT NOT NULL,
-    username    TEXT NOT NULL,
-    text        TEXT NOT NULL,
+    chat_id     BIGINT    NOT NULL,
+    user_id     BIGINT    NOT NULL,
+    text        TEXT      NOT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

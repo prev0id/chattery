@@ -2,3 +2,4 @@
 /node_modules
 /bin
 /api/google/api
+.DS_Store

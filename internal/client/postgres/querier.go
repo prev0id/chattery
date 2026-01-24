@@ -11,22 +11,22 @@ import (
 type Querier interface {
 	//AddParticipant
 	//
-	//  INSERT INTO chat_participants(chat_id, username)
-	//  VALUES ($1, $2)
+	//  INSERT INTO chat_participants(chat_id, user_id, role)
+	//  VALUES ($1, $2, $3)
 	AddParticipant(ctx context.Context, arg *AddParticipantParams) error
 	//Chats
 	//
-	//  SELECT id, type, created_at, updated_at FROM chats
+	//  SELECT id, type, name, created_at, updated_at FROM chats
 	Chats(ctx context.Context) ([]*Chat, error)
 	//CreateChat
 	//
-	//  INSERT INTO chats(type)
-	//  VALUES ($1)
+	//  INSERT INTO chats(type, name)
+	//  VALUES ($1, $2)
 	//  RETURNING id
-	CreateChat(ctx context.Context, type_ string) (int64, error)
+	CreateChat(ctx context.Context, arg *CreateChatParams) (int64, error)
 	//CreateMessage
 	//
-	//  INSERT INTO chat_messages(chat_id, username, text)
+	//  INSERT INTO chat_messages(chat_id, user_id, text)
 	//  VALUES ($1, $2, $3)
 	//  RETURNING id
 	CreateMessage(ctx context.Context, arg *CreateMessageParams) (int64, error)
@@ -36,6 +36,16 @@ type Querier interface {
 	//  VALUES ($1, $2, $3)
 	//  RETURNING id
 	CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error)
+	//DeleteChat
+	//
+	//  DELETE FROM chats
+	//  WHERE id=$1
+	DeleteChat(ctx context.Context, id int64) error
+	//DeleteParticipant
+	//
+	//  DELETE FROM chat_participants
+	//  WHERE chat_id=$1 AND user_id=$2
+	DeleteParticipant(ctx context.Context, arg *DeleteParticipantParams) error
 	//DeleteUserByID
 	//
 	//  DELETE FROM users
@@ -43,21 +53,21 @@ type Querier interface {
 	DeleteUserByID(ctx context.Context, id int64) (int64, error)
 	//FirstPageOfMessages
 	//
-	//  SELECT id, chat_id, username, text, created_at FROM chat_messages
+	//  SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 	//  WHERE chat_id = $1
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $2
 	FirstPageOfMessages(ctx context.Context, arg *FirstPageOfMessagesParams) ([]*ChatMessage, error)
 	//NextPagesOfMessages
 	//
-	//  SELECT id, chat_id, username, text, created_at FROM chat_messages
+	//  SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 	//  WHERE chat_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $4
 	NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessagesParams) ([]*ChatMessage, error)
 	//ParticipantsForChat
 	//
-	//  SELECT chat_id, username, created_at FROM chat_participants
+	//  SELECT chat_id, user_id, role, created_at FROM chat_participants
 	//  WHERE chat_id = $1
 	ParticipantsForChat(ctx context.Context, chatID int64) ([]*ChatParticipant, error)
 	//UpdateUser
@@ -82,12 +92,12 @@ type Querier interface {
 	UserByUsername(ctx context.Context, id int64) (*User, error)
 	//UserChats
 	//
-	//  SELECT id, type, created_at, updated_at FROM chats
+	//  SELECT id, type, name, created_at, updated_at FROM chats
 	//  WHERE chats.id in (
 	//      SELECT chat_id FROM chat_participants
-	//      WHERE username=$1
+	//      WHERE user_id=$1
 	//  )
-	UserChats(ctx context.Context, username string) ([]*Chat, error)
+	UserChats(ctx context.Context, userID int64) ([]*Chat, error)
 }
 
 var _ Querier = (*Queries)(nil)

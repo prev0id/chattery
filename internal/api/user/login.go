@@ -1,4 +1,4 @@
-package userapi
+package user_api
 
 import (
 	"net/http"
@@ -8,21 +8,17 @@ import (
 	"chattery/internal/utils/render"
 )
 
-type LoginRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
+// Login аутентификация по логину и паролю, ставит сессионную куку
 func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	request, err := bind.Json[LoginRequest](r)
+	request, err := bind.JSON[LoginRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	user, err := s.user.ValidateCredentials(ctx, domain.Login(request.Login), request.Password)
+	user, err := s.user.GetByCredentials(ctx, domain.Login(request.Login), request.Password)
 	if err != nil {
 		render.Error(w, r, err)
 		return

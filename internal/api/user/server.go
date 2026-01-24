@@ -1,4 +1,4 @@
-package userapi
+package user_api
 
 import (
 	"context"
@@ -10,10 +10,12 @@ import (
 )
 
 type userService interface {
-	ValidateCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error)
+	GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
 	UpdateUser(ctx context.Context, updated *domain.User) error
 	DeleteUser(ctx context.Context, userID domain.UserID) error
+	Search(ctx context.Context, user domain.UserID, query string) ([]*domain.User, error)
+	// TODO move to utils wrappers around http
 	CreateSession(ctx context.Context, w http.ResponseWriter, userID domain.UserID) error
 	ClearSession(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	AuthRequiredMiddleware(next http.Handler) http.Handler
@@ -40,9 +42,12 @@ func (s *Server) Route(router chi.Router) {
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 
-		withAuthRouter.Post("/logout", s.Logout)
-		withAuthRouter.Put("/update", s.Update)
-		withAuthRouter.Delete("/delete", s.Delete)
-		withAuthRouter.Get("/info", s.GetInfo)
+		withAuthRouter.Post("/me/logout", s.LogoutMe)
+		withAuthRouter.Put("/me/update", s.UpdateMe)
+		withAuthRouter.Delete("/me/delete", s.DeleteMe)
+
+		withAuthRouter.Get("/info", s.Info)
+		// withAuthRouter.Get("/search", s.Search)
+		// withAuthRouter.Get("/list", s.List)
 	})
 }

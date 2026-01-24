@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 
-	chatadapter "chattery/internal/adapter/postgres/chat"
+	chat_adapter "chattery/internal/adapter/postgres/chat"
 	useradapter "chattery/internal/adapter/postgres/user"
 	redisadapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
+	chat_api "chattery/internal/api/chat"
 	signalingapi "chattery/internal/api/signaling"
-	userapi "chattery/internal/api/user"
+	user_api "chattery/internal/api/user"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
 	"chattery/internal/service/chat"
@@ -35,20 +36,22 @@ func main() {
 	}
 
 	transactionManager := transaction.NewManager(postgresConn)
-	chatDB := chatadapter.New(cfg, transactionManager)
+	chatDB := chat_adapter.New(cfg, transactionManager)
 	userDB := useradapter.New(transactionManager)
 
 	redisClient := redis.New(redisConn)
 	redisAdapter := redisadapter.NewRedisAdapter(redisClient)
 
-	_ = chat.New(chatDB, redisAdapter)
+	chatService := chat.New(chatDB, redisAdapter, transactionManager)
 	userService := user.New(userDB, redisAdapter, transactionManager)
 
 	server := api.
 		NewServer(cfg).
 		Register(
 			signalingapi.New(),
-			userapi.New(userService),
+			user_api.New(userService),
+			chat_api.New(userService, chatService),
+			// web_api.New(),
 		)
 
 	if err := server.Run(); err != nil {

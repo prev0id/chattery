@@ -4,12 +4,44 @@
 
 Документация к проекту расположена в [docs](./docs)
 
-## Архитектура
+## TODO
 
-Микросервисная архитектура
-- User Service - сервис для хранения пользовательских данных
-- Chat Service - сервис роботы с чатами
-- Signaling Service - сервис с websocket соединениями для чатов и сигналинга webrtc
-- Call Service - сервис с WebRTC для обработки чатов
+## 24.01.2025
+- [ ] страница регистрации
+    - [x] backend
+    - [ ] frontend
+- [ ] страница логина
+    - [x] backend
+    - [ ] frontend
+- [ ] разлогин
+    - [x] backend
+    - [ ] frontend
+- [ ] поиск пользователей
+    - [ ] backend
+    - [ ] frontend
+- [ ] создание приватного чата
+    - [x] backend
+    - [ ] frontend
+- [ ] вход в чат
+    - [x] backend
+    - [ ] frontend
+- [ ] выход из чата
+    - [x] backend
+    - [ ] frontend
+- [ ] приватный чат
+    - [ ] backend
+    - [ ] frontend
+- [ ] создание публичного чата
+    - [x] backend
+    - [ ] frontend
+- [ ] удаление публичного чата
+    - [ ] backend
+    - [ ] frontend
+- [ ] публичный чат
+    - [ ] backend
+    - [ ] frontend
+- [ ] поиск публичных чатов
+    - [x] backend
+    - [ ] frontend
 
-![architecture diagram](./docs/attachments/architecture.png)
+## 25.01.2025

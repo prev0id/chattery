@@ -1,24 +1,18 @@
-package userapi
+package user_api
 
 import (
 	"net/http"
 
-	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/render"
 	"chattery/internal/utils/validate"
 )
 
-type CreateRequest struct {
-	Username string `json:"username"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
+// Create создает новый профиль, ставит сессионную куку
 func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	request, err := bind.Json[CreateRequest](r)
+	request, err := bind.JSON[CreateRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
@@ -54,13 +48,4 @@ func validateCreateRequest(req *CreateRequest) error {
 		return err
 	}
 	return nil
-}
-
-func convertCreateRequest(req *CreateRequest) *domain.User {
-	login := domain.Login(req.Login)
-	return &domain.User{
-		Username: domain.Username(req.Username),
-		Login:    login,
-		Password: domain.NewPassword(req.Password, login),
-	}
 }

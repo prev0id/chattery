@@ -42,7 +42,7 @@ func New(dbAdapter db, cacheAdapter cache, transaction txManager) *Service {
 	}
 }
 
-func (s *Service) ValidateCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error) {
+func (s *Service) GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error) {
 	user, err := s.db.UserByLogin(ctx, login)
 	if errors.Is(errors.NotFound, err) {
 		return nil, errors.E(err).Kind(errors.InvalidRequest).Message("invalid login")
@@ -88,4 +88,20 @@ func (s *Service) DeleteUser(ctx context.Context, id domain.UserID) error {
 		}
 		return nil
 	})
+}
+
+func (s *Service) Search(ctx context.Context, user domain.UserID, query string) ([]*domain.User, error) {
+	// users, err := s.db.Users(ctx)
+	// if err != nil {
+	// 	return nil, errors.E(err).Debug("s.db.Chats")
+	// }
+
+	// query = strings.ToLower(query)
+
+	// users = sliceutil.Filter(users, func(chat *domain.User) bool {
+	// 	return
+	// })
+
+	// return users, nil
+	return nil, nil
 }

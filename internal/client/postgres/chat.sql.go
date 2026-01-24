@@ -11,31 +11,32 @@ import (
 )
 
 const addParticipant = `-- name: AddParticipant :exec
-INSERT INTO chat_participants(chat_id, username)
-VALUES ($1, $2)
+INSERT INTO chat_participants(chat_id, user_id, role)
+VALUES ($1, $2, $3)
 `
 
 type AddParticipantParams struct {
-	ChatID   int64
-	Username string
+	ChatID int64
+	UserID int64
+	Role   string
 }
 
 // AddParticipant
 //
-//	INSERT INTO chat_participants(chat_id, username)
-//	VALUES ($1, $2)
+//	INSERT INTO chat_participants(chat_id, user_id, role)
+//	VALUES ($1, $2, $3)
 func (q *Queries) AddParticipant(ctx context.Context, arg *AddParticipantParams) error {
-	_, err := q.db.Exec(ctx, addParticipant, arg.ChatID, arg.Username)
+	_, err := q.db.Exec(ctx, addParticipant, arg.ChatID, arg.UserID, arg.Role)
 	return err
 }
 
 const chats = `-- name: Chats :many
-SELECT id, type, created_at, updated_at FROM chats
+SELECT id, type, name, created_at, updated_at FROM chats
 `
 
 // Chats
 //
-//	SELECT id, type, created_at, updated_at FROM chats
+//	SELECT id, type, name, created_at, updated_at FROM chats
 func (q *Queries) Chats(ctx context.Context) ([]*Chat, error) {
 	rows, err := q.db.Query(ctx, chats)
 	if err != nil {
@@ -48,6 +49,7 @@ func (q *Queries) Chats(ctx context.Context) ([]*Chat, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Type,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -62,49 +64,87 @@ func (q *Queries) Chats(ctx context.Context) ([]*Chat, error) {
 }
 
 const createChat = `-- name: CreateChat :one
-INSERT INTO chats(type)
-VALUES ($1)
+INSERT INTO chats(type, name)
+VALUES ($1, $2)
 RETURNING id
 `
 
+type CreateChatParams struct {
+	Type string
+	Name string
+}
+
 // CreateChat
 //
-//	INSERT INTO chats(type)
-//	VALUES ($1)
+//	INSERT INTO chats(type, name)
+//	VALUES ($1, $2)
 //	RETURNING id
-func (q *Queries) CreateChat(ctx context.Context, type_ string) (int64, error) {
-	row := q.db.QueryRow(ctx, createChat, type_)
+func (q *Queries) CreateChat(ctx context.Context, arg *CreateChatParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createChat, arg.Type, arg.Name)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
 }
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO chat_messages(chat_id, username, text)
+INSERT INTO chat_messages(chat_id, user_id, text)
 VALUES ($1, $2, $3)
 RETURNING id
 `
 
 type CreateMessageParams struct {
-	ChatID   int64
-	Username string
-	Text     string
+	ChatID int64
+	UserID int64
+	Text   string
 }
 
 // CreateMessage
 //
-//	INSERT INTO chat_messages(chat_id, username, text)
+//	INSERT INTO chat_messages(chat_id, user_id, text)
 //	VALUES ($1, $2, $3)
 //	RETURNING id
 func (q *Queries) CreateMessage(ctx context.Context, arg *CreateMessageParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createMessage, arg.ChatID, arg.Username, arg.Text)
+	row := q.db.QueryRow(ctx, createMessage, arg.ChatID, arg.UserID, arg.Text)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
 }
 
+const deleteChat = `-- name: DeleteChat :exec
+DELETE FROM chats
+WHERE id=$1
+`
+
+// DeleteChat
+//
+//	DELETE FROM chats
+//	WHERE id=$1
+func (q *Queries) DeleteChat(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteChat, id)
+	return err
+}
+
+const deleteParticipant = `-- name: DeleteParticipant :exec
+DELETE FROM chat_participants
+WHERE chat_id=$1 AND user_id=$2
+`
+
+type DeleteParticipantParams struct {
+	ChatID int64
+	UserID int64
+}
+
+// DeleteParticipant
+//
+//	DELETE FROM chat_participants
+//	WHERE chat_id=$1 AND user_id=$2
+func (q *Queries) DeleteParticipant(ctx context.Context, arg *DeleteParticipantParams) error {
+	_, err := q.db.Exec(ctx, deleteParticipant, arg.ChatID, arg.UserID)
+	return err
+}
+
 const firstPageOfMessages = `-- name: FirstPageOfMessages :many
-SELECT id, chat_id, username, text, created_at FROM chat_messages
+SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 WHERE chat_id = $1
 ORDER BY created_at DESC, id DESC
 LIMIT $2
@@ -117,7 +157,7 @@ type FirstPageOfMessagesParams struct {
 
 // FirstPageOfMessages
 //
-//	SELECT id, chat_id, username, text, created_at FROM chat_messages
+//	SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 //	WHERE chat_id = $1
 //	ORDER BY created_at DESC, id DESC
 //	LIMIT $2
@@ -133,7 +173,7 @@ func (q *Queries) FirstPageOfMessages(ctx context.Context, arg *FirstPageOfMessa
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChatID,
-			&i.Username,
+			&i.UserID,
 			&i.Text,
 			&i.CreatedAt,
 		); err != nil {
@@ -148,7 +188,7 @@ func (q *Queries) FirstPageOfMessages(ctx context.Context, arg *FirstPageOfMessa
 }
 
 const nextPagesOfMessages = `-- name: NextPagesOfMessages :many
-SELECT id, chat_id, username, text, created_at FROM chat_messages
+SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 WHERE chat_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 ORDER BY created_at DESC, id DESC
 LIMIT $4
@@ -163,7 +203,7 @@ type NextPagesOfMessagesParams struct {
 
 // NextPagesOfMessages
 //
-//	SELECT id, chat_id, username, text, created_at FROM chat_messages
+//	SELECT id, chat_id, user_id, text, created_at FROM chat_messages
 //	WHERE chat_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 //	ORDER BY created_at DESC, id DESC
 //	LIMIT $4
@@ -184,7 +224,7 @@ func (q *Queries) NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessa
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChatID,
-			&i.Username,
+			&i.UserID,
 			&i.Text,
 			&i.CreatedAt,
 		); err != nil {
@@ -199,13 +239,13 @@ func (q *Queries) NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessa
 }
 
 const participantsForChat = `-- name: ParticipantsForChat :many
-SELECT chat_id, username, created_at FROM chat_participants
+SELECT chat_id, user_id, role, created_at FROM chat_participants
 WHERE chat_id = $1
 `
 
 // ParticipantsForChat
 //
-//	SELECT chat_id, username, created_at FROM chat_participants
+//	SELECT chat_id, user_id, role, created_at FROM chat_participants
 //	WHERE chat_id = $1
 func (q *Queries) ParticipantsForChat(ctx context.Context, chatID int64) ([]*ChatParticipant, error) {
 	rows, err := q.db.Query(ctx, participantsForChat, chatID)
@@ -216,7 +256,12 @@ func (q *Queries) ParticipantsForChat(ctx context.Context, chatID int64) ([]*Cha
 	var items []*ChatParticipant
 	for rows.Next() {
 		var i ChatParticipant
-		if err := rows.Scan(&i.ChatID, &i.Username, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ChatID,
+			&i.UserID,
+			&i.Role,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -228,22 +273,22 @@ func (q *Queries) ParticipantsForChat(ctx context.Context, chatID int64) ([]*Cha
 }
 
 const userChats = `-- name: UserChats :many
-SELECT id, type, created_at, updated_at FROM chats
+SELECT id, type, name, created_at, updated_at FROM chats
 WHERE chats.id in (
     SELECT chat_id FROM chat_participants
-    WHERE username=$1
+    WHERE user_id=$1
 )
 `
 
 // UserChats
 //
-//	SELECT id, type, created_at, updated_at FROM chats
+//	SELECT id, type, name, created_at, updated_at FROM chats
 //	WHERE chats.id in (
 //	    SELECT chat_id FROM chat_participants
-//	    WHERE username=$1
+//	    WHERE user_id=$1
 //	)
-func (q *Queries) UserChats(ctx context.Context, username string) ([]*Chat, error) {
-	rows, err := q.db.Query(ctx, userChats, username)
+func (q *Queries) UserChats(ctx context.Context, userID int64) ([]*Chat, error) {
+	rows, err := q.db.Query(ctx, userChats, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -254,6 +299,7 @@ func (q *Queries) UserChats(ctx context.Context, username string) ([]*Chat, erro
 		if err := rows.Scan(
 			&i.ID,
 			&i.Type,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

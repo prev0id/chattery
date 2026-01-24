@@ -1,4 +1,4 @@
-package chatadapter
+package chat_adapter
 
 import (
 	"context"
@@ -26,17 +26,37 @@ func New(cfg *config.Config, db queryProvider) *Adapter {
 	}
 }
 
-func (a *Adapter) AddParticipant(ctx context.Context, chatID domain.ChatID, username domain.Username) error {
+func (a *Adapter) AddParticipant(ctx context.Context, participant *domain.Participant) error {
 	req := &postgres.AddParticipantParams{
-		ChatID:   chatID.I64(),
-		Username: username.String(),
+		ChatID: participant.Chat.I64(),
+		UserID: participant.User.I64(),
+		Role:   participant.Role.String(),
 	}
 
 	if err := a.db.Query(ctx).AddParticipant(ctx, req); err != nil {
 		return errors.E(err).Debug("a.db.Query.AddParticipant")
 	}
-
 	return nil
+}
+
+func (a *Adapter) DeleteParticipant(ctx context.Context, user domain.UserID, chat domain.ChatID) error {
+	req := &postgres.DeleteParticipantParams{
+		ChatID: chat.I64(),
+		UserID: user.I64(),
+	}
+
+	if err := a.db.Query(ctx).DeleteParticipant(ctx, req); err != nil {
+		return errors.E(err).Debug("a.db.Query.DeleteParticipant")
+	}
+	return nil
+}
+
+func (a *Adapter) ListParticipants(ctx context.Context, chat domain.ChatID) ([]*domain.Participant, error) {
+	participants, err := a.db.Query(ctx).ParticipantsForChat(ctx, chat.I64())
+	if err != nil {
+		return nil, errors.E(err).Debug("a.db.Query.ParticipantsForChat")
+	}
+	return sliceutil.Map(participants, convertParticipant), nil
 }
 
 func (a *Adapter) Chats(ctx context.Context) ([]*domain.Chat, error) {
@@ -49,19 +69,37 @@ func (a *Adapter) Chats(ctx context.Context) ([]*domain.Chat, error) {
 }
 
 func (a *Adapter) CreateChat(ctx context.Context, chat *domain.Chat) (domain.ChatID, error) {
-	id, err := a.db.Query(ctx).CreateChat(ctx, chat.Type.String())
-	if err != nil {
-		return 0, errors.E(err).Debug("Query.CreateChat")
+	req := &postgres.CreateChatParams{
+		Type: chat.Type.String(),
+		Name: chat.Name,
 	}
-
+	id, err := a.db.Query(ctx).CreateChat(ctx, req)
+	if err != nil {
+		return 0, errors.E(err).Debug("a.db.Query.CreateChat")
+	}
 	return domain.ChatID(id), nil
+}
+
+func (a *Adapter) DeleteChat(ctx context.Context, chat domain.ChatID) error {
+	if err := a.db.Query(ctx).DeleteChat(ctx, chat.I64()); err != nil {
+		return errors.E(err).Debug("a.db.Query.DeleteChat")
+	}
+	return nil
+}
+
+func (a *Adapter) UserChats(ctx context.Context, user domain.UserID) ([]*domain.Chat, error) {
+	chats, err := a.db.Query(ctx).UserChats(ctx, user.I64())
+	if err != nil {
+		return nil, errors.E(err).Debug("a.db.Query.UserChats")
+	}
+	return sliceutil.Map(chats, convertChat), nil
 }
 
 func (a *Adapter) CreateMessage(ctx context.Context, message *domain.Message) (domain.MessageID, error) {
 	req := &postgres.CreateMessageParams{
-		ChatID:   message.ChatID.I64(),
-		Username: message.Sender.String(),
-		Text:     message.Text,
+		ChatID: message.ChatID.I64(),
+		UserID: message.Sender.I64(),
+		Text:   message.Text,
 	}
 
 	id, err := a.db.Query(ctx).CreateMessage(ctx, req)
@@ -72,7 +110,7 @@ func (a *Adapter) CreateMessage(ctx context.Context, message *domain.Message) (d
 	return domain.MessageID(id), nil
 }
 
-func (a *Adapter) FirstPageOfMessages(ctx context.Context, chatID domain.ChatID) ([]*domain.Message, *domain.ChatCursor, error) {
+func (a *Adapter) FirstPageOfMessages(ctx context.Context, chatID domain.ChatID) ([]*domain.Message, *domain.MessageCursor, error) {
 	req := &postgres.FirstPageOfMessagesParams{
 		ChatID: chatID.I64(),
 		Limit:  int32(a.limit) + 1,
@@ -90,7 +128,7 @@ func (a *Adapter) FirstPageOfMessages(ctx context.Context, chatID domain.ChatID)
 	return sliceutil.Map(msgs, convertMessage), nil, nil
 }
 
-func (a *Adapter) NextPagesOfMessages(ctx context.Context, chatID domain.ChatID, cursor *domain.ChatCursor) ([]*domain.Message, *domain.ChatCursor, error) {
+func (a *Adapter) NextPageOfMessages(ctx context.Context, chatID domain.ChatID, cursor *domain.MessageCursor) ([]*domain.Message, *domain.MessageCursor, error) {
 	req := &postgres.NextPagesOfMessagesParams{
 		ChatID:    chatID.I64(),
 		ID:        cursor.ID.I64(),

@@ -1,4 +1,4 @@
-package userapi
+package user_api
 
 import (
 	"net/http"
@@ -15,12 +15,13 @@ type UpdateRequest struct {
 	Password string `json:"password"`
 }
 
-func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
+// UpdateMe обновление учетных данных
+func (s *Server) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.Json[UpdateRequest](r)
+	request, err := bind.JSON[UpdateRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return

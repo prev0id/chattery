@@ -8,7 +8,7 @@ import (
 	"chattery/internal/utils/errors"
 )
 
-func Json[T any](request *http.Request) (*T, error) {
+func JSON[T any](request *http.Request) (*T, error) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
 		return nil, errors.E(err).Kind(errors.InvalidRequest).Debug("io.ReadAll")

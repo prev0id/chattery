@@ -40,6 +40,7 @@ func (a *Adapter) UserByLogin(ctx context.Context, login domain.Login) (*domain.
 	}
 	return convertUserFromDB(user), nil
 }
+
 func (a *Adapter) UserByID(ctx context.Context, userID domain.UserID) (*domain.User, error) {
 	user, err := a.db.Query(ctx).UserByUsername(ctx, userID.I64())
 	if database.NotFound(err) {
@@ -103,6 +104,7 @@ func (a *Adapter) UpdateUser(ctx context.Context, updated *domain.User) error {
 
 	return nil
 }
+
 func (a *Adapter) DeleteUser(ctx context.Context, userID domain.UserID) error {
 	rows, err := a.db.Query(ctx).DeleteUserByID(ctx, userID.I64())
 	if err != nil {
