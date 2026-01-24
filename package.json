@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.10",
-    "tailwindcss": "^4.1.16"
+    "@lucide/svelte": "^0.562.0",
+    "lucide-svelte": "^0.562.0"
   }
 }
