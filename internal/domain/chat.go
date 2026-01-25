@@ -24,9 +24,9 @@ type Chat struct {
 }
 
 type Participant struct {
-	User UserID
-	Chat ChatID
-	Role ChatRole
+	UserID UserID
+	Chat   ChatID
+	Role   ChatRole
 }
 
 type ChatRole string
@@ -45,7 +45,7 @@ func (id MessageID) I64() int64 { return int64(id) }
 type Message struct {
 	ID        MessageID
 	ChatID    ChatID
-	Sender    UserID
+	SenderID  UserID
 	Text      string
 	CreatedAt time.Time
 	WasRead   bool

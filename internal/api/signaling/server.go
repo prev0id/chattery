@@ -1,23 +1,30 @@
-package signalingapi
+package signaling_api
 
 import (
 	"context"
 
 	"github.com/go-chi/chi/v5"
 
-	"chattery/internal/service/subscription"
+	"chattery/internal/domain"
 )
 
 type chatService interface {
-	Register(ctx context.Context, subscriber *subscription.Subscriber)
+	Register(sub domain.Subscriber)
+	Unregister(sub domain.Subscriber)
+
+	PostMessage(ctx context.Context, message *domain.Message) error
+	StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
+	StopListeningToChat(sub domain.Subscriber)
 }
 
 type Server struct {
 	chat chatService
 }
 
-func New() *Server {
-	return &Server{}
+func New(chat chatService) *Server {
+	return &Server{
+		chat: chat,
+	}
 }
 
 func (s *Server) Pattern() string {

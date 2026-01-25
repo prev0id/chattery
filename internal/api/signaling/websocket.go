@@ -1,12 +1,12 @@
-package signalingapi
+package signaling_api
 
 import (
 	"net/http"
 
 	"github.com/coder/websocket"
 
+	"chattery/internal/api/signaling/subscriber"
 	"chattery/internal/domain"
-	"chattery/internal/service/subscription"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/render"
 )
@@ -27,10 +27,13 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.CloseNow()
 
-	ctx, subscriber := subscription.New(ctx, userID, session, conn)
+	sub := subscriber.New(conn).
+		WithSession(session).
+		WithUserID(userID).
+		WithChatService(s.chat)
 
-	s.chat.Register(ctx, subscriber)
-	// s.webrtc.Register(ctx, user, subscriber)
+	s.chat.Register(sub)
+	defer s.chat.Unregister(sub)
 
-	subscriber.Reader(ctx)
+	sub.Read(ctx)
 }

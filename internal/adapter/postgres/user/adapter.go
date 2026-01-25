@@ -1,4 +1,4 @@
-package useradapter
+package user_adapter
 
 import (
 	"context"

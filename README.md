@@ -9,39 +9,47 @@
 ## 24.01.2025
 - [ ] страница регистрации
     - [x] backend
-    - [ ] frontend
 - [ ] страница логина
     - [x] backend
-    - [ ] frontend
 - [ ] разлогин
     - [x] backend
+- [ ] создание приватного чата
+    - [x] backend
+- [ ] вход в чат
+    - [x] backend
+- [ ] выход из чата
+    - [x] backend
+- [ ] создание публичного чата
+    - [x] backend
+- [ ] поиск публичных чатов
+    - [x] backend
+
+## 25.01.2025
+- [ ] страница регистрации
+    - [ ] frontend
+- [ ] страница логина
+    - [ ] frontend
+- [ ] разлогин
     - [ ] frontend
 - [ ] поиск пользователей
     - [ ] backend
     - [ ] frontend
 - [ ] создание приватного чата
-    - [x] backend
     - [ ] frontend
 - [ ] вход в чат
-    - [x] backend
     - [ ] frontend
 - [ ] выход из чата
-    - [x] backend
     - [ ] frontend
 - [ ] приватный чат
-    - [ ] backend
+    - [x] backend
     - [ ] frontend
 - [ ] создание публичного чата
-    - [x] backend
     - [ ] frontend
 - [ ] удаление публичного чата
     - [ ] backend
     - [ ] frontend
 - [ ] публичный чат
-    - [ ] backend
-    - [ ] frontend
-- [ ] поиск публичных чатов
     - [x] backend
     - [ ] frontend
-
-## 25.01.2025
+- [ ] поиск публичных чатов
+    - [ ] frontend

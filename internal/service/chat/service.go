@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"sync"
 
 	"chattery/internal/domain"
 )
@@ -36,26 +37,17 @@ type Service struct {
 	transaction txManager
 	pubsub      pubsub
 
-	subs map[domain.UserID][]Subscription
+	subsMutex         sync.RWMutex
+	chatSubsBySession map[domain.Session]context.CancelFunc
+	subsByUserID      map[domain.UserID][]domain.Subscriber
 }
 
 func New(dbAdapter db, pubsubAdapter pubsub, transaction txManager) *Service {
 	return &Service{
-		db:          dbAdapter,
-		pubsub:      pubsubAdapter,
-		transaction: transaction,
+		db:                dbAdapter,
+		pubsub:            pubsubAdapter,
+		transaction:       transaction,
+		chatSubsBySession: make(map[domain.Session]context.CancelFunc),
+		subsByUserID:      make(map[domain.UserID][]domain.Subscriber),
 	}
-}
-
-type callback func(ctx context.Context, event *domain.Event) error
-
-type Subscription interface {
-	GetUserID() domain.UserID
-	GetSession() domain.Session
-	Write(event domain.Event)
-	SubscribeToEvent(ctx context.Context, type_ domain.EventType, callback callback)
-}
-
-func (s *Service) Register(sub Subscription) {
-	s.subs[sub.GetUserID()] = nil
 }

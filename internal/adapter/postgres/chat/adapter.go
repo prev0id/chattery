@@ -29,7 +29,7 @@ func New(cfg *config.Config, db queryProvider) *Adapter {
 func (a *Adapter) AddParticipant(ctx context.Context, participant *domain.Participant) error {
 	req := &postgres.AddParticipantParams{
 		ChatID: participant.Chat.I64(),
-		UserID: participant.User.I64(),
+		UserID: participant.UserID.I64(),
 		Role:   participant.Role.String(),
 	}
 
@@ -98,7 +98,7 @@ func (a *Adapter) UserChats(ctx context.Context, user domain.UserID) ([]*domain.
 func (a *Adapter) CreateMessage(ctx context.Context, message *domain.Message) (domain.MessageID, error) {
 	req := &postgres.CreateMessageParams{
 		ChatID: message.ChatID.I64(),
-		UserID: message.Sender.I64(),
+		UserID: message.SenderID.I64(),
 		Text:   message.Text,
 	}
 

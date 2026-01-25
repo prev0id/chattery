@@ -11,9 +11,9 @@ import (
 
 func (s *Service) JoinChat(ctx context.Context, user domain.UserID, chat domain.ChatID) error {
 	participant := &domain.Participant{
-		Role: domain.ChatRoleParticipant,
-		User: user,
-		Chat: chat,
+		Role:   domain.ChatRoleParticipant,
+		UserID: user,
+		Chat:   chat,
 	}
 
 	if err := s.db.AddParticipant(ctx, participant); err != nil {
@@ -46,9 +46,9 @@ func (s *Service) CreatePublicChat(ctx context.Context, user domain.UserID, name
 		}
 
 		moderator := &domain.Participant{
-			Role: domain.ChatRoleOwner,
-			User: user,
-			Chat: chatID,
+			Role:   domain.ChatRoleOwner,
+			UserID: user,
+			Chat:   chatID,
 		}
 		if err := s.db.AddParticipant(ctx, moderator); err != nil {
 			return errors.E(err).Debug("s.db.AddParticipant")
@@ -111,7 +111,7 @@ func (s *Service) DeleteChat(ctx context.Context, user domain.UserID, chat domai
 	if !ok {
 		return errors.E().Message("chat does not have owner").Kind(errors.NotFound)
 	}
-	if owner.User != user {
+	if owner.UserID != user {
 		return errors.E().Message("you must be chat owner to delete it").Kind(errors.Permission)
 	}
 

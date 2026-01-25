@@ -1,4 +1,4 @@
-package redisadapter
+package redis_adapter
 
 import (
 	"context"
@@ -73,6 +73,7 @@ func (r *Adapter) Subscribe(ctx context.Context, chat domain.ChatID, dst chan<- 
 	for {
 		select {
 		case <-ctx.Done():
+			close(sink)
 			return
 		case rawMessage := <-sink:
 			message, err := bind.JsonString[domain.Message](rawMessage)

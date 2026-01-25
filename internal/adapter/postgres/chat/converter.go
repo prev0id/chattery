@@ -14,10 +14,10 @@ func convertChat(chat *postgres.Chat) *domain.Chat {
 
 func convertMessage(message *postgres.ChatMessage) *domain.Message {
 	return &domain.Message{
-		ID:     domain.MessageID(message.ID),
-		ChatID: domain.ChatID(message.ChatID),
-		Sender: domain.UserID(message.UserID),
-		Text:   message.Text,
+		ID:       domain.MessageID(message.ID),
+		ChatID:   domain.ChatID(message.ChatID),
+		SenderID: domain.UserID(message.UserID),
+		Text:     message.Text,
 	}
 }
 
@@ -30,8 +30,8 @@ func convertCursor(message *postgres.ChatMessage) *domain.MessageCursor {
 
 func convertParticipant(participant *postgres.ChatParticipant) *domain.Participant {
 	return &domain.Participant{
-		User: domain.UserID(participant.UserID),
-		Chat: domain.ChatID(participant.ChatID),
-		Role: domain.ChatRole(participant.Role),
+		UserID: domain.UserID(participant.UserID),
+		Chat:   domain.ChatID(participant.ChatID),
+		Role:   domain.ChatRole(participant.Role),
 	}
 }
