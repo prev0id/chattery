@@ -9,7 +9,6 @@ run:
 
 .PHONY: build
 build:
-	npx @tailwindcss/cli -i ./web/src/css/_base.css -o ./web/src/css/main.css --minify
 	go build -o ./bin/chattery ./cmd/main.go
 
 

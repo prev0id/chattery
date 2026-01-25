@@ -45,14 +45,14 @@ func New(dbAdapter db, cacheAdapter cache, transaction txManager) *Service {
 func (s *Service) GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error) {
 	user, err := s.db.UserByLogin(ctx, login)
 	if errors.Is(errors.NotFound, err) {
-		return nil, errors.E(err).Kind(errors.InvalidRequest).Message("invalid login")
+		return nil, errors.E(err).Kind(errors.NotFound).Messagef("user with login %q not found", login.String())
 	}
 	if err != nil {
 		return nil, errors.E(err).Debug("s.db.UserByLogin")
 	}
 
 	if !user.Password.Equal(rawPassword, login) {
-		return nil, errors.E(err).Kind(errors.InvalidRequest).Message("invalid password")
+		return nil, errors.E(err).Kind(errors.Permission).Message("invalid password")
 	}
 
 	return user, nil

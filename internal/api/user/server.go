@@ -37,7 +37,7 @@ func (s *Server) Pattern() string {
 
 func (s *Server) Route(router chi.Router) {
 	router.Post("/create", s.Create)
-	router.Post("/login", s.Login)
+	router.Put("/login", s.Login)
 
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)

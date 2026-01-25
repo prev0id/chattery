@@ -10,6 +10,7 @@ import (
 	chat_api "chattery/internal/api/chat"
 	signaling_api "chattery/internal/api/signaling"
 	user_api "chattery/internal/api/user"
+	web_api "chattery/internal/api/web"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
 	"chattery/internal/service/chat"
@@ -51,7 +52,7 @@ func main() {
 			signaling_api.New(chatService),
 			user_api.New(userService),
 			chat_api.New(userService, chatService),
-			// web_api.New(),
+			web_api.New(),
 		)
 
 	if err := server.Run(); err != nil {
