@@ -13,3 +13,6 @@ var LoginPage []byte
 
 //go:embed signup.html
 var SignupPage []byte
+
+//go:embed root.html
+var RootPage []byte

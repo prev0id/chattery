@@ -6,7 +6,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="./src/assets/icon.svg" />
         <link rel="stylesheet" href="./src/css/main.css" />
-        <script type="module" src="./src/js/components/signup_form.js"></script>
+        <script type="module" src="./src/js/components/sidebar.js"></script>
+        <script type="module" src="./src/js/components/chat.js"></script>
         <script type="module" src="./src/js/components/notifications.js"></script>
     </head>
     <body>
@@ -16,11 +17,13 @@
             }
             body {
                 display: flex;
-                align-items: center;
-                justify-content: center;
+            }
+            chattery-chat {
+                flex-grow: 1;
             }
         </style>
-        <signup-form></signup-form>
+        <chattery-sidebar></chattery-sidebar>
+        <chattery-chat></chattery-chat>
         <notification-center></notification-center>
     </body>
 </html>

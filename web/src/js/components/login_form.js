@@ -106,20 +106,25 @@ class LoginForm extends LitElement {
         const data = { login, password };
 
         try {
-        const response = await fetch("/v1/user/login", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
-        if (!response.ok) {
-            throw new Error("Login failed");
-        }
-
-        console.log("Login successful");
+            const response = await fetch("/v1/user/login", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) {
+                const data = await response.json();
+                window.dispatchEvent(new CustomEvent('show-notification', {
+                    detail: { type: 'error', message: data.message, status: response.status }
+                }));
+                return
+            }
+            console.log("Login successful");
         } catch (error) {
-        console.error("Error:", error);
+            window.dispatchEvent(new CustomEvent('show-notification', {
+                detail: { type: 'error', message:  error }
+            }));
         }
     }
 
@@ -158,7 +163,7 @@ class LoginForm extends LitElement {
             <button type="submit">Login</button>
         </form>
         <div class="signin-link">
-            Don't have an account? <a href="/signin">Sign in</a>
+            Don't have an account? <a href="/signup">Sign Up</a>
         </div>
             `;
     }
