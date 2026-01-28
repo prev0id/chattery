@@ -120,15 +120,14 @@
     - [x] JS формы: запрос "/v1/user/create"
     - [x] JS формы: валидация паролей
     - [x] JS формы: Редирект на "/app"
-5. (2/18) Sidebar
+5. (4/18) Sidebar
     - [ ] JS: menu-bar + content-bar communication
     - [ ] JS: get profile info "/v1/user/me/info"
-    - [ ] JS: запись табов в URL
+    - [x] JS: запись табов в URL
     - [x] HTML menu-bar
     - [x] CSS menu-bar
-    - [ ] JS menu-bar: выбор табов
+    - [x] JS menu-bar: выбор табов
     - [ ] JS menu-bar: получение данных профиля
-    - [ ] JS menu-bar: разлогин
     - [ ] HTML content-bar
     - [ ] CSS content-bar
     - [ ] JS content-bar: получение данных личных чатов
@@ -139,6 +138,7 @@
     - [ ] JS: Формы профиля
     - [ ] HTML: Модалки настройки профиля
     - [ ] CSS: Модалки настройки профиля
+    - [ ] JS: разлогин
 6. (0/7) Чат
     - [ ] JS: WS обертка с переподлючением и обработкой сообщений
     - [ ] JS: Отправка сообщения в чате

@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "../lit/min.js";
-
-const tabPrivateChats = "private";
-const tabGlobalChats = "global";
+import "./icon.js";
+import "./sidebar-menu.js";
+import { TabPrivateChats, TabPublicChats } from "./sidebar-menu.js";
 
 export class Sidebar extends LitElement {
     static styles = css`
@@ -17,25 +17,12 @@ export class Sidebar extends LitElement {
             display: flex;
             height: 100%;
         }
-        .menu-bar {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 3rem;
-            height: 100%;
-            border-right: 1px solid var(--color-border);
-            padding-top: 1rem;
-        }
-        .chat-bar {
+        .content-bar {
             overflow: auto;
             width: 15rem;
             height: 100%;
             border-right: 1px solid var(--color-border);
             background-color: var(--color-muted-soft);
-        }
-        .logo {
-            height: 2.9rem;
-            width: 2.9rem;
         }
         .tab-button {
             border: none;
@@ -43,15 +30,12 @@ export class Sidebar extends LitElement {
             background: none;
             cursor: pointer;
             padding: 0.3rem;
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
             color: var(--color-muted);
+            margin-top: 1rem;
         }
         .tab-button:hover {
             background-color: var(--color-muted);
-        }
-        .tab-image {
-            height: 2rem;
-            width: 2rem;
         }
         .last {
             margin-top: auto;
@@ -59,46 +43,43 @@ export class Sidebar extends LitElement {
     `;
 
     static properties = {
-        tab: {},
-        settings_modal_open: {},
+        tab: { type: String },
     };
 
     constructor() {
         super();
-        this.settings_modal_open = false;
+        this.tab = this.getTabFromURL();
+        this.show_settings = false;
+        this.addEventListener("sidebar-tab-change", this.handleTabChange);
+    }
+
+    handleTabChange(event) {
+        const tab = event.detail.tab;
+        this.setTabToURL(tab);
+        this.tab = tab;
+    }
+
+    setTabToURL(tab) {
+        const url = new URL(window.location);
+        url.searchParams.set("tab", tab);
+        window.history.pushState({}, "", url);
+    }
+
+    getTabFromURL() {
+        const url = new URL(window.location);
+        let tab = url.searchParams.get("tab");
+        if (tab !== TabPublicChats && tab !== TabPrivateChats) {
+            console.log(tab);
+            tab = TabPrivateChats;
+            this.setTabToURL(tab);
+        }
+        return tab;
     }
 
     render() {
         return html`
             <aside>
-                <div class="menu-bar">
-                    <img class="logo" src="/src/assets/logo.svg" />
-                    <button class="tab-button">
-                        <img
-                            class="tab-image"
-                            src="/src/assets/icons/users.svg"
-                        />
-                    </button>
-                    <button class="tab-button">
-                        <img
-                            class="tab-image"
-                            src="/src/assets/icons/globe.svg"
-                        />
-                    </button>
-                    <button class="tab-button last">
-                        <img
-                            class="tab-image"
-                            src="/src/assets/icons/settings.svg"
-                        />
-                    </button>
-                    <button class="tab-button">
-                        <img
-                            class="tab-image"
-                            src="/src/assets/icons/settings.svg"
-                        />
-                    </button>
-                </div>
-                <div class="chat-bar"></div>
+                <sidebar-menu tab=${this.tab}></sidebar-menu>
             </aside>
         `;
     }
