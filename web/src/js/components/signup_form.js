@@ -148,8 +148,7 @@ class SigninForm extends LitElement {
                 );
                 return;
             }
-
-            console.log("Login successful");
+            window.location.replace("/app");
         } catch (error) {
             window.dispatchEvent(
                 new CustomEvent("show-notification", {

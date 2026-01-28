@@ -23,7 +23,7 @@ class LoginForm extends LitElement {
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
-            width: 100%
+            width: 100%;
         }
         .input-group {
             position: relative;
@@ -56,7 +56,7 @@ class LoginForm extends LitElement {
         }
         button[type="submit"] {
             padding: 0.5rem;
-        }        
+        }
         .toggle-password {
             position: absolute;
             right: 0.5rem;
@@ -81,9 +81,9 @@ class LoginForm extends LitElement {
         }
         .greetings-comment {
             font-size: 0.75rem;
-            text-align: center;            
+            text-align: center;
         }
-        .greetings-header{
+        .greetings-header {
             font-size: 1.1rem;
             text-align: center;
             font-weight: 600;
@@ -115,16 +115,24 @@ class LoginForm extends LitElement {
             });
             if (!response.ok) {
                 const data = await response.json();
-                window.dispatchEvent(new CustomEvent('show-notification', {
-                    detail: { type: 'error', message: data.message, status: response.status }
-                }));
-                return
+                window.dispatchEvent(
+                    new CustomEvent("show-notification", {
+                        detail: {
+                            type: "error",
+                            message: data.message,
+                            status: response.status,
+                        },
+                    }),
+                );
+                return;
             }
-            console.log("Login successful");
+            window.location.replace("/app");
         } catch (error) {
-            window.dispatchEvent(new CustomEvent('show-notification', {
-                detail: { type: 'error', message:  error }
-            }));
+            window.dispatchEvent(
+                new CustomEvent("show-notification", {
+                    detail: { type: "error", message: error },
+                }),
+            );
         }
     }
 
@@ -135,37 +143,39 @@ class LoginForm extends LitElement {
 
     render() {
         return html`
-        <form @submit="${this._handleSubmit}">
-            <div class="greetings">
-                <p class="greetings-header">Welcome Back</p>
-                <p class="greetings-comment">Enter your credentials to access your account.</p>                
+            <form @submit="${this._handleSubmit}">
+                <div class="greetings">
+                    <p class="greetings-header">Welcome Back</p>
+                    <p class="greetings-comment">
+                        Enter your credentials to access your account.
+                    </p>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" name="login" type="email" required />
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="${this.showPassword ? "text" : "password"}"
+                        required
+                    />
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        @click="${this._togglePassword}"
+                    >
+                        ${this.showPassword ? "Hide" : "Show"}
+                    </button>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div class="signin-link">
+                Don't have an account? <a href="/signup">Sign Up</a>
             </div>
-            <div>
-                <label for="email">Email</label>
-                <input id="email" name="login" type="email" required />
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="${this.showPassword ? "text" : "password"}"
-                    required
-                />
-                <button
-                    type="button"
-                    class="toggle-password"
-                    @click="${this._togglePassword}"
-                >
-                    ${this.showPassword ? "Hide" : "Show"}
-                </button>
-            </div>
-            <button type="submit">Login</button>
-        </form>
-        <div class="signin-link">
-            Don't have an account? <a href="/signup">Sign Up</a>
-        </div>
-            `;
+        `;
     }
 }
 

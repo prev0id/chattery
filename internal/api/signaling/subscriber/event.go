@@ -14,7 +14,7 @@ type Event struct {
 
 type Message struct {
 	Text      string    `json:"text"`
-	Sender    int64     `json:"sender"`
+	SenderID  int64     `json:"sender_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -32,7 +32,7 @@ func convertMessageToEvent(message *domain.Message) *Event {
 		ChatID: message.ChatID.I64(),
 		Message: Message{
 			Text:      message.Text,
-			Sender:    message.SenderID.I64(),
+			SenderID:  message.SenderID.I64(),
 			CreatedAt: message.CreatedAt,
 		},
 	}

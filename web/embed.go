@@ -14,5 +14,5 @@ var LoginPage []byte
 //go:embed signup.html
 var SignupPage []byte
 
-//go:embed root.html
-var RootPage []byte
+//go:embed app.html
+var AppPage []byte

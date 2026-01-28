@@ -20,8 +20,8 @@ func (s *Server) Pattern() string {
 }
 
 func (s *Server) Route(router chi.Router) {
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(web.RootPage)
+	router.HandleFunc("/app", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(web.AppPage)
 	})
 
 	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {

@@ -41,7 +41,7 @@ func (s *Server) CreatePrivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := s.chat.CreatePrivateChat(ctx, userID, domain.UserID(request.With))
+	id, err := s.chat.CreatePrivateChat(ctx, userID, domain.UserID(request.WithUserID))
 	if err != nil {
 		render.Error(w, r, err)
 		return

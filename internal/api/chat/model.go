@@ -6,11 +6,11 @@ import (
 )
 
 type CreatePublicChatRequest struct {
-	Name string
+	Name string `json:"id"`
 }
 
 type CreatePrivateChatRequest struct {
-	With int64 `json:"id"`
+	WithUserID int64 `json:"user_id"`
 }
 
 type CreateChatResponse struct {
