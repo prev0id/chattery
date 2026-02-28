@@ -17,6 +17,31 @@ WHERE chats.id in (
     WHERE user_id=$1
 );
 
+-- name: UserChatPreviewByType :many
+SELECT
+    c.id,
+    c.type,
+    c.name,
+    c.created_at,
+    c.updated_at,
+    (m.id IS NOT NULL)::boolean           AS has_last_message,
+    COALESCE(m.id, 0)                     AS last_message_id,
+    COALESCE(m.user_id, 0)                AS last_message_user_id,
+    COALESCE(m.text, '')                  AS last_message_text,
+    COALESCE(m.created_at, TIMESTAMP 'epoch') AS last_message_created_at
+FROM chats c
+JOIN chat_participants cp
+    ON cp.chat_id = c.id AND cp.user_id = $1
+LEFT JOIN LATERAL (
+    SELECT id, user_id, text, created_at
+    FROM chat_messages
+    WHERE chat_id = c.id
+    ORDER BY created_at DESC, id DESC
+    LIMIT 1
+) m ON true
+WHERE c.type = $2
+ORDER BY m.created_at DESC NULLS LAST, c.updated_at DESC, c.id DESC;
+
 -- name: AddParticipant :exec
 INSERT INTO chat_participants(chat_id, user_id, role)
 VALUES ($1, $2, $3);

@@ -272,6 +272,106 @@ func (q *Queries) ParticipantsForChat(ctx context.Context, chatID int64) ([]*Cha
 	return items, nil
 }
 
+const userChatPreviewByType = `-- name: UserChatPreviewByType :many
+SELECT
+    c.id,
+    c.type,
+    c.name,
+    c.created_at,
+    c.updated_at,
+    (m.id IS NOT NULL)::boolean           AS has_last_message,
+    COALESCE(m.id, 0)                     AS last_message_id,
+    COALESCE(m.user_id, 0)                AS last_message_user_id,
+    COALESCE(m.text, '')                  AS last_message_text,
+    COALESCE(m.created_at, TIMESTAMP 'epoch') AS last_message_created_at
+FROM chats c
+JOIN chat_participants cp
+    ON cp.chat_id = c.id AND cp.user_id = $1
+LEFT JOIN LATERAL (
+    SELECT id, user_id, text, created_at
+    FROM chat_messages
+    WHERE chat_id = c.id
+    ORDER BY created_at DESC, id DESC
+    LIMIT 1
+) m ON true
+WHERE c.type = $2
+ORDER BY m.created_at DESC NULLS LAST, c.updated_at DESC, c.id DESC
+`
+
+type UserChatPreviewByTypeParams struct {
+	UserID int64
+	Type   string
+}
+
+type UserChatPreviewByTypeRow struct {
+	ID                   int64
+	Type                 string
+	Name                 string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	HasLastMessage       bool
+	LastMessageID        int64
+	LastMessageUserID    int64
+	LastMessageText      string
+	LastMessageCreatedAt time.Time
+}
+
+// UserChatPreviewByType
+//
+//	SELECT
+//	    c.id,
+//	    c.type,
+//	    c.name,
+//	    c.created_at,
+//	    c.updated_at,
+//	    (m.id IS NOT NULL)::boolean           AS has_last_message,
+//	    COALESCE(m.id, 0)                     AS last_message_id,
+//	    COALESCE(m.user_id, 0)                AS last_message_user_id,
+//	    COALESCE(m.text, '')                  AS last_message_text,
+//	    COALESCE(m.created_at, TIMESTAMP 'epoch') AS last_message_created_at
+//	FROM chats c
+//	JOIN chat_participants cp
+//	    ON cp.chat_id = c.id AND cp.user_id = $1
+//	LEFT JOIN LATERAL (
+//	    SELECT id, user_id, text, created_at
+//	    FROM chat_messages
+//	    WHERE chat_id = c.id
+//	    ORDER BY created_at DESC, id DESC
+//	    LIMIT 1
+//	) m ON true
+//	WHERE c.type = $2
+//	ORDER BY m.created_at DESC NULLS LAST, c.updated_at DESC, c.id DESC
+func (q *Queries) UserChatPreviewByType(ctx context.Context, arg *UserChatPreviewByTypeParams) ([]*UserChatPreviewByTypeRow, error) {
+	rows, err := q.db.Query(ctx, userChatPreviewByType, arg.UserID, arg.Type)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*UserChatPreviewByTypeRow
+	for rows.Next() {
+		var i UserChatPreviewByTypeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.HasLastMessage,
+			&i.LastMessageID,
+			&i.LastMessageUserID,
+			&i.LastMessageText,
+			&i.LastMessageCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const userChats = `-- name: UserChats :many
 SELECT id, type, name, created_at, updated_at FROM chats
 WHERE chats.id in (

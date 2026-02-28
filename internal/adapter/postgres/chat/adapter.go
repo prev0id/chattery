@@ -121,7 +121,7 @@ func (a *Adapter) FirstPageOfMessages(ctx context.Context, chatID domain.ChatID)
 		return nil, nil, errors.E(err).Debug("Query.FirstPageOfMessages")
 	}
 
-	if len(msgs) != a.limit+1 {
+	if len(msgs) == a.limit+1 {
 		return sliceutil.Map(msgs[:a.limit], convertMessage), convertCursor(msgs[a.limit]), nil
 	}
 
@@ -141,9 +141,37 @@ func (a *Adapter) NextPageOfMessages(ctx context.Context, chatID domain.ChatID, 
 		return nil, nil, errors.E(err).Debug("Query.NextPagesOfMessages")
 	}
 
-	if len(msgs) != a.limit+1 {
+	if len(msgs) == a.limit+1 {
 		return sliceutil.Map(msgs[:a.limit], convertMessage), convertCursor(msgs[a.limit]), nil
 	}
 
 	return sliceutil.Map(msgs, convertMessage), nil, nil
+}
+
+func (a *Adapter) UserPrivateChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error) {
+	req := &postgres.UserChatPreviewByTypeParams{
+		UserID: user.I64(),
+		Type:   domain.ChatTypePrivate.String(),
+	}
+
+	previews, err := a.db.Query(ctx).UserChatPreviewByType(ctx, req)
+	if err != nil {
+		return nil, errors.E(err).Debug("a.db.Query.UserChatPreviewByType")
+	}
+
+	return sliceutil.Map(previews, convertChatPreview), nil
+}
+
+func (a *Adapter) UserPublicChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error) {
+	req := &postgres.UserChatPreviewByTypeParams{
+		UserID: user.I64(),
+		Type:   domain.ChatTypePublic.String(),
+	}
+
+	previews, err := a.db.Query(ctx).UserChatPreviewByType(ctx, req)
+	if err != nil {
+		return nil, errors.E(err).Debug("a.db.Query.UserChatPreviewByType")
+	}
+
+	return sliceutil.Map(previews, convertChatPreview), nil
 }

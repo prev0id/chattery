@@ -90,6 +90,32 @@ type Querier interface {
 	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 	//  WHERE id = $1
 	UserByUsername(ctx context.Context, id int64) (*User, error)
+	//UserChatPreviewByType
+	//
+	//  SELECT
+	//      c.id,
+	//      c.type,
+	//      c.name,
+	//      c.created_at,
+	//      c.updated_at,
+	//      (m.id IS NOT NULL)::boolean           AS has_last_message,
+	//      COALESCE(m.id, 0)                     AS last_message_id,
+	//      COALESCE(m.user_id, 0)                AS last_message_user_id,
+	//      COALESCE(m.text, '')                  AS last_message_text,
+	//      COALESCE(m.created_at, TIMESTAMP 'epoch') AS last_message_created_at
+	//  FROM chats c
+	//  JOIN chat_participants cp
+	//      ON cp.chat_id = c.id AND cp.user_id = $1
+	//  LEFT JOIN LATERAL (
+	//      SELECT id, user_id, text, created_at
+	//      FROM chat_messages
+	//      WHERE chat_id = c.id
+	//      ORDER BY created_at DESC, id DESC
+	//      LIMIT 1
+	//  ) m ON true
+	//  WHERE c.type = $2
+	//  ORDER BY m.created_at DESC NULLS LAST, c.updated_at DESC, c.id DESC
+	UserChatPreviewByType(ctx context.Context, arg *UserChatPreviewByTypeParams) ([]*UserChatPreviewByTypeRow, error)
 	//UserChats
 	//
 	//  SELECT id, type, name, created_at, updated_at FROM chats

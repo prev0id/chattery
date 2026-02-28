@@ -17,6 +17,8 @@ type db interface {
 	DeleteChat(ctx context.Context, chat domain.ChatID) error
 
 	UserChats(ctx context.Context, user domain.UserID) ([]*domain.Chat, error)
+	UserPrivateChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error)
+	UserPublicChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error)
 
 	CreateMessage(ctx context.Context, message *domain.Message) (domain.MessageID, error)
 	FirstPageOfMessages(ctx context.Context, chat domain.ChatID) ([]*domain.Message, *domain.MessageCursor, error)

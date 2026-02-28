@@ -23,6 +23,13 @@ type Chat struct {
 	Type ChatType
 }
 
+type ChatPreview struct {
+	ID          ChatID
+	Name        string
+	Type        ChatType
+	LastMessage *Message
+}
+
 type Participant struct {
 	UserID UserID
 	Chat   ChatID

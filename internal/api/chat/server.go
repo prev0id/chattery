@@ -14,7 +14,9 @@ type userService interface {
 }
 
 type chatService interface {
-	UserChats(ctx context.Context, user domain.UserID) ([]*domain.Chat, error)
+	UserPrivateChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error)
+	UserPublicChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error)
+
 	JoinChat(ctx context.Context, user domain.UserID, chat domain.ChatID) error
 	LeaveChat(ctx context.Context, user domain.UserID, chat domain.ChatID) error
 
@@ -51,8 +53,10 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Post("/create/private", s.CreatePrivate)
 		withAuthRouter.Get("/search", s.Search)
 
-		withAuthRouter.Get("/me/list", s.ListMy)
-		withAuthRouter.Post("/me/join", s.Join)
-		withAuthRouter.Delete("/me/leave", s.Leave)
+		withAuthRouter.Get("/list/private", s.ListPrivate)
+		withAuthRouter.Get("/list/public", s.ListPublic)
+
+		withAuthRouter.Post("/join", s.Join)
+		withAuthRouter.Delete("/leave", s.Leave)
 	})
 }

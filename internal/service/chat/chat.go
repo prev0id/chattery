@@ -130,6 +130,23 @@ func (s *Service) UserChats(ctx context.Context, user domain.UserID) ([]*domain.
 	return chats, nil
 }
 
+func (s *Service) UserPrivateChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error) {
+	previews, err := s.db.UserPrivateChats(ctx, user)
+	if err != nil {
+		return nil, errors.E(err).Debug("s.db.UserPrivateChatsWithLastMessage")
+	}
+	return previews, nil
+}
+
+func (s *Service) UserPublicChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error) {
+	previews, err := s.db.UserPublicChats(ctx, user)
+	if err != nil {
+		return nil, errors.E(err).Debug("s.db.UserPublicChatsWithLastMessage")
+	}
+	return previews, nil
+
+}
+
 func chatNameContainsString(chat *domain.Chat, query string) bool {
 	if chat.Type == domain.ChatTypePrivate {
 		return false

@@ -8,16 +8,18 @@ import (
 func convertChat(chat *postgres.Chat) *domain.Chat {
 	return &domain.Chat{
 		ID:   domain.ChatID(chat.ID),
+		Name: chat.Name,
 		Type: domain.ChatType(chat.Type),
 	}
 }
 
 func convertMessage(message *postgres.ChatMessage) *domain.Message {
 	return &domain.Message{
-		ID:       domain.MessageID(message.ID),
-		ChatID:   domain.ChatID(message.ChatID),
-		SenderID: domain.UserID(message.UserID),
-		Text:     message.Text,
+		ID:        domain.MessageID(message.ID),
+		ChatID:    domain.ChatID(message.ChatID),
+		SenderID:  domain.UserID(message.UserID),
+		Text:      message.Text,
+		CreatedAt: message.CreatedAt,
 	}
 }
 
@@ -34,4 +36,24 @@ func convertParticipant(participant *postgres.ChatParticipant) *domain.Participa
 		Chat:   domain.ChatID(participant.ChatID),
 		Role:   domain.ChatRole(participant.Role),
 	}
+}
+
+func convertChatPreview(row *postgres.UserChatPreviewByTypeRow) *domain.ChatPreview {
+	preview := &domain.ChatPreview{
+		ID:   domain.ChatID(row.ID),
+		Name: row.Name,
+		Type: domain.ChatType(row.Type),
+	}
+
+	if row.HasLastMessage {
+		preview.LastMessage = &domain.Message{
+			ID:        domain.MessageID(row.LastMessageID),
+			ChatID:    domain.ChatID(row.ID),
+			SenderID:  domain.UserID(row.LastMessageUserID),
+			Text:      row.LastMessageText,
+			CreatedAt: row.LastMessageCreatedAt,
+		}
+	}
+
+	return preview
 }
