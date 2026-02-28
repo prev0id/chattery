@@ -2,7 +2,7 @@ import { LitElement, html, css } from "../lit/min.js";
 import "./icon.js";
 
 export const TabPrivateChats = "private";
-export const TabPublicChats = "global";
+export const TabPublicChats = "public";
 
 export class SidebarMenu extends LitElement {
     static styles = css`
@@ -68,7 +68,7 @@ export class SidebarMenu extends LitElement {
     }
 
     setTab(tab) {
-        if (this.tab == tab) {
+        if (this.tab === tab) {
             return;
         }
         let tabChange = new CustomEvent("sidebar-tab-change", {

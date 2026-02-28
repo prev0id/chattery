@@ -17,29 +17,6 @@ export class Sidebar extends LitElement {
             display: flex;
             height: 100%;
         }
-        .content-bar {
-            overflow: auto;
-            width: 15rem;
-            height: 100%;
-            border-right: 1px solid var(--color-border);
-            background-color: var(--color-muted-soft);
-        }
-        .tab-button {
-            border: none;
-            padding: 0;
-            background: none;
-            cursor: pointer;
-            padding: 0.3rem;
-            border-radius: var(--radius-lg);
-            color: var(--color-muted);
-            margin-top: 1rem;
-        }
-        .tab-button:hover {
-            background-color: var(--color-muted);
-        }
-        .last {
-            margin-top: auto;
-        }
     `;
 
     static properties = {
@@ -61,19 +38,25 @@ export class Sidebar extends LitElement {
 
     setTabToURL(tab) {
         const url = new URL(window.location);
-        url.searchParams.set("tab", tab);
+        if (tab === TabPublicChats) {
+            url.searchParams.set("tab", tab);
+        } else {
+            url.searchParams.delete("tab");
+        }
         window.history.pushState({}, "", url);
     }
 
     getTabFromURL() {
         const url = new URL(window.location);
-        let tab = url.searchParams.get("tab");
-        if (tab !== TabPublicChats && tab !== TabPrivateChats) {
-            console.log(tab);
-            tab = TabPrivateChats;
-            this.setTabToURL(tab);
+        const tab = url.searchParams.get("tab");
+        if (tab === TabPublicChats) {
+            return TabPublicChats;
         }
-        return tab;
+        if (tab !== null && tab !== TabPrivateChats) {
+            url.searchParams.delete("tab");
+            window.history.replaceState({}, "", url);
+        }
+        return TabPrivateChats;
     }
 
     render() {
