@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"chattery/internal/client/postgres"
 	"chattery/internal/utils/errors"
@@ -11,14 +12,14 @@ import (
 )
 
 type Manager struct {
-	conn   *pgx.Conn
+	pool   *pgxpool.Pool
 	client *postgres.Queries
 }
 
-func NewManager(conn *pgx.Conn) *Manager {
+func NewManager(pool *pgxpool.Pool) *Manager {
 	return &Manager{
-		conn:   conn,
-		client: postgres.New(conn),
+		pool:   pool,
+		client: postgres.New(pool),
 	}
 }
 
@@ -34,9 +35,9 @@ func (m *Manager) InTransaction(ctx context.Context, fn func(context.Context) er
 		return fn(ctx)
 	}
 
-	tx, err := m.conn.Begin(ctx)
+	tx, err := m.pool.Begin(ctx)
 	if err != nil {
-		return errors.E(err).Debug("m.conn.Begin")
+		return errors.E(err).Debug("m.pool.Begin")
 	}
 
 	if err = fn(txToContext(ctx, tx)); err != nil {

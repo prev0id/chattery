@@ -133,7 +133,7 @@ func (s *Service) UserChats(ctx context.Context, user domain.UserID) ([]*domain.
 func (s *Service) UserPrivateChats(ctx context.Context, user domain.UserID) ([]*domain.ChatPreview, error) {
 	previews, err := s.db.UserPrivateChats(ctx, user)
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.UserPrivateChatsWithLastMessage")
+		return nil, errors.E(err).Debug("s.db.UserPrivateChats")
 	}
 	return previews, nil
 }

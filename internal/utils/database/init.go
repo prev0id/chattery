@@ -6,21 +6,22 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
 	"chattery/internal/config"
 	"chattery/internal/utils/errors"
 )
 
-func PostgresConnection(ctx context.Context, cfg *config.Config) (*pgx.Conn, error) {
-	conn, err := pgx.Connect(ctx, cfg.Postgres.URL)
+func PostgresConnection(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.New(ctx, cfg.Postgres.URL)
 	if err != nil {
 		return nil, errors.E(err).Debug("pgx.Connect")
 	}
-	if err := conn.Ping(ctx); err != nil {
+	if err := pool.Ping(ctx); err != nil {
 		return nil, errors.E(err).Debug("conn.Ping")
 	}
-	return conn, nil
+	return pool, nil
 }
 
 func RedisConnection(ctx context.Context, cfg *config.Config) (*redis.Client, error) {
