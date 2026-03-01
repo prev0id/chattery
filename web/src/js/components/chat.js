@@ -1,14 +1,14 @@
 import { LitElement, html } from "../lit/min.js";
 
 export class Chat extends LitElement {
-    static properties = {};
+  static properties = {};
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    render() {
-        return html` <main>main</main> `;
-    }
+  render() {
+    return html` <main>main</main> `;
+  }
 }
 customElements.define("chattery-chat", Chat);

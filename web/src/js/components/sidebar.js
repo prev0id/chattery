@@ -2,6 +2,7 @@ import { LitElement, html, css } from "../lit/min.js";
 import "./icon.js";
 import "./sidebar-menu.js";
 import { TabPrivateChats, TabPublicChats } from "./sidebar-menu.js";
+import "./sidebar-content.js";
 
 export class Sidebar extends LitElement {
     static styles = css`
@@ -16,6 +17,14 @@ export class Sidebar extends LitElement {
         aside {
             display: flex;
             height: 100%;
+            width: 18rem;
+            overflow: hidden;
+            border-right: 1px solid var(--color-border);
+        }
+        sidebar-content {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
         }
     `;
 
@@ -63,6 +72,7 @@ export class Sidebar extends LitElement {
         return html`
             <aside>
                 <sidebar-menu tab=${this.tab}></sidebar-menu>
+                <sidebar-content tab=${this.tab}></sidebar-content>
             </aside>
         `;
     }

@@ -1,12 +1,12 @@
 export class MessageBox extends LitElement {
-    static properties = {};
+  static properties = {};
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    render() {
-        return html` <p>bo</p> `;
-    }
+  render() {
+    return html` <p>bo</p> `;
+  }
 }
 customElements.define("message-box", MessageBox);

@@ -1,29 +1,29 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Chattery</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="./src/assets/icon.svg" />
-        <link rel="stylesheet" href="./src/css/main.css" />
-        <script type="module" src="./src/js/components/sidebar.js"></script>
-        <script type="module" src="./src/js/components/chat.js"></script>
-        <script type="module" src="./src/js/components/notifications.js"></script>
-    </head>
-    <body>
-        <style>
-            html, body {
-                height: 100%;
-            }
-            body {
-                display: flex;
-            }
-            chattery-chat {
-                flex-grow: 1;
-            }
-        </style>
-        <chattery-sidebar></chattery-sidebar>
-        <chattery-chat></chattery-chat>
-        <notification-center></notification-center>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chattery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./src/assets/icon.svg" />
+    <link rel="stylesheet" href="./src/css/main.css" />
+    <script type="module" src="./src/js/components/sidebar.js"></script>
+    <script type="module" src="./src/js/components/chat.js"></script>
+    <script type="module" src="./src/js/components/notifications.js"></script>
+  </head>
+  <body>
+    <style>
+      html, body {
+        height: 100%;
+      }
+      body {
+        display: flex;
+      }
+      chattery-chat {
+        flex-grow: 1;
+      }
+    </style>
+    <chattery-sidebar></chattery-sidebar>
+    <chattery-chat></chattery-chat>
+    <notification-center></notification-center>
+  </body>
 </html>
