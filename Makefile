@@ -11,7 +11,6 @@ run:
 build:
 	go build -o ./bin/chattery ./cmd/main.go
 
-
 .PHONY: down
 down:
 	$(DOCKER_COMPOSE_BIN) down -v

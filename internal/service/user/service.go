@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"chattery/internal/config"
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 )
@@ -32,13 +33,16 @@ type Service struct {
 	transaction txManager
 
 	expiration time.Duration
+	debug      bool
 }
 
-func New(dbAdapter db, cacheAdapter cache, transaction txManager) *Service {
+func New(dbAdapter db, cacheAdapter cache, transaction txManager, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		cache:       cacheAdapter,
 		transaction: transaction,
+		debug:       cfg.App.Debug,
+		expiration:  cfg.Session.Expiration,
 	}
 }
 

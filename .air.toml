@@ -3,10 +3,11 @@
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
+env_files = [".env.local"]
 
 [build]
   args_bin = []
-  bin = "./bin/chattery"
+  entrypoint = "./bin/chattery"
   cmd = "make build"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]

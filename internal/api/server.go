@@ -42,6 +42,11 @@ func NewServer(cfg *config.Config) *Server {
 	return server
 }
 
+func (s *Server) UseMiddleware(middlewares ...func(http.Handler) http.Handler) *Server {
+	s.mux.Use(middlewares...)
+	return s
+}
+
 func (s *Server) Register(services ...service) *Server {
 	for _, svc := range services {
 		s.mux.Route(svc.Pattern(), svc.Route)

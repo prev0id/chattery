@@ -14,8 +14,8 @@ import (
 func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := domain.GetSessionFromRequest(r)
+
 		if session == domain.NoSession {
-			clearSessionCookie(w)
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -28,9 +28,9 @@ func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 
 		if userID != domain.UserIsUnknown {
 			ctx = domain.UserIDToContext(ctx, userID)
-			writeSessionsCookie(w, session, expiresAt)
+			s.writeSessionsCookie(w, session, expiresAt)
 		} else {
-			clearSessionCookie(w)
+			s.clearSessionCookie(w)
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -46,7 +46,7 @@ func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, user
 		return errors.E(err).Debug("s.cache.WriteSession")
 	}
 
-	writeSessionsCookie(w, session, expiresAt)
+	s.writeSessionsCookie(w, session, expiresAt)
 
 	return nil
 }
@@ -56,7 +56,7 @@ func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, r *ht
 	if err := s.cache.ClearSession(ctx, session); err != nil {
 		logger.ErrorCtx(ctx, err, "s.cache.ExpireSession")
 	}
-	clearSessionCookie(w)
+	s.clearSessionCookie(w)
 }
 
 func (s *Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
@@ -69,26 +69,26 @@ func (s *Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func clearSessionCookie(w http.ResponseWriter) {
+func (s *Service) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     domain.SessionCookieName,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   !s.debug,
 		SameSite: http.SameSiteLaxMode,
 	})
 }
 
-func writeSessionsCookie(w http.ResponseWriter, session domain.Session, expiresAt time.Time) {
+func (s *Service) writeSessionsCookie(w http.ResponseWriter, session domain.Session, expiresAt time.Time) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     domain.SessionCookieName,
 		Value:    session.String(),
 		Path:     "/",
 		Expires:  expiresAt,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   !s.debug,
 		SameSite: http.SameSiteLaxMode,
 	})
 }

@@ -44,10 +44,11 @@ func main() {
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
 	chatService := chat.New(chatDB, redisAdapter, transactionManager)
-	userService := user.New(userDB, redisAdapter, transactionManager)
+	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	server := api.
 		NewServer(cfg).
+		UseMiddleware(userService.SessionMiddleware).
 		Register(
 			signaling_api.New(chatService),
 			user_api.New(userService),

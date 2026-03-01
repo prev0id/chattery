@@ -18,6 +18,7 @@ type Config struct {
 type App struct {
 	Name    string
 	Version string
+	Debug   bool
 }
 
 type Http struct {
@@ -49,13 +50,14 @@ func Init() *Config {
 		App: App{
 			Name:    bind.EnvString("APP_NAME", "chattery"),
 			Version: bind.EnvString("APP_VERSION", "local"),
+			Debug:   bind.EnvBool("APP_DEBUG", false),
 		},
 		Http: Http{
 			Host: bind.EnvString("HTTP_HOST", "localhost"),
 			Port: bind.EnvString("HTTP_PORT", "8080"),
 		},
 		Session: Session{
-			Expiration: bind.EnvDuration("SESSION_EXPIRATION", 5*time.Minute),
+			Expiration: bind.EnvDuration("SESSION_EXPIRATION", 5*time.Hour),
 			SecretKey:  bind.EnvString("SESSION_KEY", "local-key"),
 		},
 		Redis: Redis{

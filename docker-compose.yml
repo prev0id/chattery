@@ -47,7 +47,19 @@ services:
       - REDIS_USER=redis_user
       - REDIS_USER_PASSWORD=redis_user_password
       - REDIS_DISABLE_DEFAULT_USER="true"
+  tinyrdm:
+    image: ghcr.io/tiny-craft/tiny-rdm:latest
+    container_name: tinyrdm
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+    volumes:
+      - tinyrdm_data:/app/tinyrdm
 
 volumes:
   postgres_data:
   minio_data:
+  tinyrdm_data:
