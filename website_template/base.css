@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@utility neo-shadow {
+  box-shadow: 2px 2px 0 black;
+}
+
+@utility neo-shadow-invisible {
+  box-shadow: 2px 2px 0 white;
+}
