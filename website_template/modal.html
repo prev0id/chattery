@@ -1,0 +1,186 @@
+<!doctype html>
+<html class="h-full">
+  <head>
+    <link href="./styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <button
+      class="mb-4 px-4 py-1 text-lg text-center border-2 neo-shadow rounded-lg bg-sky-200 hover:bg-sky-500 focus:outline-none focus:border-sky-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider"
+      popovertarget="profile-settings-popover"
+    >
+      Open popover
+    </button>
+  </body>
+  <div
+    popover
+    id="profile-settings-popover"
+    class="border-3 w-md neo-shadow-lg rounded-xl m-auto p-4 backdrop:backdrop-blur-sm backdrop:bg-rose-50/20"
+  >
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-semibold tracking-wider">Profile settings</h1>
+      <button
+        onclick="
+          document.getElementById('profile-settings-popover').hidePopover()
+        "
+        class="text-2xl text-center rounded-full px-2 hover:bg-red-500"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="mt-6">
+      <h2 class="text-xl font-semibold tracking-wide mb-4">Avatar</h2>
+
+      <div class="flex items-center gap-4 mb-6">
+        <div
+          class="size-24 border-3 neo-shadow rounded-2xl overflow-hidden bg-white shrink-0"
+        >
+          <img
+            id="current-avatar-preview"
+            src="https://github.com/identicons/prev0id.png"
+            alt="Current avatar"
+            class="w-full h-full object-cover"
+            onerror="
+              this.style.display = 'none';
+              this.parentElement.innerHTML =
+                '<div class=&quot;w-full h-full bg-gray-200 flex items-center justify-center text-4xl&quot;>👤</div>';
+            "
+          />
+        </div>
+
+        <div class="flex-1 space-y-3">
+          <form
+            id="avatar-upload-form"
+            enctype="multipart/form-data"
+            class="flex items-center"
+          >
+            <label
+              onclick="document.getElementById('avatar-file-input').click()"
+              class="cursor-pointer px-6 py-2 text-lg font-semibold text-center border-2 neo-shadow rounded-lg bg-emerald-200 hover:bg-emerald-500 focus:outline-none focus:border-emerald-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider flex-1"
+            >
+              Upload new avatar
+            </label>
+            <input
+              type="file"
+              id="avatar-file-input"
+              name="avatar"
+              accept="image/*"
+              class="hidden"
+              onchange="document.getElementById('avatar-upload-form').submit()"
+            />
+          </form>
+
+          <form
+            id="avatar-delete-form"
+            method="POST"
+            action="/api/user/avatar/delete"
+          >
+            <button
+              type="submit"
+              onclick="return confirm('Delete your current avatar?');"
+              class="w-full px-6 py-2 text-lg font-semibold text-center border-2 neo-shadow rounded-lg bg-red-200 hover:bg-red-500 focus:outline-none focus:border-red-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider"
+            >
+              Delete avatar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT UPDATE FORM (single endpoint) -->
+    <div class="border-t-2 pt-6">
+      <h2 class="text-xl font-semibold tracking-wide mb-4">Update account</h2>
+
+      <form id="profile-update-form">
+        <div class="mt-4">
+          <label class="block font-semibold" for="username">Username</label>
+          <input
+            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
+            id="username"
+            name="username"
+            type="text"
+            placeholder="New username (optional)"
+          />
+        </div>
+
+        <div class="mt-4">
+          <label class="block font-semibold" for="login">Login / Email</label>
+          <input
+            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
+            id="login"
+            name="login"
+            type="email"
+            placeholder="New email (optional)"
+          />
+        </div>
+
+        <div class="mt-4">
+          <label class="block font-semibold" for="current-password"
+            >Current password</label
+          >
+          <input
+            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
+            id="current-password"
+            name="currentPassword"
+            type="password"
+            required
+          />
+        </div>
+
+        <div class="input-group mt-4">
+          <label class="block font-semibold" for="new-password">
+            New password
+            <span class="text-xs font-normal text-gray-500"
+              >(leave empty to keep current)</span
+            >
+          </label>
+          <input
+            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
+            id="new-password"
+            name="newPassword"
+            type="password"
+          />
+          <button
+            type="button"
+            onclick="togglePasswordVisibility(this)"
+            class="block ml-auto mt-1 px-2 border-2 neo-shadow rounded-lg bg-amber-200 hover:bg-amber-500 focus:outline-none focus:border-amber-500 hover:scale-105 transition-all duration-300 ease-in-out"
+          >
+            Show
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          class="mt-8 w-full px-4 py-2 text-lg font-semibold border-2 neo-shadow rounded-lg bg-sky-200 hover:bg-sky-500 focus:outline-none focus:border-sky-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider"
+        >
+          Update profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tiny JS helpers (same neo-brutalism feel, no extra dependencies) -->
+  <script>
+    function togglePasswordVisibility(btn) {
+      const input = btn.parentElement.querySelector(
+        'input[type="password"], input[type="text"]',
+      );
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "Hide";
+      } else {
+        input.type = "password";
+        btn.textContent = "Show";
+      }
+    }
+
+    // Optional: live preview after upload (you can hook this to your backend response)
+    document
+      .getElementById("avatar-upload-form")
+      .addEventListener("submit", function (e) {
+        // Let the form submit normally to your upload endpoint
+        // After successful upload you can refresh the preview with:
+        // document.getElementById('current-avatar-preview').src = '/api/user/avatar?' + Date.now();
+      });
+  </script>
+</html>

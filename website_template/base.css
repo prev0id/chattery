@@ -4,6 +4,14 @@
   box-shadow: 2px 2px 0 black;
 }
 
-@utility neo-shadow-invisible {
+@utility neo-shadow-lg {
+  box-shadow: 4px 4px 0 black;
+}
+
+@utility neo-shadow-white {
   box-shadow: 2px 2px 0 white;
+}
+
+@utility neo-shadow-rose {
+  box-shadow: 2px 2px 0 var(--color-rose-50);
 }

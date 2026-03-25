@@ -4,15 +4,15 @@
     <link href="./styles.css" rel="stylesheet" />
   </head>
   <body class="flex h-full">
-    <aside class="h-full w-98 flex">
+    <aside class="h-full w-98 flex bg-rose-50">
       <div class="w-18 border-r-3 flex flex-col gap-4 p-4">
         <button
-          class="[writing-mode:sideways-lr] neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold hover:bg-amber-200 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
+          class="[writing-mode:sideways-lr] neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold bg-amber-200 hover:bg-amber-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
         >
           Private
         </button>
         <button
-          class="[writing-mode:sideways-lr] neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold hover:bg-sky-200 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
+          class="[writing-mode:sideways-lr] neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold bg-sky-200 hover:bg-sky-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
         >
           Servers
         </button>
@@ -25,26 +25,43 @@
           />
         </button>
       </div>
-      <div class="w-80 border-r-3 flex-1 flex flex-col gap-4 p-4">
+      <div class="w-80 border-r-3 flex-1 flex flex-col gap-4 p-4 bg-rose-50">
         <button
-          class="neo-shadow mx-4 border-2 rounded-lg px-2 text-lg tracking-widest text-center font-semibold hover:bg-amber-200 hover:scale-105 transition-all duration-300 ease-in-out"
+          class="neo-shadow mx-4 border-2 rounded-lg px-2 text-lg tracking-widest text-center font-semibold bg-amber-200 hover:bg-amber-500 hover:scale-105 transition-all duration-300 ease-in-out"
         >
           Search Server
         </button>
         <button
-          class="neo-shadow mx-4 border-2 rounded-lg px-2 text-lg tracking-widest text-center font-semibold hover:bg-sky-200 hover:scale-105 transition-all duration-300 ease-in-out"
+          class="neo-shadow mx-4 border-2 rounded-lg px-2 text-lg tracking-widest text-center font-semibold bg-sky-200 hover:bg-sky-500 hover:scale-105 transition-all duration-300 ease-in-out"
         >
           Create Server
         </button>
-        <details class="border-2 rounded-lg p-1" open>
+        <details class="border-2 rounded-lg p-1 bg-white" open>
           <summary
-            class="px-2 text-lg font-semibold hover:bg-sky-200 rounded-lg border-2 border-white hover:border-black transition-all duration-300 ease-in-out"
+            class="px-2 flex justify-between items-center hover:bg-emerald-200 rounded-lg border-2 border-white hover:border-black transition-all duration-300 ease-in-out"
           >
-            Server Name
+            <h2 class="text-lg font-semibold">Server Name</h2>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-settings2-icon lucide-settings-2"
+            >
+              <path d="M14 17H5" />
+              <path d="M19 7h-9" />
+              <circle cx="17" cy="17" r="3" />
+              <circle cx="7" cy="7" r="3" />
+            </svg>
           </summary>
           <hr class="mt-1" />
           <div
-            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-white hover:border-black rounded-lg neo-shadow-invisible hover:neo-shadow transition-all duration-300 ease-in-out"
+            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-white hover:border-black rounded-lg neo-shadow-white hover:neo-shadow transition-all duration-300 ease-in-out"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +85,7 @@
             <p>Topic name</p>
           </div>
           <div
-            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-black neo-shadow-invisible rounded-lg hover:neo-shadow transition-all duration-300 ease-in-out bg-sky-200"
+            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-black neo-shadow-white rounded-lg hover:neo-shadow transition-all duration-300 ease-in-out bg-emerald-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +110,7 @@
           </div>
           <hr />
           <div
-            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-white hover:border-black neo-shadow-invisible rounded-lg hover:neo-shadow transition-all duration-300 ease-in-out"
+            class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 border-white hover:border-black neo-shadow-white rounded-lg hover:neo-shadow transition-all duration-300 ease-in-out"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +132,7 @@
           </div>
         </details>
         <div
-          class="flex gap-2 border-2 border-white hover:border-black rounded-lg neo-shadow-invisible px-0.5 hover:neo-shadow hover:bg-amber-200 hover:scale-105 transition-all duration-300 ease-in-out"
+          class="flex gap-2 border-2 border-black bg-white rounded-lg neo-shadow-rose px-0.5 hover:neo-shadow hover:bg-emerald-200 hover:scale-105 transition-all duration-300 ease-in-out"
         >
           <img
             class="size-9 border-2 rounded-lg neo-shadow my-auto"
@@ -127,12 +144,16 @@
               latest message really really long ass message fucking hate them.
             </p>
           </div>
-          <div class="my-auto px-1.5 bg-red-600 text-white rounded-full">5</div>
+          <div
+            class="my-auto px-1.5 text-center bg-red-600 text-white rounded-full"
+          >
+            5
+          </div>
         </div>
       </div>
     </aside>
     <main class="flex-1 flex flex-col h-full">
-      <div class="border-b-3 px-4 py-2 flex items-center gap-4 tracking-wider">
+      <div class="border-b-3 px-4 py-2 flex items-center gap-4 bg-emerald-50">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="30"
@@ -152,7 +173,7 @@
             d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"
           />
         </svg>
-        <h1 class="text-2xl font-semibold">Topic Name</h1>
+        <h1 class="text-2xl font-semibold tracking-wider">Topic Name</h1>
       </div>
       <div class="max-w-5xl h-full mx-auto p-4 flex flex-col gap-4">
         <div class="flex gap-4">
@@ -161,7 +182,10 @@
             src="https://github.com/identicons/prev0id.png"
           />
           <div>
-            <div class="font-semibold text-xl">You</div>
+            <div class="flex gap-2 items-center">
+              <div class="font-semibold text-xl">You</div>
+              <div class="text-sm">Today at 15:30</div>
+            </div>
             <p>
               some long ass message. Lorem ipsum dolor sit amet, consectetur
               adipiscing elit. Proin semper purus quis velit egestas gravida.
@@ -186,11 +210,11 @@
       </div>
       <form class="sticky bottom-0 m-4 flex items-center justify-center gap-4">
         <textarea
-          class="w-2xl p-2 neo-shadow border-2 rounded-lg px-2 field-sizing-content focus:outline-none focus:border-sky-500"
+          class="w-2xl p-2 neo-shadow border-2 rounded-lg field-sizing-content focus:outline-none focus:border-sky-500"
           placeholder="Write your message"
         ></textarea>
         <button
-          class="neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold hover:bg-sky-200 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
+          class="neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold focus:outline-none focus:border-emerald-500 bg-emerald-200 hover:bg-emerald-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-widest"
         >
           Send
         </button>
