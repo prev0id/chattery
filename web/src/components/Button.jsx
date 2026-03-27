@@ -18,7 +18,10 @@ export default function Button(props) {
 
   return (
     <button
-      class={`${base} ${colorMap[variant]} ${sideways ? "[writing-mode:sideways-lr]" : ""} ${extraClass || ""}`}
+      class={`${base} ${colorMap[props.variant ?? "sky"]} ${props.class ?? ""}`}
+      classList={{
+        "[writing-mode:sideways-lr]": props.sideways ?? false,
+      }}
       {...rest}
     >
       {children}

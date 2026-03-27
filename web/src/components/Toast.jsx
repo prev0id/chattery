@@ -24,7 +24,7 @@ export default function Toast(props) {
         <button
           type="button"
           onClick={onClose}
-          class="rounded-full px-1 py-0.5 leading-none hover:bg-red-500 transition-all duration-300 ease-in-out"
+          class="rounded-full px-1 py-0.5 leading-none hover:bg-red-600 transition-all duration-300 ease-in-out"
         >
           ✕
         </button>

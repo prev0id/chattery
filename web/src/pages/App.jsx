@@ -1,24 +1,22 @@
-import { For } from "solid-js";
-import Toast from "../components/Toast";
-import ChatHeader from "../components/ChatHeader";
+import { For, Index, Match, Switch } from "solid-js";
+import AppHeader from "../components/AppHeader";
 import ChatMessage from "../components/ChatMessage";
 import Button from "../components/Button";
 import ProfilePicture from "../components/ProfilePicture";
 import ChatInput from "../components/ChatInput";
-import SidebarProfile from "../components/SidebarProfile";
+import SidebarDM from "../components/SidebarDM";
 import SidebarServer from "../components/SidebarServer";
 import {
-  selectedTopicID,
-  setSelectedTopicID,
   servers,
-  setServers,
   selectedDM,
   setSelectedDM,
+  selectedTab,
+  setSelectedTab,
+  DMs,
+  changeTab,
 } from "../stores/app";
 
 export default function App() {
-  const currentTopic = "topic_name_123";
-
   const messages = [
     {
       avatar: "https://github.com/identicons/prev0id.png",
@@ -39,10 +37,10 @@ export default function App() {
     <>
       <aside class="h-full w-98 flex bg-rose-50">
         <div class="w-18 border-r-3 flex flex-col gap-4 p-4">
-          <Button sideways variant="amber">
+          <Button sideways variant="amber" onClick={() => changeTab("direct")}>
             Direct
           </Button>
-          <Button sideways variant="sky">
+          <Button sideways variant="sky" onClick={() => changeTab("servers")}>
             Servers
           </Button>
           <button class="mt-auto hover:scale-105 transition-all duration-300 ease-in-out">
@@ -50,25 +48,29 @@ export default function App() {
           </button>
         </div>
         <div class="w-80 border-r-3 flex-1 flex flex-col gap-4 p-4 bg-rose-50">
-          <Button variant="amber" class="mx-4">
-            Search Server
-          </Button>
-          <Button variant="sky" class="mx-4">
-            Create Server
-          </Button>
-          <For each={servers}>{(server, _) => <SidebarServer serverID={server.id} />}</For>
-          <SidebarProfile
-            avatar="https://github.com/identicons/prev0id.png"
-            name="user_name"
-            lastMessage="latest message really really long ass message fucking hate them."
-            unread={5}
-            selected={selectedDM() === 0}
-            onClick={() => setSelectedDM(0)}
-          />
+          <Switch>
+            <Match when={selectedTab() === "servers"}>
+              <Button variant="amber" class="mx-4">
+                Search Server
+              </Button>
+              <Button variant="sky" class="mx-4">
+                Create Server
+              </Button>
+              <Index each={servers}>
+                {(server, _) => <SidebarServer server={server} />}
+              </Index>
+            </Match>
+            <Match when={selectedTab() === "direct"}>
+              <Button variant="amber" class="mx-4">
+                Search users
+              </Button>
+              <Index each={DMs}>{(dm, _) => <SidebarDM dm={dm} />}</Index>
+            </Match>
+          </Switch>
         </div>
       </aside>
       <main class="flex-1 flex flex-col h-full">
-        <ChatHeader topicName={currentTopic}></ChatHeader>
+        <AppHeader />
         <div class="max-w-5xl h-full mx-auto p-4 flex flex-col gap-4 overflow-auto">
           <For each={messages} fallback={<div>No messages yet.</div>}>
             {(message, _) => <ChatMessage {...message} />}

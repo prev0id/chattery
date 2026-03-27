@@ -1,64 +1,81 @@
-import { For, createMemo } from "solid-js";
+import { Index, createMemo } from "solid-js";
 import { Mic, MessagesSquare, Settings2 } from "lucide-solid";
-import { selectedTopicID, servers, selectTopic, selectedServerID } from "../stores/app";
+import {
+  selectedTopic,
+  selectTopic,
+  selectedServer,
+  leaveTopic,
+} from "../stores/app";
 
 export default function SidebarServer(props) {
-  const server = createMemo(() => servers.find((server) => server.id === props.serverID));
+  const topics = createMemo(() => props.server().topics);
 
-  const topics = createMemo(() => server().topics);
+  const textTopics = createMemo(() =>
+    topics().filter((topic) => topic.type === "text"),
+  );
 
-  const textTopics = createMemo(() => topics().filter((topic) => topic.type === "text"));
+  const voiceTopics = createMemo(() =>
+    topics().filter((topic) => topic.type === "voice"),
+  );
 
-  const voiceTopics = createMemo(() => topics().filter((topic) => topic.type === "voice"));
-
-  console.log("topics", topics());
-  console.log("text topics", textTopics());
-  console.log("voice topics", voiceTopics());
+  const toggleVoiceTopic = (topic) => {
+    if (selectedTopic()?.id === topic.id) {
+      leaveTopic();
+      return;
+    }
+    selectTopic(topic, props.server());
+  };
 
   return (
     <details open class="border-2 rounded-lg p-1 bg-white">
       <summary
-        class={`px-2 flex justify-between items-center rounded-lg border-2 transition-all duration-300 ease-in-out cursor-pointer ${
-          server().id == selectedServerID()
-            ? "bg-emerald-200 border-black"
-            : "hover:bg-emerald-200 hover:border-black border-white"
-        }`}
+        class="px-2 flex justify-between items-center rounded-lg border-2 transition-all duration-300 ease-in-out cursor-pointer hover:bg-emerald-200 hover:border-black border-white focus:outline-none focus:border-black"
+        classList={{
+          "bg-emerald-200": props.server().id == selectedServer()?.id,
+        }}
       >
-        <h2 class="text-lg font-semibold">{server().name}</h2>
+        <h2 class="text-lg font-semibold">{props.server().name}</h2>
         <Settings2 size={20} />
       </summary>
-      {textTopics().length > 0 && voiceTopics().length > 0 && <hr class="mt-1" />}
-      <For each={textTopics()}>
+      {textTopics().length > 0 && voiceTopics().length > 0 && (
+        <hr class="mt-1" />
+      )}
+      <Index each={textTopics()}>
         {(topic, _) => (
-          <div
-            onClick={() => selectTopic(topic.id, server().id)}
-            class={`flex items-center gap-1 px-2 my-1 py-0.5 border-2 rounded-lg neo-shadow-white hover:neo-shadow transition-all duration-300 ease-in-out cursor-pointer ${
-              topic.id === selectedTopicID()
-                ? "border-black bg-emerald-200"
-                : "border-white hover:border-black"
-            }`}
+          <SidebarTopic
+            topic={topic()}
+            onClick={() => selectTopic(topic(), props.server())}
           >
-            <MessagesSquare size={20} />
-            <p>{topic.name}</p>
-          </div>
+            <MessagesSquare class="size-5" />
+          </SidebarTopic>
         )}
-      </For>
+      </Index>
       {textTopics().length > 0 && voiceTopics().length > 0 && <hr />}
-      <For each={voiceTopics()}>
+      <Index each={voiceTopics()}>
         {(topic, _) => (
-          <div
-            onClick={() => selectTopic(topic.id, server().id)}
-            class={`flex items-center gap-1 px-2 my-1 py-0.5 border-2 rounded-lg neo-shadow-white hover:neo-shadow transition-all duration-300 ease-in-out cursor-pointer ${
-              topic.id === selectedTopicID()
-                ? "border-black bg-emerald-200"
-                : "border-white hover:border-black"
-            }`}
+          <SidebarTopic
+            topic={topic()}
+            onClick={() => toggleVoiceTopic(topic())}
           >
-            <Mic size={20} />
-            <p>{topic.name}</p>
-          </div>
+            <Mic class="size-5" />
+          </SidebarTopic>
         )}
-      </For>
+      </Index>
     </details>
+  );
+}
+
+function SidebarTopic(props) {
+  return (
+    <div
+      onClick={() => props.onClick()}
+      class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 rounded-lg neo-shadow-white hover:neo-shadow transition-all duration-300 ease-in-out cursor-pointer border-white hover:border-black"
+      classList={{
+        "bg-emerald-200": props.topic.id === selectedTopic()?.id,
+      }}
+    >
+      {props.children}
+      <p>{props.topic.name}</p>
+    </div>
   );
 }
