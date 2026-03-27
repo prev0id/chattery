@@ -6,15 +6,7 @@ import ProfilePicture from "../components/ProfilePicture";
 import ChatInput from "../components/ChatInput";
 import SidebarDM from "../components/SidebarDM";
 import SidebarServer from "../components/SidebarServer";
-import {
-  servers,
-  selectedDM,
-  setSelectedDM,
-  selectedTab,
-  setSelectedTab,
-  DMs,
-  changeTab,
-} from "../stores/app";
+import { servers, selectedTab, DMs, changeTab } from "../stores/app";
 
 export default function App() {
   const messages = [
