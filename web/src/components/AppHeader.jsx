@@ -27,7 +27,7 @@ export default function AppHeader(props) {
         </Match>
         <Match when={selectedDM() !== null}>
           <MessagesSquare class={iconClasses} />
-          <h1 class={textClasses}>{selectedDM()?.username}</h1>
+          <h1 class={textClasses}>{selectedDM()?.user.username}</h1>
         </Match>
       </Switch>
     </div>

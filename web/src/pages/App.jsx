@@ -1,30 +1,20 @@
-import { For, Index, Match, Switch } from "solid-js";
+import { Index, Match, Switch } from "solid-js";
 import AppHeader from "../components/AppHeader";
-import ChatMessage from "../components/ChatMessage";
 import Button from "../components/Button";
 import ProfilePicture from "../components/ProfilePicture";
-import ChatInput from "../components/ChatInput";
 import SidebarDM from "../components/SidebarDM";
 import SidebarServer from "../components/SidebarServer";
-import { servers, selectedTab, DMs, changeTab } from "../stores/app";
+import Chat from "../components/Chat";
+import {
+  servers,
+  selectedTab,
+  DMs,
+  changeTab,
+  selectedTopic,
+  selectedDM,
+} from "../stores/app";
 
 export default function App() {
-  const messages = [
-    {
-      avatar: "https://github.com/identicons/prev0id.png",
-      time: "Today at 15:30",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin semper purus quis velit egestas gravida. Sed pellentesque eget lacus rhoncus sagittis. Proin ornare ac velit vitae facilisis. Sed et velit vitae diam pretium tristique eget quis purus. Vestibulum tellus neque, sodales in lobortis ac, laoreet nec tellus. Nunc semper dolor vel tortor varius, a tincidunt nulla sollicitudin.",
-      isOwn: true,
-    },
-    {
-      avatar: "https://github.com/identicons/prev0id.png",
-      author: "user_name",
-      time: "Today at 15:31",
-      content: "123 some less long ass message.",
-    },
-  ];
-
   return (
     <>
       <aside class="h-full w-98 flex bg-rose-50">
@@ -63,12 +53,14 @@ export default function App() {
       </aside>
       <main class="flex-1 flex flex-col h-full">
         <AppHeader />
-        <div class="max-w-5xl h-full mx-auto p-4 flex flex-col gap-4 overflow-auto">
-          <For each={messages} fallback={<div>No messages yet.</div>}>
-            {(message, _) => <ChatMessage {...message} />}
-          </For>
-        </div>
-        <ChatInput onSend={(text) => console.log(text)}></ChatInput>
+        <Switch>
+          <Match when={selectedTopic()?.type === "text" || selectedDM()}>
+            <Chat />
+          </Match>
+          <Match when={selectedTopic()?.type === "voice"}>
+            <p>Voice topic</p>
+          </Match>
+        </Switch>
       </main>
     </>
   );

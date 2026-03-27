@@ -33,31 +33,70 @@ export const [selectedDM, setSelectedDM] = createSignal(null);
 
 export const [DMs, setDMs] = createStore([
   {
-    id: 2,
-    username: "user_name_2",
-    profilePicture: "https://github.com/identicons/prev0id.png",
     unread: 0,
-    lastMessage: {
+    user: {
+      id: 2,
+      username: "user_name_2",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
+    message: {
       date: "Today, 12:30",
-      message: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
+      content: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
     },
   },
   {
-    id: 1,
-    username: "user_name_1",
-    profilePicture: "https://github.com/identicons/prev0id.png",
+    user: {
+      id: 1,
+      username: "user_name_1",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
     unread: 5,
-    lastMessage: {
+    message: {
       date: "Today, 12:30",
-      message: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
+      content: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
     },
   },
   {
-    id: 3,
-    username: "user_name_3",
+    user: {
+      id: 3,
+      username: "user_name_3",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
     unread: 0,
-    latestMessage: null,
-    profilePicture: "https://github.com/identicons/prev0id.png",
+    message: null,
+  },
+]);
+
+export const [userData, setUserData] = createSignal({
+  id: 123,
+  username: "prevoid",
+  email: "email@exmaple.com",
+  profilePicture: "https://github.com/identicons/prev0id.png",
+});
+
+export const [messages, setMessages] = createStore([
+  {
+    user: {
+      id: 123,
+      username: "prevoid",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
+    message: {
+      date: "Today at 15:30",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin semper purus quis velit egestas gravida. Sed pellentesque eget lacus rhoncus sagittis. Proin ornare ac velit vitae facilisis. Sed et velit vitae diam pretium tristique eget quis purus. Vestibulum tellus neque, sodales in lobortis ac, laoreet nec tellus. Nunc semper dolor vel tortor varius, a tincidunt nulla sollicitudin.",
+    },
+  },
+  {
+    user: {
+      id: 312,
+      username: "user_name",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
+    message: {
+      date: "Today at 15:31",
+      content: "123 some less long ass message.",
+    },
   },
 ]);
 
@@ -74,7 +113,7 @@ export function leaveTopic() {
 
 export function selectDM(selectedDM) {
   setSelectedDM(selectedDM);
-  setDMs((dm) => dm.id === selectedDM.id, "unread", 0);
+  setDMs((dm) => dm.user.id === selectedDM.user.id, "unread", 0);
   leaveTopic();
 }
 
