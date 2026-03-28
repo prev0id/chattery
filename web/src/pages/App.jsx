@@ -13,6 +13,7 @@ import {
   selectedTopic,
   selectedDM,
 } from "../stores/app";
+import { ProfileSettingsModal } from "../components/ModalProfileSettings";
 
 export default function App() {
   return (
@@ -25,9 +26,13 @@ export default function App() {
           <Button sideways variant="sky" onClick={() => changeTab("servers")}>
             Servers
           </Button>
-          <button class="mt-auto hover:scale-105 transition-all duration-300 ease-in-out">
+          <button
+            class="mt-auto hover:scale-105 transition-all duration-300 ease-in-out"
+            popovertarget="profile-settings-popover"
+          >
             <ProfilePicture src="https://github.com/identicons/prev0id.png" />
           </button>
+          <ProfileSettingsModal id="profile-settings-popover" />
         </div>
         <div class="w-80 border-r-3 flex-1 flex flex-col gap-4 p-4 bg-rose-50">
           <Switch>

@@ -1,14 +1,6 @@
 export default function Button(props) {
-  const {
-    children,
-    variant = "sky",
-    sideways = false,
-    class: extraClass,
-    ...rest
-  } = props;
-
   const base =
-    "neo-shadow border-2 rounded-lg px-2 text-lg text-center font-semibold hover:scale-105 transition-all duration-300 ease-in-out tracking-widest focus:outline-none";
+    "neo-shadow border-2 rounded-lg px-2 text-center hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none";
 
   const colorMap = {
     amber: "bg-amber-200 hover:bg-amber-500 focus:border-amber-500",
@@ -18,13 +10,14 @@ export default function Button(props) {
 
   return (
     <button
+      {...props}
       class={`${base} ${colorMap[props.variant ?? "sky"]} ${props.class ?? ""}`}
       classList={{
         "[writing-mode:sideways-lr]": props.sideways ?? false,
+        "text-lg font-semibold tracking-widest": !props.smallText,
       }}
-      {...rest}
     >
-      {children}
+      {props.children}
     </button>
   );
 }

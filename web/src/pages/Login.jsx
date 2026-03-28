@@ -1,5 +1,7 @@
 import { createSignal } from "solid-js";
 import Toast from "../components/Toast";
+import FormTextInput from "../components/FormTextInput";
+import Button from "../components/Button";
 
 export default function Login() {
   const [login, setLogin] = createSignal("");
@@ -60,47 +62,42 @@ export default function Login() {
         </div>
 
         <div class="mt-4">
-          <label class="block font-semibold" for="email">
-            Email
-          </label>
-          <input
-            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
-            id="email"
+          <FormTextInput
+            label="Email"
             type="email"
-            value={login()}
-            onInput={(e) => setLogin(e.currentTarget.value)}
+            value={login}
+            onInput={(event) => setLogin(event.currentTarget.value)}
             required
           />
         </div>
 
         <div class="mt-4">
-          <label class="block font-semibold" for="password">
-            Password
-          </label>
-          <input
-            class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
-            id="password"
+          <FormTextInput
+            label="Password"
             type={showPassword() ? "text" : "password"}
-            value={password()}
+            value={password}
             onInput={(e) => setPassword(e.currentTarget.value)}
             required
           />
-          <button
+          <Button
             type="button"
+            variant="amber"
             onClick={() => setShowPassword((prev) => !prev)}
-            class="block ml-auto mt-1 px-2 border-2 neo-shadow rounded-lg bg-amber-200 hover:bg-amber-500 focus:outline-none focus:border-amber-500 hover:scale-105 transition-all duration-300 ease-in-out"
+            class={"block ml-auto mt-1"}
+            smallText
           >
             {showPassword() ? "Hide" : "Show"}
-          </button>
+          </Button>
         </div>
 
-        <button
+        <Button
           type="submit"
+          variant="sky"
           disabled={isLoading()}
-          class="mb-4 px-4 py-1 text-lg text-center border-2 neo-shadow rounded-lg bg-sky-200 hover:bg-sky-500 focus:outline-none focus:border-sky-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider disabled:opacity-60"
+          class={"mb-4"}
         >
           {isLoading() ? "Logging in..." : "Login"}
-        </button>
+        </Button>
 
         <div>
           Don't have an account?{" "}
