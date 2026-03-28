@@ -13,7 +13,7 @@ export default function Button(props) {
       {...props}
       class={`${base} ${colorMap[props.variant ?? "sky"]} ${props.class ?? ""}`}
       classList={{
-        "[writing-mode:sideways-lr]": props.sideways ?? false,
+        "[writing-mode:sideways-lr]": props.sideways,
         "text-lg font-semibold tracking-widest": !props.smallText,
       }}
     >

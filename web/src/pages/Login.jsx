@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
-import Toast from "../components/Toast";
+import Toasts from "../components/Toast";
+import { toast } from "../stores/toast";
 import FormTextInput from "../components/FormTextInput";
 import Button from "../components/Button";
 
@@ -8,12 +9,10 @@ export default function Login() {
   const [password, setPassword] = createSignal("");
   const [showPassword, setShowPassword] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(false);
-  const [error, setError] = createSignal(null); // { status?: number, message?: string }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
     try {
       const res = await fetch("/v1/user/login", {
@@ -36,15 +35,9 @@ export default function Login() {
         message = data.message || message;
       } catch (_) {}
 
-      setError({
-        status: res.status,
-        message,
-      });
+      toast.error(message);
     } catch (err) {
-      setError({
-        status: null,
-        message: "Network error – please check your connection",
-      });
+      toast.error("Network error – please check your connection");
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +89,7 @@ export default function Login() {
           disabled={isLoading()}
           class={"mb-4"}
         >
-          {isLoading() ? "Logging in..." : "Login"}
+          Login
         </Button>
 
         <div>
@@ -106,14 +99,7 @@ export default function Login() {
           </a>
         </div>
       </form>
-
-      {error() && (
-        <Toast
-          status={error().status}
-          message={error().message}
-          onClose={() => setError(null)}
-        />
-      )}
+      <Toasts />
     </>
   );
 }
