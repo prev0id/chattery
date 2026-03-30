@@ -59,11 +59,14 @@ export default function App() {
       <main class="flex-1 flex flex-col h-full">
         <AppHeader />
         <Switch>
-          <Match when={selectedTopic()?.type === "text" || selectedDM()}>
-            <Chat />
+          <Match when={selectedTopic()?.type === "text"}>
+            <Chat chatID={selectedTopic()?.id} />
+          </Match>
+          <Match when={selectedDM()}>
+            <Chat chatID={selectedDM().id} />
           </Match>
           <Match when={selectedTopic()?.type === "voice"}>
-            <p>Voice topic</p>
+            <p>Voice topic {selectedTopic().id} </p>
           </Match>
         </Switch>
       </main>

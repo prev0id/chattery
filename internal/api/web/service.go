@@ -1,21 +1,20 @@
 package web_api
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/go-chi/chi/v5"
 
-	web "chattery/web/dist"
+	"chattery/internal/utils/errors"
+	"chattery/internal/utils/render"
+	"chattery/web"
 )
 
 type Server struct {
 }
 
 func New() *Server {
-	file, err := web.Assets.ReadFile("dist/assets/Toast-CxIVObqD.js")
-	fmt.Println(err)
-	fmt.Println(string(file))
 	return &Server{}
 }
 
@@ -32,9 +31,21 @@ func (s *Server) Route(router chi.Router) {
 		w.Write(web.LoginPage)
 	})
 
-	// router.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Write(web.SignupPage)
-	// })
+	router.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(web.SignupPage)
+	})
 
-	router.Handle("GET /assets/*", http.FileServer(http.FS(web.Assets)))
+	assetsFS := http.FileServer(http.FS(web.Assets))
+
+	router.HandleFunc("GET /assets/*", func(w http.ResponseWriter, r *http.Request) {
+		newPath, err := url.JoinPath("/dist", r.URL.Path)
+		if err != nil {
+			render.Error(w, r, errors.E(err).Kind(errors.InvalidRequest))
+			return
+		}
+
+		r.URL.Path = newPath
+
+		assetsFS.ServeHTTP(w, r)
+	})
 }

@@ -1,6 +1,7 @@
 import { Show } from "solid-js";
 import { selectDM, selectedDM } from "../stores/app";
 import ProfilePicture from "./ProfilePicture";
+import { Info } from "lucide-solid";
 
 export default function SidebarDM(props) {
   return (
@@ -23,9 +24,10 @@ export default function SidebarDM(props) {
         </p>
       </div>
       <Show when={props.dm().unread > 0}>
-        <div class="my-auto rounded-full px-1 py-0.5 leading-none bg-red-600 text-white text-center text-sm">
-          {props.dm().unread}
-        </div>
+        <Info
+          stroke-width="3"
+          class="my-auto h-4 leading-none text-amber-600"
+        />
       </Show>
     </button>
   );

@@ -33,6 +33,7 @@ export const [selectedDM, setSelectedDM] = createSignal(null);
 
 export const [DMs, setDMs] = createStore([
   {
+    id: 123,
     unread: 0,
     user: {
       id: 2,
@@ -45,18 +46,20 @@ export const [DMs, setDMs] = createStore([
     },
   },
   {
+    id: 1234,
+    unread: 5,
     user: {
       id: 1,
       username: "user_name_1",
       profilePicture: "https://github.com/identicons/prev0id.png",
     },
-    unread: 5,
     message: {
       date: "Today, 12:30",
       content: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
     },
   },
   {
+    id: 12345,
     user: {
       id: 3,
       username: "user_name_3",
@@ -75,6 +78,19 @@ export const [userData, setUserData] = createSignal({
 });
 
 export const [messages, setMessages] = createStore([
+  {
+    user: {
+      id: 12,
+      username: "prevoid",
+      profilePicture: "https://github.com/identicons/prev0id.png",
+    },
+    message: {
+      date: "Today at 15:31",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin semper purus quis velit egestas gravida. Sed pellentesque eget lacus rhoncus sagittis. Proin ornare ac velit vitae facilisis. Sed et velit vitae diam pretium tristique eget quis purus. Vestibulum tellus neque, sodales in lobortis ac, laoreet nec tellus. Nunc semper dolor vel tortor varius, a tincidunt nulla sollicitudin.",
+    },
+    lastSeenMessage: true,
+  },
   {
     user: {
       id: 123,
