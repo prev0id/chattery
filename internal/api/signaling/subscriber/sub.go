@@ -17,7 +17,7 @@ import (
 var _ domain.Subscriber = (*Subscriber)(nil)
 
 type chatService interface {
-	PostMessage(ctx context.Context, message *domain.Message) error
+	PostMessage(ctx context.Context, message *domain.TopicMessage) error
 	StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
 	StopListeningToChat(sub domain.Subscriber)
 }
@@ -58,7 +58,7 @@ func (sub *Subscriber) GetUserID() domain.UserID {
 	return sub.user
 }
 
-func (sub *Subscriber) WriteMessage(ctx context.Context, message *domain.Message) error {
+func (sub *Subscriber) WriteMessage(ctx context.Context, message *domain.TopicMessage) error {
 	bytes, err := render.JsonBytes(convertMessageToEvent(message))
 	if err != nil {
 		return errors.E(err).Debug("render.JsonBytes")

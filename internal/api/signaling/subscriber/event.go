@@ -26,7 +26,7 @@ const (
 	EventTypeLeaveChat EventType = "leave_chat"
 )
 
-func convertMessageToEvent(message *domain.Message) *Event {
+func convertMessageToEvent(message *domain.TopicMessage) *Event {
 	return &Event{
 		Type:   EventTypeMessage,
 		ChatID: message.ChatID.I64(),
@@ -37,8 +37,8 @@ func convertMessageToEvent(message *domain.Message) *Event {
 		},
 	}
 }
-func convertEventToMessage(event *Event, user domain.UserID) *domain.Message {
-	return &domain.Message{
+func convertEventToMessage(event *Event, user domain.UserID) *domain.TopicMessage {
+	return &domain.TopicMessage{
 		ChatID:    domain.ChatID(event.ChatID),
 		Text:      event.Message.Text,
 		SenderID:  user,
