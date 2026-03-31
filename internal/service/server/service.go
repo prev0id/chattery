@@ -10,16 +10,16 @@ import (
 
 type db interface {
 	CreateServer(ctx context.Context, name string) (domain.ServerID, error)
-	UpdateServer(ctx context.Context, serverID domain.ServerID, name string) error
+	UpdateServer(ctx context.Context, server *domain.Server) error
 	DeleteServer(ctx context.Context, serverID domain.ServerID) error
 	CreateServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID, role domain.ServerRole) error
 	DeleteServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error
-	CreateTopic(ctx context.Context, serverID domain.ServerID, name string, topicType domain.TopicType) (*domain.Topic, error)
-	UpdateTopic(ctx context.Context, topicID domain.TopicID, name string) error
+	CreateTopic(ctx context.Context, topic *domain.Topic) (domain.TopicID, error)
+	UpdateTopic(ctx context.Context, topic *domain.Topic) error
 	DeleteTopic(ctx context.Context, topicID domain.TopicID) error
-	CreateMessage(ctx context.Context, topicID domain.TopicID, userID domain.UserID, text string) (domain.TopicMessageID, error)
-	FirstPageOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error)
-	NextPagesOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error)
+	CreateMessage(ctx context.Context, message *domain.TopicMessage) (domain.TopicMessageID, error)
+	FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
+	NextPagesOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
 	GetUserServers(ctx context.Context, userID domain.UserID) ([]*domain.Server, error)
 }
 
@@ -64,7 +64,10 @@ func (s *Service) CreateServer(ctx context.Context, name string, creatorUserID d
 }
 
 func (s *Service) UpdateServer(ctx context.Context, serverID domain.ServerID, name string) error {
-	if err := s.db.UpdateServer(ctx, serverID, name); err != nil {
+	if err := s.db.UpdateServer(ctx, &domain.Server{
+		ID:   serverID,
+		Name: name,
+	}); err != nil {
 		return errors.E(err).Debug("s.db.UpdateServer")
 	}
 	return nil
@@ -92,15 +95,25 @@ func (s *Service) RemoveServerParticipant(ctx context.Context, serverID domain.S
 }
 
 func (s *Service) CreateTopic(ctx context.Context, serverID domain.ServerID, name string, topicType domain.TopicType) (*domain.Topic, error) {
-	topic, err := s.db.CreateTopic(ctx, serverID, name, topicType)
+	topic := &domain.Topic{
+		ServerID: serverID,
+		Name:     name,
+		Type:     topicType,
+	}
+
+	id, err := s.db.CreateTopic(ctx, topic)
 	if err != nil {
 		return nil, errors.E(err).Debug("s.db.CreateTopic")
 	}
+	topic.ID = id
 	return topic, nil
 }
 
 func (s *Service) UpdateTopic(ctx context.Context, topicID domain.TopicID, name string) error {
-	if err := s.db.UpdateTopic(ctx, topicID, name); err != nil {
+	if err := s.db.UpdateTopic(ctx, &domain.Topic{
+		ID:   topicID,
+		Name: name,
+	}); err != nil {
 		return errors.E(err).Debug("s.db.UpdateTopic")
 	}
 	return nil
@@ -114,7 +127,11 @@ func (s *Service) DeleteTopic(ctx context.Context, topicID domain.TopicID) error
 }
 
 func (s *Service) CreateTopicMessage(ctx context.Context, topicID domain.TopicID, userID domain.UserID, text string) (domain.TopicMessageID, error) {
-	messageID, err := s.db.CreateMessage(ctx, topicID, userID, text)
+	messageID, err := s.db.CreateMessage(ctx, &domain.TopicMessage{
+		TopicID:  topicID,
+		SenderID: userID,
+		Text:     text,
+	})
 	if err != nil {
 		return domain.TopicMessageID(0), errors.E(err).Debug("s.db.CreateMessage")
 	}
@@ -129,22 +146,46 @@ func (s *Service) GetUserServers(ctx context.Context, userID domain.UserID) ([]*
 	return servers, nil
 }
 
-func (s *Service) FirstPageOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
+func (s *Service) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
 	cursor.Limit = s.limit
 
 	messages, err := s.db.FirstPageOfTopicMessages(ctx, cursor)
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.FirstPageOfTopicMessages")
+		return nil, nil, errors.E(err).Debug("s.db.FirstPageOfTopicMessages")
 	}
-	return messages, nil
+
+	var nextCursor *domain.TopicCursor
+
+	if len(messages) == s.limit {
+		lastMessage := messages[len(messages)-1]
+		nextCursor = &domain.TopicCursor{
+			ChatID:    cursor.ChatID,
+			MessageID: lastMessage.ID,
+			Timestamp: lastMessage.CreatedAt,
+		}
+	}
+
+	return messages, nextCursor, nil
 }
 
-func (s *Service) NextPagesOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
+func (s *Service) NextPagesOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
 	cursor.Limit = s.limit
 
 	messages, err := s.db.NextPagesOfTopicMessages(ctx, cursor)
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.NextPagesOfTopicMessages")
+		return nil, nil, errors.E(err).Debug("s.db.NextPagesOfTopicMessages")
 	}
-	return messages, nil
+
+	var nextCursor *domain.TopicCursor
+
+	if len(messages) == s.limit {
+		lastMessage := messages[len(messages)-1]
+		nextCursor = &domain.TopicCursor{
+			ChatID:    cursor.ChatID,
+			MessageID: lastMessage.ID,
+			Timestamp: lastMessage.CreatedAt,
+		}
+	}
+
+	return messages, nextCursor, nil
 }

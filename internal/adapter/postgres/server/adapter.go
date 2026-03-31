@@ -31,10 +31,10 @@ func (a *Adapter) CreateServer(ctx context.Context, name string) (domain.ServerI
 	return domain.ServerID(id), nil
 }
 
-func (a *Adapter) UpdateServer(ctx context.Context, serverID domain.ServerID, name string) error {
+func (a *Adapter) UpdateServer(ctx context.Context, server *domain.Server) error {
 	req := &postgres.UpdateServerParams{
-		ID:   serverID.I64(),
-		Name: name,
+		ID:   server.ID.I64(),
+		Name: server.Name,
 	}
 
 	err := a.db.Query(ctx).UpdateServer(ctx, req)
@@ -79,24 +79,24 @@ func (a *Adapter) DeleteServerParticipant(ctx context.Context, serverID domain.S
 	return nil
 }
 
-func (a *Adapter) CreateTopic(ctx context.Context, serverID domain.ServerID, name string, topicType domain.TopicType) (*domain.Topic, error) {
+func (a *Adapter) CreateTopic(ctx context.Context, topic *domain.Topic) (domain.TopicID, error) {
 	req := &postgres.CreateTopicParams{
-		ServerID: serverID.I64(),
-		Name:     name,
-		Type:     string(topicType),
+		ServerID: topic.ServerID.I64(),
+		Name:     topic.Name,
+		Type:     topic.Type.String(),
 	}
 
-	topic, err := a.db.Query(ctx).CreateTopic(ctx, req)
+	id, err := a.db.Query(ctx).CreateTopic(ctx, req)
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.CreateTopic")
+		return 0, errors.E(err).Debug("Query.CreateTopic")
 	}
-	return convertTopicFromDB(topic), nil
+	return domain.TopicID(id), nil
 }
 
-func (a *Adapter) UpdateTopic(ctx context.Context, topicID domain.TopicID, name string) error {
+func (a *Adapter) UpdateTopic(ctx context.Context, topic *domain.Topic) error {
 	req := &postgres.UpdateTopicParams{
-		ID:   topicID.I64(),
-		Name: name,
+		ID:   topic.ID.I64(),
+		Name: topic.Name,
 	}
 
 	err := a.db.Query(ctx).UpdateTopic(ctx, req)
@@ -114,11 +114,11 @@ func (a *Adapter) DeleteTopic(ctx context.Context, topicID domain.TopicID) error
 	return nil
 }
 
-func (a *Adapter) CreateMessage(ctx context.Context, topicID domain.TopicID, userID domain.UserID, text string) (domain.TopicMessageID, error) {
+func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessage) (domain.TopicMessageID, error) {
 	req := &postgres.CreateMessageParams{
-		TopicID: topicID.I64(),
-		UserID:  userID.I64(),
-		Text:    text,
+		TopicID: message.TopicID.I64(),
+		UserID:  message.SenderID.I64(),
+		Text:    message.Text,
 	}
 
 	id, err := a.db.Query(ctx).CreateMessage(ctx, req)
@@ -128,7 +128,7 @@ func (a *Adapter) CreateMessage(ctx context.Context, topicID domain.TopicID, use
 	return domain.TopicMessageID(id), nil
 }
 
-func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
+func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.FirstPageOfTopicMessagesParams{
 		TopicID: cursor.ChatID.I64(),
 		Limit:   int32(cursor.Limit),
@@ -142,7 +142,7 @@ func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor domain.To
 	return sliceutil.Map(messages, convertServerMessageFromDB), nil
 }
 
-func (a *Adapter) NextPagesOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
+func (a *Adapter) NextPagesOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.NextPagesOfTopicMessagesParams{
 		TopicID:   cursor.ChatID.I64(),
 		CreatedAt: cursor.Timestamp,

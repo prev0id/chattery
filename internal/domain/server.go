@@ -25,6 +25,8 @@ func (id TopicID) I64() int64 { return int64(id) }
 
 type TopicType string
 
+func (t TopicType) String() string { return string(t) }
+
 const (
 	TopicTypeText  TopicType = "text"
 	TopicTypeVoice TopicType = "voice"

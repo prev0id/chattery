@@ -16,15 +16,6 @@ func convertServerMessageFromDB(msg *postgres.TopicMessage) *domain.TopicMessage
 	}
 }
 
-func convertTopicFromDB(topic *postgres.Topic) *domain.Topic {
-	return &domain.Topic{
-		ID:       domain.TopicID(topic.ID),
-		ServerID: domain.ServerID(topic.ServerID),
-		Name:     topic.Name,
-		Type:     domain.TopicType(topic.Type),
-	}
-}
-
 func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 	if len(rows) == 0 {
 		return nil

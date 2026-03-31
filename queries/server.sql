@@ -33,7 +33,7 @@ WHERE server_id = $1 AND user_id = $2;
 -- name: CreateTopic :one
 INSERT INTO topics (server_id, name, type)
 VALUES ($1, $2, $3)
-RETURNING *;
+RETURNING id;
 
 -- name: CreateMessage :one
 INSERT INTO topic_messages(topic_id, user_id, text)

@@ -77,7 +77,7 @@ func (q *Queries) CreateServerParticipant(ctx context.Context, arg *CreateServer
 const createTopic = `-- name: CreateTopic :one
 INSERT INTO topics (server_id, name, type)
 VALUES ($1, $2, $3)
-RETURNING id, server_id, name, type, created_at, updated_at
+RETURNING id
 `
 
 type CreateTopicParams struct {
@@ -90,19 +90,12 @@ type CreateTopicParams struct {
 //
 //	INSERT INTO topics (server_id, name, type)
 //	VALUES ($1, $2, $3)
-//	RETURNING id, server_id, name, type, created_at, updated_at
-func (q *Queries) CreateTopic(ctx context.Context, arg *CreateTopicParams) (*Topic, error) {
+//	RETURNING id
+func (q *Queries) CreateTopic(ctx context.Context, arg *CreateTopicParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createTopic, arg.ServerID, arg.Name, arg.Type)
-	var i Topic
-	err := row.Scan(
-		&i.ID,
-		&i.ServerID,
-		&i.Name,
-		&i.Type,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return &i, err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteMessagesByServerID = `-- name: DeleteMessagesByServerID :exec

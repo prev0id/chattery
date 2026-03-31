@@ -47,8 +47,8 @@ type Querier interface {
 	//
 	//  INSERT INTO topics (server_id, name, type)
 	//  VALUES ($1, $2, $3)
-	//  RETURNING id, server_id, name, type, created_at, updated_at
-	CreateTopic(ctx context.Context, arg *CreateTopicParams) (*Topic, error)
+	//  RETURNING id
+	CreateTopic(ctx context.Context, arg *CreateTopicParams) (int64, error)
 	//CreateUser
 	//
 	//  INSERT INTO users(login, password, username)

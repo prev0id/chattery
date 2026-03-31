@@ -4,15 +4,18 @@ import (
 	"context"
 
 	dm_adapter "chattery/internal/adapter/postgres/dm"
+	server_adapter "chattery/internal/adapter/postgres/server"
 	user_adapter "chattery/internal/adapter/postgres/user"
 	redis_adapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
 	dm_api "chattery/internal/api/dm"
+	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
 	web_api "chattery/internal/api/web"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
 	"chattery/internal/service/dm"
+	"chattery/internal/service/server"
 	"chattery/internal/service/user"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
@@ -37,12 +40,14 @@ func main() {
 
 	transactionManager := transaction.NewManager(postgresConn)
 	dmDB := dm_adapter.New(transactionManager)
+	serverDB := server_adapter.New(transactionManager)
 	userDB := user_adapter.New(transactionManager)
 
 	redisClient := redis.New(redisConn)
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
 	dmService := dm.New(dmDB, transactionManager, cfg)
+	serverService := server.New(serverDB, transactionManager, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	server := api.
@@ -53,6 +58,7 @@ func main() {
 			user_api.New(userService),
 			dm_api.New(userService, dmService),
 			web_api.New(),
+			server_api.New(userService, serverService),
 		)
 
 	if err := server.Run(); err != nil {
