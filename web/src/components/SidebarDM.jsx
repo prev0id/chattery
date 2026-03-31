@@ -16,6 +16,7 @@ export default function SidebarDM(props) {
       {/* props.dm().unread > 0*/}
       <ProfilePicture
         src={props.dm().user.profilePicture}
+        unread={props.dm().unread}
         class="size-9 my-auto"
       />
       <div class="flex-1 overflow-hidden grid grid-rows-2">
@@ -24,12 +25,6 @@ export default function SidebarDM(props) {
           {props.dm().message?.content ?? ""}
         </p>
       </div>
-      {/* <Show when={props.dm().unread > 0}>
-        <Mail
-          stroke-width="3"
-          class="my-auto leading-none text-white bg-red-600 rounded-full p-1"
-        />
-      </Show>*/}
     </button>
   );
 }

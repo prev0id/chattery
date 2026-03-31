@@ -34,8 +34,11 @@ export default function ChatMessage(props) {
       </div>
       <div class="flex items-center h-6">
         <Show when={showLastSeenMessage()}>
-          <span class="px-4 text-sm text-sky-700">New messages</span>
-          <div class="flex-1 border-t border-2 border-sky-700"></div>
+          <div class="flex-1 border-t-2"></div>
+          <span class="px-4 text-sm text-white bg-rose-600 border-2 border-black rounded-lg neo-shadow">
+            New messages
+          </span>
+          <div class="flex-1 border-t-2"></div>
         </Show>
       </div>
     </>
