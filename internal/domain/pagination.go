@@ -2,11 +2,14 @@ package domain
 
 import "time"
 
-type Cursor[ID any] struct {
-	ID        ID
+type Cursor[ChatID, MessageID any] struct {
+	ChatID    ChatID
+	MessageID MessageID
 	Timestamp time.Time
+	Limit     int
 }
 
 type (
-	TopicMessageCursor = Cursor[TopicMessageID]
+	TopicCursor = Cursor[TopicID, TopicMessageID]
+	DMCursor    = Cursor[DMID, DMMessageID]
 )

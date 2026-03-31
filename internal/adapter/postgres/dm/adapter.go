@@ -2,7 +2,6 @@ package dm_adapter
 
 import (
 	"context"
-	"time"
 
 	"chattery/internal/client/postgres"
 	"chattery/internal/domain"
@@ -95,10 +94,10 @@ func (a *Adapter) SetLastMessageInDM(ctx context.Context, dmID domain.DMID, mess
 	return nil
 }
 
-func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, limit int) ([]*domain.DMMessage, error) {
+func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
 	req := &postgres.FirstPageOfDMMessagesParams{
-		DmID:  dmID.I64(),
-		Limit: int32(limit),
+		DmID:  cursor.ChatID.I64(),
+		Limit: int32(cursor.Limit),
 	}
 
 	messages, err := a.db.Query(ctx).FirstPageOfDMMessages(ctx, req)
@@ -109,12 +108,12 @@ func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, l
 	return sliceutil.Map(messages, convertDMMessageFromDB), nil
 }
 
-func (a *Adapter) NextPagesOfDMMessages(ctx context.Context, dmID domain.DMID, createdAt time.Time, lastMessageID domain.DMMessageID, limit int) ([]*domain.DMMessage, error) {
+func (a *Adapter) NextPagesOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
 	req := &postgres.NextPagesOfDMMessagesParams{
-		DmID:      dmID.I64(),
-		CreatedAt: createdAt,
-		ID:        lastMessageID.I64(),
-		Limit:     int32(limit),
+		DmID:      cursor.ChatID.I64(),
+		CreatedAt: cursor.Timestamp,
+		ID:        cursor.MessageID.I64(),
+		Limit:     int32(cursor.Limit),
 	}
 
 	messages, err := a.db.Query(ctx).NextPagesOfDMMessages(ctx, req)

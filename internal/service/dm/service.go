@@ -2,7 +2,6 @@ package dm
 
 import (
 	"context"
-	"time"
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
@@ -16,8 +15,8 @@ type db interface {
 	CreateDMMessage(ctx context.Context, message domain.DMMessage) (domain.DMMessageID, error)
 	SetDMLastReadMessage(ctx context.Context, dmID domain.DMID, userID domain.UserID, messageID domain.DMMessageID) error
 	SetLastMessageInDM(ctx context.Context, dmID domain.DMID, messageID domain.DMMessageID) error
-	FirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, limit int) ([]*domain.DMMessage, error)
-	NextPagesOfDMMessages(ctx context.Context, dmID domain.DMID, createdAt time.Time, lastMessageID domain.DMMessageID, limit int) ([]*domain.DMMessage, error)
+	FirstPageOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error)
+	NextPagesOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error)
 }
 
 type txManager interface {
@@ -94,15 +93,17 @@ func (s *Service) CreateDMMessage(ctx context.Context, message domain.DMMessage)
 	return messageID, err
 }
 
-func (s *Service) FirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, userID domain.UserID) ([]*domain.DMMessage, error) {
-	messages, err := s.db.FirstPageOfDMMessages(ctx, dmID, s.limit)
+func (s *Service) FirstPageOfDMMessages(ctx context.Context, userID domain.UserID, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
+	cursor.Limit = s.limit
+
+	messages, err := s.db.FirstPageOfDMMessages(ctx, cursor)
 	if err != nil {
 		return nil, errors.E(err).Debug("s.db.FirstPageOfDMMessages")
 	}
 
 	if len(messages) > 0 {
 		lastSeenMessage := messages[0]
-		if err := s.db.SetDMLastReadMessage(ctx, dmID, userID, lastSeenMessage.ID); err != nil {
+		if err := s.db.SetDMLastReadMessage(ctx, cursor.ChatID, userID, lastSeenMessage.ID); err != nil {
 			return nil, errors.E(err).Debug("s.db.SetDMLastReadMessage")
 		}
 	}
@@ -110,15 +111,17 @@ func (s *Service) FirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, u
 	return messages, nil
 }
 
-func (s *Service) NextPagesOfDMMessages(ctx context.Context, dmID domain.DMID, userID domain.UserID, lastMessage domain.DMMessage) ([]*domain.DMMessage, error) {
-	messages, err := s.db.NextPagesOfDMMessages(ctx, dmID, lastMessage.CreatedAt, lastMessage.ID, s.limit)
+func (s *Service) NextPagesOfDMMessages(ctx context.Context, userID domain.UserID, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
+	cursor.Limit = s.limit
+
+	messages, err := s.db.NextPagesOfDMMessages(ctx, cursor)
 	if err != nil {
 		return nil, errors.E(err).Debug("s.db.NextPagesOfDMMessages")
 	}
 
 	if len(messages) > 0 {
 		lastMessage := messages[0]
-		if err := s.db.SetDMLastReadMessage(ctx, dmID, userID, lastMessage.ID); err != nil {
+		if err := s.db.SetDMLastReadMessage(ctx, cursor.ChatID, userID, lastMessage.ID); err != nil {
 			return nil, errors.E(err).Debug("s.db.SetDMLastReadMessage")
 		}
 	}

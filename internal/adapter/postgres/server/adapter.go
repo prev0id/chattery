@@ -2,7 +2,6 @@ package server_adapter
 
 import (
 	"context"
-	"time"
 
 	"chattery/internal/client/postgres"
 	"chattery/internal/domain"
@@ -129,10 +128,10 @@ func (a *Adapter) CreateMessage(ctx context.Context, topicID domain.TopicID, use
 	return domain.TopicMessageID(id), nil
 }
 
-func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, topicID domain.TopicID, limit int) ([]*domain.TopicMessage, error) {
+func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.FirstPageOfTopicMessagesParams{
-		TopicID: topicID.I64(),
-		Limit:   int32(limit),
+		TopicID: cursor.ChatID.I64(),
+		Limit:   int32(cursor.Limit),
 	}
 
 	messages, err := a.db.Query(ctx).FirstPageOfTopicMessages(ctx, req)
@@ -143,12 +142,12 @@ func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, topicID domain.T
 	return sliceutil.Map(messages, convertServerMessageFromDB), nil
 }
 
-func (a *Adapter) NextPagesOfTopicMessages(ctx context.Context, topicID domain.TopicID, createdAt time.Time, lastMessageID domain.TopicMessageID, limit int) ([]*domain.TopicMessage, error) {
+func (a *Adapter) NextPagesOfTopicMessages(ctx context.Context, cursor domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.NextPagesOfTopicMessagesParams{
-		TopicID:   topicID.I64(),
-		CreatedAt: createdAt,
-		ID:        lastMessageID.I64(),
-		Limit:     int32(limit),
+		TopicID:   cursor.ChatID.I64(),
+		CreatedAt: cursor.Timestamp,
+		ID:        cursor.MessageID.I64(),
+		Limit:     int32(cursor.Limit),
 	}
 
 	messages, err := a.db.Query(ctx).NextPagesOfTopicMessages(ctx, req)
