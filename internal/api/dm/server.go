@@ -1,0 +1,49 @@
+package dm_api
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"chattery/internal/domain"
+)
+
+type dmService interface {
+	UserDMs(ctx context.Context, userID domain.UserID) ([]*domain.DM, error)
+	CreateDM(ctx context.Context, participant1, participant2 domain.UserID) (domain.DMID, error)
+	CreateDMMessage(ctx context.Context, message *domain.DMMessage) error
+	FirstPageOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error)
+	NextPagesOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error)
+}
+
+type userService interface {
+	AuthRequiredMiddleware(next http.Handler) http.Handler
+}
+
+type Server struct {
+	user userService
+	dm   dmService
+}
+
+func New(user userService, dm dmService) *Server {
+	return &Server{
+		user: user,
+		dm:   dm,
+	}
+}
+
+func (s *Server) Pattern() string {
+	return "/v1/dm"
+}
+
+func (s *Server) Route(router chi.Router) {
+	router.Group(func(withAuthRouter chi.Router) {
+		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
+
+		withAuthRouter.Get("/list", s.List)
+		withAuthRouter.Post("/create", s.Create)
+		withAuthRouter.Post("/message", s.CreateMessage)
+		withAuthRouter.Get("/messages", s.ListMessages)
+	})
+}

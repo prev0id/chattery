@@ -42,9 +42,9 @@ func (s *Server) Route(router chi.Router) {
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 
-		withAuthRouter.Post("/me/logout", s.LogoutMe)
-		withAuthRouter.Put("/me/update", s.UpdateMe)
-		withAuthRouter.Delete("/me/delete", s.DeleteMe)
+		withAuthRouter.Post("/logout", s.LogoutMe)
+		withAuthRouter.Put("/update", s.UpdateMe)
+		withAuthRouter.Delete("/delete", s.DeleteMe)
 
 		withAuthRouter.Get("/info", s.Info)
 		// withAuthRouter.Get("/search", s.Search)

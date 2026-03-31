@@ -53,7 +53,7 @@ func (a *Adapter) CreateDMParticipant(ctx context.Context, dmID domain.DMID, use
 	return nil
 }
 
-func (a *Adapter) CreateDMMessage(ctx context.Context, message domain.DMMessage) (domain.DMMessageID, error) {
+func (a *Adapter) CreateDMMessage(ctx context.Context, message *domain.DMMessage) (domain.DMMessageID, error) {
 	req := &postgres.CreateDMMessageParams{
 		DmID:   message.DMID.I64(),
 		UserID: message.SenderID.I64(),
@@ -94,7 +94,7 @@ func (a *Adapter) SetLastMessageInDM(ctx context.Context, dmID domain.DMID, mess
 	return nil
 }
 
-func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
+func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, cursor *domain.DMCursor) ([]*domain.DMMessage, error) {
 	req := &postgres.FirstPageOfDMMessagesParams{
 		DmID:  cursor.ChatID.I64(),
 		Limit: int32(cursor.Limit),
@@ -108,7 +108,7 @@ func (a *Adapter) FirstPageOfDMMessages(ctx context.Context, cursor domain.DMCur
 	return sliceutil.Map(messages, convertDMMessageFromDB), nil
 }
 
-func (a *Adapter) NextPagesOfDMMessages(ctx context.Context, cursor domain.DMCursor) ([]*domain.DMMessage, error) {
+func (a *Adapter) NextPagesOfDMMessages(ctx context.Context, cursor *domain.DMCursor) ([]*domain.DMMessage, error) {
 	req := &postgres.NextPagesOfDMMessagesParams{
 		DmID:      cursor.ChatID.I64(),
 		CreatedAt: cursor.Timestamp,

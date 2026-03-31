@@ -2,14 +2,11 @@ package redis_adapter
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/bind"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
-	"chattery/internal/utils/render"
 )
 
 type client interface {
@@ -52,44 +49,44 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 
 }
 
-func (r *Adapter) SendMessage(ctx context.Context, chat domain.ChatID, message domain.Message) error {
-	renderedMessage, err := render.JsonString(message)
-	if err != nil {
-		return errors.E(err).Debug("render.JsonString")
-	}
-	if err := r.client.Publish(ctx, chatKey(chat), renderedMessage); err != nil {
-		return errors.E(err).Debug("r.client.Publish")
-	}
-	return nil
-}
+// func (r *Adapter) SendMessage(ctx context.Context, chat domain.ChatID, message domain.TopicMessage) error {
+// 	renderedMessage, err := render.JsonString(message)
+// 	if err != nil {
+// 		return errors.E(err).Debug("render.JsonString")
+// 	}
+// 	if err := r.client.Publish(ctx, chatKey(chat), renderedMessage); err != nil {
+// 		return errors.E(err).Debug("r.client.Publish")
+// 	}
+// 	return nil
+// }
 
-func (r *Adapter) Subscribe(ctx context.Context, chat domain.ChatID, dst chan<- *domain.Message) {
-	sink := make(chan string)
+// func (r *Adapter) Subscribe(ctx context.Context, chat domain.ChatID, dst chan<- *domain.TopicMessage) {
+// 	sink := make(chan string)
 
-	go func() {
-		r.client.Subscribe(ctx, chatKey(chat), sink)
-	}()
+// 	go func() {
+// 		r.client.Subscribe(ctx, chatKey(chat), sink)
+// 	}()
 
-	for {
-		select {
-		case <-ctx.Done():
-			close(sink)
-			return
-		case rawMessage := <-sink:
-			message, err := bind.JsonString[domain.Message](rawMessage)
-			if err != nil {
-				logger.Error(err, "[redis_adapter] bind.JsonString")
-				continue
-			}
-			dst <- message
-		}
-	}
-}
+// 	for {
+// 		select {
+// 		case <-ctx.Done():
+// 			close(sink)
+// 			return
+// 		case rawMessage := <-sink:
+// 			message, err := bind.JsonString[domain.TopicMessage](rawMessage)
+// 			if err != nil {
+// 				logger.Error(err, "[redis_adapter] bind.JsonString")
+// 				continue
+// 			}
+// 			dst <- message
+// 		}
+// 	}
+// }
 
 func sessionKey(session domain.Session) string {
 	return "Session_" + session.String()
 }
 
-func chatKey(chatID domain.ChatID) string {
-	return "Chat_" + strconv.FormatInt(chatID.I64(), 10)
-}
+// func chatKey(chatID domain.ChatID) string {
+// 	return "Chat_" + strconv.FormatInt(chatID.I64(), 10)
+// }

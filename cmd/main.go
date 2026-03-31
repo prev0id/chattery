@@ -7,8 +7,7 @@ import (
 	user_adapter "chattery/internal/adapter/postgres/user"
 	redis_adapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
-	chat_api "chattery/internal/api/chat"
-	signaling_api "chattery/internal/api/signaling"
+	dm_api "chattery/internal/api/dm"
 	user_api "chattery/internal/api/user"
 	web_api "chattery/internal/api/web"
 	"chattery/internal/client/redis"
@@ -50,9 +49,9 @@ func main() {
 		NewServer(cfg).
 		UseMiddleware(userService.SessionMiddleware).
 		Register(
-			signaling_api.New(chatService),
+			// signaling_api.New(chatService),
 			user_api.New(userService),
-			chat_api.New(userService, chatService),
+			dm_api.New(userService, dmService),
 			web_api.New(),
 		)
 
