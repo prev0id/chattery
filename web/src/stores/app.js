@@ -34,7 +34,7 @@ export const [selectedDM, setSelectedDM] = createSignal(null);
 export const [DMs, setDMs] = createStore([
   {
     id: 123,
-    unread: 0,
+    unread: false,
     user: {
       id: 2,
       username: "user_name_2",
@@ -47,7 +47,7 @@ export const [DMs, setDMs] = createStore([
   },
   {
     id: 1234,
-    unread: 5,
+    unread: true,
     user: {
       id: 1,
       username: "user_name_1",
@@ -65,7 +65,7 @@ export const [DMs, setDMs] = createStore([
       username: "user_name_3",
       profilePicture: "https://github.com/identicons/prev0id.png",
     },
-    unread: 0,
+    unread: true,
     message: null,
   },
 ]);

@@ -1,7 +1,7 @@
 import { Show } from "solid-js";
 import { selectDM, selectedDM } from "../stores/app";
 import ProfilePicture from "./ProfilePicture";
-import { Info } from "lucide-solid";
+import { Info, Mail } from "lucide-solid";
 
 export default function SidebarDM(props) {
   return (
@@ -13,6 +13,7 @@ export default function SidebarDM(props) {
         "bg-white": props.dm().user.id !== selectedDM()?.user.id,
       }}
     >
+      {/* props.dm().unread > 0*/}
       <ProfilePicture
         src={props.dm().user.profilePicture}
         class="size-9 my-auto"
@@ -23,12 +24,12 @@ export default function SidebarDM(props) {
           {props.dm().message?.content ?? ""}
         </p>
       </div>
-      <Show when={props.dm().unread > 0}>
-        <Info
+      {/* <Show when={props.dm().unread > 0}>
+        <Mail
           stroke-width="3"
-          class="my-auto h-4 leading-none text-amber-600"
+          class="my-auto leading-none text-white bg-red-600 rounded-full p-1"
         />
-      </Show>
+      </Show>*/}
     </button>
   );
 }
