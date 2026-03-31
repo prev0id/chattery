@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	chat_adapter "chattery/internal/adapter/postgres/chat"
+	dm_adapter "chattery/internal/adapter/postgres/dm"
 	user_adapter "chattery/internal/adapter/postgres/user"
 	redis_adapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
@@ -13,7 +13,7 @@ import (
 	web_api "chattery/internal/api/web"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
-	"chattery/internal/service/chat"
+	"chattery/internal/service/dm"
 	"chattery/internal/service/user"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
@@ -37,13 +37,13 @@ func main() {
 	}
 
 	transactionManager := transaction.NewManager(postgresConn)
-	chatDB := chat_adapter.New(cfg, transactionManager)
+	dmDB := dm_adapter.New(transactionManager)
 	userDB := user_adapter.New(transactionManager)
 
 	redisClient := redis.New(redisConn)
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
-	chatService := chat.New(chatDB, redisAdapter, transactionManager)
+	dmService := dm.New(dmDB, transactionManager, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	server := api.

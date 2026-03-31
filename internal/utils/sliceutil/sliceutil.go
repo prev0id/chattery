@@ -34,3 +34,12 @@ func EnsureLengthNotExceeding[T any](in []T, maxLeght int) []T {
 	}
 	return in[:maxLeght]
 }
+
+func GroupBy[T any, K comparable](in []T, keyFunc func(T) K) map[K][]T {
+	result := make(map[K][]T)
+	for _, el := range in {
+		key := keyFunc(el)
+		result[key] = append(result[key], el)
+	}
+	return result
+}

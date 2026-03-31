@@ -8,7 +8,5 @@ type Cursor[ID any] struct {
 }
 
 type (
-	MessageCursor = Cursor[MessageID]
-	ChatCursor    = Cursor[ChatID]
-	UserCursor    = Cursor[UserID]
+	TopicMessageCursor = Cursor[TopicMessageID]
 )

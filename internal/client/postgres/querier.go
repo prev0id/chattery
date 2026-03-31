@@ -9,67 +9,158 @@ import (
 )
 
 type Querier interface {
-	//AddParticipant
+	//CreateDM
 	//
-	//  INSERT INTO chat_participants(chat_id, user_id, role)
-	//  VALUES ($1, $2, $3)
-	AddParticipant(ctx context.Context, arg *AddParticipantParams) error
-	//Chats
-	//
-	//  SELECT id, type, name, created_at, updated_at FROM chats
-	Chats(ctx context.Context) ([]*Chat, error)
-	//CreateChat
-	//
-	//  INSERT INTO chats(type, name)
-	//  VALUES ($1, $2)
+	//  INSERT INTO dms(last_message_id)
+	//  VALUES (0)
 	//  RETURNING id
-	CreateChat(ctx context.Context, arg *CreateChatParams) (int64, error)
+	CreateDM(ctx context.Context) (int64, error)
+	//CreateDMMessage
+	//
+	//  INSERT INTO dm_messages(dm_id, user_id, text)
+	//  VALUES ($1, $2, $3)
+	//  RETURNING id
+	CreateDMMessage(ctx context.Context, arg *CreateDMMessageParams) (int64, error)
+	//CreateDMParticipant
+	//
+	//  INSERT INTO dm_participants(dm_id, user_id)
+	//  VALUES ($1, $2)
+	CreateDMParticipant(ctx context.Context, arg *CreateDMParticipantParams) error
 	//CreateMessage
 	//
-	//  INSERT INTO chat_messages(chat_id, user_id, text)
+	//  INSERT INTO topic_messages(topic_id, user_id, text)
 	//  VALUES ($1, $2, $3)
 	//  RETURNING id
 	CreateMessage(ctx context.Context, arg *CreateMessageParams) (int64, error)
+	//CreateServer
+	//
+	//  INSERT INTO servers(name)
+	//  VALUES ($1)
+	//  RETURNING id
+	CreateServer(ctx context.Context, name string) (int64, error)
+	//CreateServerParticipant
+	//
+	//  INSERT INTO server_participants (server_id, user_id, role)
+	//  VALUES ($1, $2, $3)
+	CreateServerParticipant(ctx context.Context, arg *CreateServerParticipantParams) error
+	//CreateTopic
+	//
+	//  INSERT INTO topics (server_id, name, type)
+	//  VALUES ($1, $2, $3)
+	//  RETURNING id, server_id, name, type, created_at, updated_at
+	CreateTopic(ctx context.Context, arg *CreateTopicParams) (*Topic, error)
 	//CreateUser
 	//
 	//  INSERT INTO users(login, password, username)
 	//  VALUES ($1, $2, $3)
 	//  RETURNING id
 	CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error)
-	//DeleteChat
+	//DeleteMessagesByServerID
 	//
-	//  DELETE FROM chats
-	//  WHERE id=$1
-	DeleteChat(ctx context.Context, id int64) error
-	//DeleteParticipant
+	//  DELETE FROM topic_messages
+	//  WHERE topic_id IN (SELECT id FROM topics WHERE server_id = $1)
+	DeleteMessagesByServerID(ctx context.Context, serverID int64) error
+	//DeleteServerByServerID
 	//
-	//  DELETE FROM chat_participants
-	//  WHERE chat_id=$1 AND user_id=$2
-	DeleteParticipant(ctx context.Context, arg *DeleteParticipantParams) error
+	//  DELETE FROM servers
+	//  WHERE id = $1
+	DeleteServerByServerID(ctx context.Context, id int64) error
+	//DeleteServerParticipant
+	//
+	//  DELETE FROM server_participants
+	//  WHERE server_id = $1 AND user_id = $2
+	DeleteServerParticipant(ctx context.Context, arg *DeleteServerParticipantParams) error
+	//DeleteServerParticipantsByServerID
+	//
+	//  DELETE FROM server_participants
+	//  WHERE server_id = $1
+	DeleteServerParticipantsByServerID(ctx context.Context, serverID int64) error
+	//DeleteTopic
+	//
+	//  DELETE FROM topics
+	//  WHERE id = $1
+	DeleteTopic(ctx context.Context, id int64) error
+	//DeleteTopicsByServerID
+	//
+	//  DELETE FROM topics
+	//  WHERE server_id = $1
+	DeleteTopicsByServerID(ctx context.Context, serverID int64) error
 	//DeleteUserByID
 	//
 	//  DELETE FROM users
 	//  WHERE id = $1
 	DeleteUserByID(ctx context.Context, id int64) (int64, error)
-	//FirstPageOfMessages
+	//FirstPageOfDMMessages
 	//
-	//  SELECT id, chat_id, user_id, text, created_at FROM chat_messages
-	//  WHERE chat_id = $1
+	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
+	//  WHERE dm_id = $1
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $2
-	FirstPageOfMessages(ctx context.Context, arg *FirstPageOfMessagesParams) ([]*ChatMessage, error)
-	//NextPagesOfMessages
+	FirstPageOfDMMessages(ctx context.Context, arg *FirstPageOfDMMessagesParams) ([]*DmMessage, error)
+	//FirstPageOfTopicMessages
 	//
-	//  SELECT id, chat_id, user_id, text, created_at FROM chat_messages
-	//  WHERE chat_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
+	//  SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
+	//  WHERE topic_id = $1
+	//  ORDER BY created_at DESC, id DESC
+	//  LIMIT $2
+	FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOfTopicMessagesParams) ([]*TopicMessage, error)
+	//GetUserServers
+	//
+	//  SELECT
+	//      s.id AS id,
+	//      s.name AS name,
+	//      t.id AS topic_id,
+	//      t.name AS topic_name,
+	//      t.type AS topic_type
+	//  FROM servers s
+	//  JOIN server_participants sp ON sp.server_id = s.id
+	//  LEFT JOIN topics t ON t.server_id = s.id
+	//  WHERE sp.user_id = $1
+	//  ORDER BY sp.created_at DESC, t.updated_at DESC
+	GetUserServers(ctx context.Context, userID int64) ([]*GetUserServersRow, error)
+	//NextPagesOfDMMessages
+	//
+	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
+	//  WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $4
-	NextPagesOfMessages(ctx context.Context, arg *NextPagesOfMessagesParams) ([]*ChatMessage, error)
-	//ParticipantsForChat
+	NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMMessagesParams) ([]*DmMessage, error)
+	//NextPagesOfTopicMessages
 	//
-	//  SELECT chat_id, user_id, role, created_at FROM chat_participants
-	//  WHERE chat_id = $1
-	ParticipantsForChat(ctx context.Context, chatID int64) ([]*ChatParticipant, error)
+	//  SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
+	//  WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
+	//  ORDER BY created_at DESC, id DESC
+	//  LIMIT $4
+	NextPagesOfTopicMessages(ctx context.Context, arg *NextPagesOfTopicMessagesParams) ([]*TopicMessage, error)
+	//SetDMLastReadMessage
+	//
+	//  UPDATE dm_participants
+	//  SET last_read_message_id=$3,
+	//      updated_at=now()
+	//  WHERE dm_id=$1 AND user_id=$2
+	SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error
+	//SetLastMessageInDM
+	//
+	//  UPDATE dms
+	//  SET last_message_id=$2,
+	//      updated_at=now()
+	//  WHERE id = $1
+	SetLastMessageInDM(ctx context.Context, arg *SetLastMessageInDMParams) error
+	//UpdateServer
+	//
+	//  UPDATE servers
+	//  SET name=$2,
+	//      updated_at=now()
+	//  WHERE id=$1
+	UpdateServer(ctx context.Context, arg *UpdateServerParams) error
+	//UpdateTopic
+	//
+	//  UPDATE topics
+	//  SET
+	//      name = $2,
+	//      updated_at = NOW()
+	//  WHERE id = $1
+	UpdateTopic(ctx context.Context, arg *UpdateTopicParams) error
 	//UpdateUser
 	//
 	//  UPDATE users
@@ -90,40 +181,22 @@ type Querier interface {
 	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 	//  WHERE id = $1
 	UserByUsername(ctx context.Context, id int64) (*User, error)
-	//UserChatPreviewByType
+	//UserDMs
 	//
 	//  SELECT
-	//      c.id,
-	//      c.type,
-	//      c.name,
-	//      c.created_at,
-	//      c.updated_at,
-	//      (m.id IS NOT NULL)::boolean           AS has_last_message,
-	//      COALESCE(m.id, 0)                     AS last_message_id,
-	//      COALESCE(m.user_id, 0)                AS last_message_user_id,
-	//      COALESCE(m.text, '')                  AS last_message_text,
-	//      COALESCE(m.created_at, TIMESTAMP 'epoch') AS last_message_created_at
-	//  FROM chats c
-	//  JOIN chat_participants cp
-	//      ON cp.chat_id = c.id AND cp.user_id = $1
-	//  LEFT JOIN LATERAL (
-	//      SELECT id, user_id, text, created_at
-	//      FROM chat_messages
-	//      WHERE chat_id = c.id
-	//      ORDER BY created_at DESC, id DESC
-	//      LIMIT 1
-	//  ) m ON true
-	//  WHERE c.type = $2
-	//  ORDER BY m.created_at DESC NULLS LAST, c.updated_at DESC, c.id DESC
-	UserChatPreviewByType(ctx context.Context, arg *UserChatPreviewByTypeParams) ([]*UserChatPreviewByTypeRow, error)
-	//UserChats
-	//
-	//  SELECT id, type, name, created_at, updated_at FROM chats
-	//  WHERE chats.id in (
-	//      SELECT chat_id FROM chat_participants
-	//      WHERE user_id=$1
-	//  )
-	UserChats(ctx context.Context, userID int64) ([]*Chat, error)
+	//      d.id AS dm_id,
+	//      d.updated_at AS last_activity_at,
+	//      p.last_read_message_id,
+	//      lm.id AS last_message_id,
+	//      lm.user_id AS last_message_sender_id,
+	//      lm.text AS last_message_text,
+	//      lm.created_at AS last_message_created_at
+	//  FROM dm_participants p
+	//  JOIN dms d ON d.id = p.dm_id
+	//  LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+	//  WHERE p.user_id = $1
+	//  ORDER BY d.updated_at DESC, d.id DESC
+	UserDMs(ctx context.Context, userID int64) ([]*UserDMsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

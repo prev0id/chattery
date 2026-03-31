@@ -8,27 +8,61 @@ import (
 	"time"
 )
 
-type Chat struct {
+type Dm struct {
+	ID            int64
+	LastMessageID int64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+type DmMessage struct {
 	ID        int64
-	Type      string
+	DmID      int64
+	UserID    int64
+	Text      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type DmParticipant struct {
+	DmID              int64
+	UserID            int64
+	LastReadMessageID int64
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+type Server struct {
+	ID        int64
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-type ChatMessage struct {
-	ID        int64
-	ChatID    int64
-	UserID    int64
-	Text      string
-	CreatedAt time.Time
-}
-
-type ChatParticipant struct {
-	ChatID    int64
+type ServerParticipant struct {
+	ServerID  int64
 	UserID    int64
 	Role      string
 	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Topic struct {
+	ID        int64
+	ServerID  int64
+	Name      string
+	Type      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type TopicMessage struct {
+	ID        int64
+	TopicID   int64
+	UserID    int64
+	Text      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type User struct {
