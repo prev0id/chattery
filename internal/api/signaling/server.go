@@ -60,6 +60,6 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	connection := hub.NewConnection(s.hub, userID, conn)
 	s.hub.RegisterConnection(connection)
 
-	go connection.WritePump()
+	go connection.WritePump(ctx)
 	connection.ReadPump(ctx)
 }

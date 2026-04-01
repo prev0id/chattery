@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/coder/websocket"
 
@@ -29,6 +28,19 @@ const (
 	ChannelServer ChannelType = "server"
 )
 
+type ChannelKey struct {
+	Type ChannelType
+	ID   int64
+}
+
+func (ck ChannelKey) DMID() domain.DMID {
+	return domain.DMID(ck.ID)
+}
+
+func (ck ChannelKey) TopicID() domain.TopicID {
+	return domain.TopicID(ck.ID)
+}
+
 type wsEvent struct {
 	Type        EventType   `json:"type"`
 	ChannelType ChannelType `json:"channel_type,omitempty"`
@@ -43,7 +55,7 @@ type Connection struct {
 	ws         *websocket.Conn
 	send       chan any
 	active     bool
-	channelKey string
+	channelKey ChannelKey
 }
 
 func NewConnection(hub *Hub, userID domain.UserID, ws *websocket.Conn) *Connection {
@@ -60,13 +72,16 @@ func (c *Connection) GetUserID() domain.UserID {
 	return c.userID
 }
 
-func (c *Connection) GetChannelKey() string {
+func (c *Connection) GetChannelKey() ChannelKey {
 	return c.channelKey
 }
 
 func (c *Connection) ReadPump(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	defer func() {
-		c.hub.Leave(c.userID, c.getChannelType(), c.getChannelID())
+		c.hub.Leave(c.userID, c.channelKey.Type, c.channelKey.ID)
 		c.hub.UnregisterConnection(c)
 		c.ws.Close(websocket.StatusNormalClosure, "")
 	}()
@@ -96,20 +111,20 @@ func (c *Connection) ReadPump(ctx context.Context) {
 				c.sendError("already joined a channel")
 				continue
 			}
-			if err := c.hub.Join(ctx, c.userID, string(event.ChannelType), event.ChannelID); err != nil {
+			if err := c.hub.Join(ctx, c.userID, event.ChannelType, event.ChannelID); err != nil {
 				c.sendError(err.Error())
 				continue
 			}
 			c.active = true
-			c.channelKey = fmt.Sprintf("%s:%d", event.ChannelType, event.ChannelID)
+			c.channelKey = ChannelKey{Type: event.ChannelType, ID: event.ChannelID}
 
 		case EventLeave:
 			if !c.active {
 				continue
 			}
-			c.hub.Leave(c.userID, c.getChannelType(), c.getChannelID())
+			c.hub.Leave(c.userID, c.channelKey.Type, c.channelKey.ID)
 			c.active = false
-			c.channelKey = ""
+			c.channelKey = ChannelKey{}
 
 		default:
 			c.sendError("unknown event type")
@@ -117,25 +132,28 @@ func (c *Connection) ReadPump(ctx context.Context) {
 	}
 }
 
-func (c *Connection) WritePump() {
+func (c *Connection) WritePump(ctx context.Context) {
 	defer c.ws.Close(websocket.StatusNormalClosure, "")
 
 	for {
-		message, ok := <-c.send
-		if !ok {
-			c.ws.Write(context.Background(), websocket.MessageText, []byte(`{"type":"error","message":"connection closed"}`))
+		select {
+		case <-ctx.Done():
 			return
-		}
+		case message, ok := <-c.send:
+			if !ok {
+				return
+			}
 
-		bytes, err := render.JsonBytes(message)
-		if err != nil {
-			logger.Error(err, "[connection] render.JsonBytes")
-			continue
-		}
+			bytes, err := render.JsonBytes(message)
+			if err != nil {
+				logger.Error(err, "[connection] render.JsonBytes")
+				continue
+			}
 
-		if err := c.ws.Write(context.Background(), websocket.MessageText, bytes); err != nil {
-			logger.Error(err, "[connection] ws.Write")
-			return
+			if err := c.ws.Write(context.Background(), websocket.MessageText, bytes); err != nil {
+				logger.Error(err, "[connection] ws.Write")
+				return
+			}
 		}
 	}
 }
@@ -151,35 +169,6 @@ func (c *Connection) sendError(msg string) {
 		return
 	}
 	c.ws.Write(context.Background(), websocket.MessageText, bytes)
-}
-
-func (c *Connection) getChannelType() string {
-	if c.channelKey == "" {
-		return ""
-	}
-	for i, r := range c.channelKey {
-		if r == ':' {
-			return c.channelKey[:i]
-		}
-	}
-	return ""
-}
-
-func (c *Connection) getChannelID() string {
-	if c.channelKey == "" {
-		return ""
-	}
-	for i, r := range c.channelKey {
-		if r == ':' {
-			return c.channelKey[i+1:]
-		}
-	}
-	return ""
-}
-
-func (c *Connection) SetActive(channelKey string) {
-	c.active = true
-	c.channelKey = channelKey
 }
 
 func (c *Connection) IsActive() bool {

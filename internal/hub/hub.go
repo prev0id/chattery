@@ -2,7 +2,6 @@ package hub
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"chattery/internal/domain"
@@ -29,9 +28,9 @@ type Hub struct {
 
 	connections map[domain.UserID]map[*Connection]bool
 
-	rooms map[string]map[domain.UserID]bool
+	rooms map[ChannelKey]map[domain.UserID]bool
 
-	listeners map[string]context.CancelFunc
+	listeners map[ChannelKey]context.CancelFunc
 
 	m sync.RWMutex
 }
@@ -42,21 +41,21 @@ func New(redisAdapter redis, dmSvc dmService, serverSvc serverService) *Hub {
 		dmService:     dmSvc,
 		serverService: serverSvc,
 		connections:   make(map[domain.UserID]map[*Connection]bool),
-		rooms:         make(map[string]map[domain.UserID]bool),
-		listeners:     make(map[string]context.CancelFunc),
+		rooms:         make(map[ChannelKey]map[domain.UserID]bool),
+		listeners:     make(map[ChannelKey]context.CancelFunc),
 	}
 }
 
-func (h *Hub) Join(ctx context.Context, userID domain.UserID, channelType string, channelID int64) error {
-	channelKey := fmt.Sprintf("%s:%d", channelType, channelID)
+func (h *Hub) Join(ctx context.Context, userID domain.UserID, channelType ChannelType, channelID int64) error {
+	channelKey := ChannelKey{Type: channelType, ID: channelID}
 
 	switch channelType {
-	case "dm":
+	case ChannelDM:
 		dmID := domain.DMID(channelID)
 		if err := h.dmService.UserHasAccessToDM(ctx, userID, dmID); err != nil {
 			return errors.E(err).Kind(errors.Permission).Message("no access to dm")
 		}
-	case "server":
+	case ChannelServer:
 		topicID := domain.TopicID(channelID)
 		if err := h.serverService.UserHasAccessToTopic(ctx, userID, topicID); err != nil {
 			return errors.E(err).Kind(errors.Permission).Message("no access to topic")
@@ -74,14 +73,14 @@ func (h *Hub) Join(ctx context.Context, userID domain.UserID, channelType string
 	h.rooms[channelKey][userID] = true
 
 	if len(h.rooms[channelKey]) == 1 {
-		h.startListener(channelKey, channelType, channelID)
+		h.startListener(channelKey)
 	}
 
 	return nil
 }
 
-func (h *Hub) Leave(userID domain.UserID, channelType string, channelID string) {
-	channelKey := channelType + ":" + channelID
+func (h *Hub) Leave(userID domain.UserID, channelType ChannelType, channelID int64) {
+	channelKey := ChannelKey{Type: channelType, ID: channelID}
 
 	h.m.Lock()
 	defer h.m.Unlock()
@@ -117,7 +116,7 @@ func (h *Hub) UnregisterConnection(conn *Connection) {
 	}
 }
 
-func (h *Hub) GetUsersInChannel(channelKey string) []domain.UserID {
+func (h *Hub) GetUsersInChannel(channelKey ChannelKey) []domain.UserID {
 	h.m.RLock()
 	defer h.m.RUnlock()
 
@@ -149,44 +148,42 @@ func (h *Hub) GetUserConnections(userID domain.UserID) []*Connection {
 	return result
 }
 
-func (h *Hub) startListener(channelKey, channelType string, channelID int64) {
+func (h *Hub) startListener(channelKey ChannelKey) {
 	ctx, cancel := context.WithCancel(context.Background())
 	h.listeners[channelKey] = cancel
 
-	switch channelType {
-	case "dm":
-		dmID := domain.DMID(channelID)
+	switch channelKey.Type {
+	case ChannelDM:
 		dst := make(chan *domain.DMMessage)
-		go h.redis.SubscribeToDM(ctx, dmID, dst)
+		go h.redis.SubscribeToDM(ctx, channelKey.DMID(), dst)
 		go h.handleDMMessages(channelKey, dst)
-	case "server":
-		topicID := domain.TopicID(channelID)
+	case ChannelServer:
 		dst := make(chan *domain.TopicMessage)
-		go h.redis.SubscribeToServerTopic(ctx, topicID, dst)
+		go h.redis.SubscribeToServerTopic(ctx, channelKey.TopicID(), dst)
 		go h.handleServerMessages(channelKey, dst)
 	}
 }
 
-func (h *Hub) stopListener(channelKey string) {
+func (h *Hub) stopListener(channelKey ChannelKey) {
 	if cancel, ok := h.listeners[channelKey]; ok {
 		cancel()
 		delete(h.listeners, channelKey)
 	}
 }
 
-func (h *Hub) handleDMMessages(channelKey string, src chan *domain.DMMessage) {
+func (h *Hub) handleDMMessages(channelKey ChannelKey, src chan *domain.DMMessage) {
 	for message := range src {
 		h.broadcast(channelKey, message)
 	}
 }
 
-func (h *Hub) handleServerMessages(channelKey string, src chan *domain.TopicMessage) {
+func (h *Hub) handleServerMessages(channelKey ChannelKey, src chan *domain.TopicMessage) {
 	for message := range src {
 		h.broadcast(channelKey, message)
 	}
 }
 
-func (h *Hub) broadcast(channelKey string, message any) {
+func (h *Hub) broadcast(channelKey ChannelKey, message any) {
 	users := h.GetUsersInChannel(channelKey)
 
 	h.m.RLock()
