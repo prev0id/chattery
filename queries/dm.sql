@@ -50,3 +50,14 @@ SELECT * FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 ORDER BY created_at DESC, id DESC
 LIMIT $4;
+
+-- name: GetDMParticipant :one
+SELECT * FROM dm_participants
+WHERE dm_id = $1 AND user_id = $2;
+
+-- name: GetDMBetweenUsers :one
+SELECT d.id FROM dm_participants p1
+JOIN dm_participants p2 ON p1.dm_id = p2.dm_id
+JOIN dms d ON d.id = p1.dm_id
+WHERE p1.user_id = $1 AND p2.user_id = $2
+LIMIT 1;

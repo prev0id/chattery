@@ -32,3 +32,11 @@ func convertDMFromDB(dm *postgres.UserDMsRow) *domain.DM {
 		LastMessage: lastMessage,
 	}
 }
+
+func convertDMParticipantFromDB(participant *postgres.DmParticipant) *domain.DMParticipant {
+	return &domain.DMParticipant{
+		DMID:              domain.DMID(participant.DmID),
+		UserID:            domain.UserID(participant.UserID),
+		LastReadMessageID: domain.DMMessageID(participant.LastReadMessageID),
+	}
+}

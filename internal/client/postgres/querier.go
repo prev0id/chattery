@@ -104,6 +104,19 @@ type Querier interface {
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $2
 	FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOfTopicMessagesParams) ([]*TopicMessage, error)
+	//GetDMBetweenUsers
+	//
+	//  SELECT d.id FROM dm_participants p1
+	//  JOIN dm_participants p2 ON p1.dm_id = p2.dm_id
+	//  JOIN dms d ON d.id = p1.dm_id
+	//  WHERE p1.user_id = $1 AND p2.user_id = $2
+	//  LIMIT 1
+	GetDMBetweenUsers(ctx context.Context, arg *GetDMBetweenUsersParams) (int64, error)
+	//GetDMParticipant
+	//
+	//  SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
+	//  WHERE dm_id = $1 AND user_id = $2
+	GetDMParticipant(ctx context.Context, arg *GetDMParticipantParams) (*DmParticipant, error)
 	//GetServer
 	//
 	//  SELECT

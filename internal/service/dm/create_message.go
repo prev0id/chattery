@@ -31,5 +31,8 @@ func (s *Service) createDMMessage(ctx context.Context, message *domain.DMMessage
 }
 
 func (s *Service) validateCreateDMMessage(ctx context.Context, message *domain.DMMessage) error {
+	if err := s.validateParticipantExists(ctx, message.DMID, message.SenderID); err != nil {
+		return err
+	}
 	return nil
 }

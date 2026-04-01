@@ -118,6 +118,60 @@ func (q *Queries) FirstPageOfDMMessages(ctx context.Context, arg *FirstPageOfDMM
 	return items, nil
 }
 
+const getDMBetweenUsers = `-- name: GetDMBetweenUsers :one
+SELECT d.id FROM dm_participants p1
+JOIN dm_participants p2 ON p1.dm_id = p2.dm_id
+JOIN dms d ON d.id = p1.dm_id
+WHERE p1.user_id = $1 AND p2.user_id = $2
+LIMIT 1
+`
+
+type GetDMBetweenUsersParams struct {
+	UserID   int64
+	UserID_2 int64
+}
+
+// GetDMBetweenUsers
+//
+//	SELECT d.id FROM dm_participants p1
+//	JOIN dm_participants p2 ON p1.dm_id = p2.dm_id
+//	JOIN dms d ON d.id = p1.dm_id
+//	WHERE p1.user_id = $1 AND p2.user_id = $2
+//	LIMIT 1
+func (q *Queries) GetDMBetweenUsers(ctx context.Context, arg *GetDMBetweenUsersParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getDMBetweenUsers, arg.UserID, arg.UserID_2)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getDMParticipant = `-- name: GetDMParticipant :one
+SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
+WHERE dm_id = $1 AND user_id = $2
+`
+
+type GetDMParticipantParams struct {
+	DmID   int64
+	UserID int64
+}
+
+// GetDMParticipant
+//
+//	SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
+//	WHERE dm_id = $1 AND user_id = $2
+func (q *Queries) GetDMParticipant(ctx context.Context, arg *GetDMParticipantParams) (*DmParticipant, error) {
+	row := q.db.QueryRow(ctx, getDMParticipant, arg.DmID, arg.UserID)
+	var i DmParticipant
+	err := row.Scan(
+		&i.DmID,
+		&i.UserID,
+		&i.LastReadMessageID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const nextPagesOfDMMessages = `-- name: NextPagesOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))

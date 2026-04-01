@@ -38,5 +38,8 @@ func (s *Service) nextPagesOfDMMessages(ctx context.Context, userID domain.UserI
 }
 
 func (s *Service) validateNextPagesOfDMMessages(ctx context.Context, dmID domain.DMID, userID domain.UserID) error {
+	if err := s.validateParticipantExists(ctx, dmID, userID); err != nil {
+		return err
+	}
 	return nil
 }

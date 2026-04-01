@@ -43,5 +43,13 @@ func (s *Service) createDM(ctx context.Context, participant1, participant2 domai
 }
 
 func (s *Service) validateCreateDM(ctx context.Context, participant1, participant2 domain.UserID) error {
+	if err := s.validateDifferentUsers(participant1, participant2); err != nil {
+		return err
+	}
+
+	if err := s.validateDMNotExistsBetweenUsers(ctx, participant1, participant2); err != nil {
+		return err
+	}
+
 	return nil
 }
