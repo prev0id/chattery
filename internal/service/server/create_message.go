@@ -22,6 +22,10 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 		return errors.E(err).Debug("s.db.CreateMessage")
 	}
 
+	if err := s.redis.PublishTopicMessage(ctx, message); err != nil {
+		return errors.E(err).Debug("s.redis.PublishTopicMessage")
+	}
+
 	return nil
 }
 

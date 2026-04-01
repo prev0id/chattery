@@ -27,6 +27,12 @@ func (s *Service) createDMMessage(ctx context.Context, message *domain.DMMessage
 		return errors.E(err).Debug("s.db.SetLastMessageInDM")
 	}
 
+	message.ID = messageID
+
+	if err := s.redis.PublishDMMessage(ctx, message); err != nil {
+		return errors.E(err).Debug("s.redis.PublishDMMessage")
+	}
+
 	return nil
 }
 

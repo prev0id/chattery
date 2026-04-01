@@ -2,11 +2,14 @@ package redis_adapter
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"chattery/internal/domain"
+	"chattery/internal/utils/bind"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
+	"chattery/internal/utils/render"
 )
 
 type client interface {
@@ -49,44 +52,87 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 
 }
 
-// func (r *Adapter) SendMessage(ctx context.Context, chat domain.ChatID, message domain.TopicMessage) error {
-// 	renderedMessage, err := render.JsonString(message)
-// 	if err != nil {
-// 		return errors.E(err).Debug("render.JsonString")
-// 	}
-// 	if err := r.client.Publish(ctx, chatKey(chat), renderedMessage); err != nil {
-// 		return errors.E(err).Debug("r.client.Publish")
-// 	}
-// 	return nil
-// }
+func (r *Adapter) PublishDMMessage(ctx context.Context, message *domain.DMMessage) error {
+	renderedMessage, err := render.JsonString(message)
+	if err != nil {
+		return errors.E(err).Debug("render.JsonString")
+	}
 
-// func (r *Adapter) Subscribe(ctx context.Context, chat domain.ChatID, dst chan<- *domain.TopicMessage) {
-// 	sink := make(chan string)
+	if err := r.client.Publish(ctx, dmChannelKey(message.DMID), renderedMessage); err != nil {
+		return errors.E(err).Debug("r.client.Publish")
+	}
 
-// 	go func() {
-// 		r.client.Subscribe(ctx, chatKey(chat), sink)
-// 	}()
+	return nil
+}
 
-// 	for {
-// 		select {
-// 		case <-ctx.Done():
-// 			close(sink)
-// 			return
-// 		case rawMessage := <-sink:
-// 			message, err := bind.JsonString[domain.TopicMessage](rawMessage)
-// 			if err != nil {
-// 				logger.Error(err, "[redis_adapter] bind.JsonString")
-// 				continue
-// 			}
-// 			dst <- message
-// 		}
-// 	}
-// }
+func (r *Adapter) PublishTopicMessage(ctx context.Context, message *domain.TopicMessage) error {
+	renderedMessage, err := render.JsonString(message)
+	if err != nil {
+		return errors.E(err).Debug("render.JsonString")
+	}
+
+	if err := r.client.Publish(ctx, serverChannelKey(message.TopicID), renderedMessage); err != nil {
+		return errors.E(err).Debug("r.client.Publish")
+	}
+
+	return nil
+}
+
+func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<- *domain.DMMessage) {
+	sink := make(chan string)
+
+	go func() {
+		r.client.Subscribe(ctx, dmChannelKey(dmID), sink)
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			close(sink)
+			return
+		case rawMessage := <-sink:
+			message, err := bind.JsonString[domain.DMMessage](rawMessage)
+			if err != nil {
+				logger.Error(err, "[redis_adapter] bind.JsonString DMMessage")
+				continue
+			}
+			dst <- message
+		}
+	}
+}
+
+func (r *Adapter) SubscribeToServerTopic(ctx context.Context, topicID domain.TopicID, dst chan<- *domain.TopicMessage) {
+	sink := make(chan string)
+
+	go func() {
+		r.client.Subscribe(ctx, serverChannelKey(topicID), sink)
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			close(sink)
+			return
+
+		case rawMessage := <-sink:
+			message, err := bind.JsonString[domain.TopicMessage](rawMessage)
+			if err != nil {
+				logger.Error(err, "[redis_adapter] bind.JsonString TopicMessage")
+				continue
+			}
+			dst <- message
+		}
+	}
+}
 
 func sessionKey(session domain.Session) string {
 	return "Session_" + session.String()
 }
 
-// func chatKey(chatID domain.ChatID) string {
-// 	return "Chat_" + strconv.FormatInt(chatID.I64(), 10)
-// }
+func dmChannelKey(dmID domain.DMID) string {
+	return "DM:" + strconv.FormatInt(dmID.I64(), 10)
+}
+
+func serverChannelKey(topicID domain.TopicID) string {
+	return "Server:" + strconv.FormatInt(topicID.I64(), 10)
+}

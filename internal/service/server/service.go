@@ -33,16 +33,22 @@ type txManager interface {
 	InTransaction(ctx context.Context, fn func(context.Context) error) error
 }
 
+type redis interface {
+	PublishTopicMessage(ctx context.Context, message *domain.TopicMessage) error
+}
+
 type Service struct {
 	db          db
 	transaction txManager
+	redis       redis
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
+		redis:       redisAdapter,
 		limit:       cfg.Chat.MessagesLimit,
 	}
 }
@@ -58,4 +64,18 @@ func (s *Service) getNextCursor(topicID domain.TopicID, messages []*domain.Topic
 		MessageID: lastMessage.ID,
 		Timestamp: lastMessage.CreatedAt,
 	}
+}
+
+func (s *Service) UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
+	topic, err := s.db.GetTopic(ctx, topicID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.GetServerParticipant(ctx, topic.ServerID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
