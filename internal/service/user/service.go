@@ -62,6 +62,18 @@ func (s *Service) GetByCredentials(ctx context.Context, login domain.Login, rawP
 	return user, nil
 }
 
+func (s *Service) GetByID(ctx context.Context, userID domain.UserID) (*domain.User, error) {
+	user, err := s.db.UserByID(ctx, userID)
+	if errors.Is(errors.NotFound, err) {
+		return nil, errors.E(err).Kind(errors.NotFound).Messagef("user with id %d not found", userID)
+	}
+	if err != nil {
+		return nil, errors.E(err).Debug("s.db.UserByID")
+	}
+
+	return user, nil
+}
+
 func (s *Service) CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error) {
 	var resultID domain.UserID
 	err := s.transaction.InTransaction(ctx, func(ctx context.Context) error {

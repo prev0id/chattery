@@ -48,14 +48,11 @@ func main() {
 	redisClient := redis.New(redisConn)
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
-	hubInstance := hub_pkg.New(redisAdapter, nil, nil)
-
 	dmService := dm.New(dmDB, transactionManager, redisAdapter, cfg)
 	serverService := server.New(serverDB, transactionManager, redisAdapter, cfg)
-
-	hubInstance = hub_pkg.New(redisAdapter, dmService, serverService)
-
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
+
+	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, userService)
 
 	server := api.
 		NewServer(cfg).

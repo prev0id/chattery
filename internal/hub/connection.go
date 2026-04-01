@@ -12,43 +12,6 @@ import (
 	"chattery/internal/utils/render"
 )
 
-type EventType string
-
-const (
-	EventJoin    EventType = "join"
-	EventLeave   EventType = "leave"
-	EventMessage EventType = "message"
-	EventError   EventType = "error"
-)
-
-type ChannelType string
-
-const (
-	ChannelDM     ChannelType = "dm"
-	ChannelServer ChannelType = "server"
-)
-
-type ChannelKey struct {
-	Type ChannelType
-	ID   int64
-}
-
-func (ck ChannelKey) DMID() domain.DMID {
-	return domain.DMID(ck.ID)
-}
-
-func (ck ChannelKey) TopicID() domain.TopicID {
-	return domain.TopicID(ck.ID)
-}
-
-type wsEvent struct {
-	Type        EventType   `json:"type"`
-	ChannelType ChannelType `json:"channel_type,omitempty"`
-	ChannelID   int64       `json:"channel_id,omitempty"`
-	Message     any         `json:"message,omitempty"`
-	Error       string      `json:"error,omitempty"`
-}
-
 type Connection struct {
 	hub        *Hub
 	userID     domain.UserID
@@ -95,7 +58,7 @@ func (c *Connection) ReadPump(ctx context.Context) {
 			return
 		}
 
-		var event wsEvent
+		var event Event
 		if err := json.Unmarshal(rawEvent, &event); err != nil {
 			c.sendError("invalid json format")
 			continue
@@ -159,7 +122,7 @@ func (c *Connection) WritePump(ctx context.Context) {
 }
 
 func (c *Connection) sendError(msg string) {
-	event := wsEvent{
+	event := Event{
 		Type:  EventError,
 		Error: msg,
 	}
