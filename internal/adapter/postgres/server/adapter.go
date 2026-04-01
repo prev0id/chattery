@@ -5,6 +5,7 @@ import (
 
 	"chattery/internal/client/postgres"
 	"chattery/internal/domain"
+	"chattery/internal/utils/database"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/sliceutil"
 )
@@ -52,11 +53,11 @@ func (a *Adapter) DeleteServer(ctx context.Context, serverID domain.ServerID) er
 	return nil
 }
 
-func (a *Adapter) CreateServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID, role domain.ServerRole) error {
+func (a *Adapter) CreateServerParticipant(ctx context.Context, participant *domain.ServerParticipant) error {
 	req := &postgres.CreateServerParticipantParams{
-		ServerID: serverID.I64(),
-		UserID:   userID.I64(),
-		Role:     role.String(),
+		ServerID: participant.ServerID.I64(),
+		UserID:   participant.UserID.I64(),
+		Role:     participant.Role.String(),
 	}
 
 	err := a.db.Query(ctx).CreateServerParticipant(ctx, req)
@@ -114,18 +115,17 @@ func (a *Adapter) DeleteTopic(ctx context.Context, topicID domain.TopicID) error
 	return nil
 }
 
-func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessage) (domain.TopicMessageID, error) {
+func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessage) error {
 	req := &postgres.CreateMessageParams{
 		TopicID: message.TopicID.I64(),
 		UserID:  message.SenderID.I64(),
 		Text:    message.Text,
 	}
 
-	id, err := a.db.Query(ctx).CreateMessage(ctx, req)
-	if err != nil {
-		return domain.TopicMessageID(0), errors.E(err).Debug("Query.CreateMessage")
+	if _, err := a.db.Query(ctx).CreateMessage(ctx, req); err != nil {
+		return errors.E(err).Debug("Query.CreateMessage")
 	}
-	return domain.TopicMessageID(id), nil
+	return nil
 }
 
 func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
@@ -142,7 +142,7 @@ func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.T
 	return sliceutil.Map(messages, convertServerMessageFromDB), nil
 }
 
-func (a *Adapter) NextPagesOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
+func (a *Adapter) NextPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.NextPagesOfTopicMessagesParams{
 		TopicID:   cursor.ChatID.I64(),
 		CreatedAt: cursor.Timestamp,
@@ -165,4 +165,44 @@ func (a *Adapter) GetUserServers(ctx context.Context, userID domain.UserID) ([]*
 	}
 
 	return convertServersFromDB(servers), nil
+}
+
+func (a *Adapter) GetServer(ctx context.Context, serverID domain.ServerID) (*domain.Server, error) {
+	rows, err := a.db.Query(ctx).GetServer(ctx, serverID.I64())
+	if database.NotFound(err) {
+		return nil, errors.E(err).Kind(errors.NotFound)
+	}
+	if err != nil {
+		return nil, errors.E(err).Debug("Query.GetServer")
+	}
+
+	return convertServerWithTopicsFromDB(rows), nil
+}
+
+func (a *Adapter) GetServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) (*domain.ServerParticipant, error) {
+	req := &postgres.GetServerParticipantParams{
+		ServerID: serverID.I64(),
+		UserID:   userID.I64(),
+	}
+	participant, err := a.db.Query(ctx).GetServerParticipant(ctx, req)
+	if database.NotFound(err) {
+		return nil, errors.E(err).Kind(errors.NotFound)
+	}
+	if err != nil {
+		return nil, errors.E(err).Debug("Query.GetServerParticipant")
+	}
+
+	return convertServerParticipantFromDB(participant), nil
+}
+
+func (a *Adapter) GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error) {
+	topic, err := a.db.Query(ctx).GetTopic(ctx, topicID.I64())
+	if database.NotFound(err) {
+		return nil, errors.E(err).Kind(errors.NotFound)
+	}
+	if err != nil {
+		return nil, errors.E(err).Debug("Query.GetTopic")
+	}
+
+	return convertTopicFromDB(topic), nil
 }

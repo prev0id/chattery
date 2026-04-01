@@ -10,6 +10,7 @@ import (
 
 func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	userID := domain.UserIDFromContext(ctx)
 
 	request, err := bind.JSON[UpdateServerRequest](r)
 	if err != nil {
@@ -17,7 +18,7 @@ func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.server.UpdateServer(ctx, domain.ServerID(request.ServerID), request.Name)
+	err = s.server.UpdateServer(ctx, domain.ServerID(request.ServerID), request.Name, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return

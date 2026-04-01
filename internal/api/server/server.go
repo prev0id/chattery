@@ -11,17 +11,22 @@ import (
 
 type serverService interface {
 	GetUserServers(ctx context.Context, userID domain.UserID) ([]*domain.Server, error)
+
 	CreateServer(ctx context.Context, name string, creatorUserID domain.UserID) (domain.ServerID, error)
-	UpdateServer(ctx context.Context, serverID domain.ServerID, name string) error
-	DeleteServer(ctx context.Context, serverID domain.ServerID) error
-	AddServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID, role domain.ServerRole) error
-	RemoveServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error
-	CreateTopic(ctx context.Context, serverID domain.ServerID, name string, topicType domain.TopicType) (*domain.Topic, error)
-	UpdateTopic(ctx context.Context, topicID domain.TopicID, name string) error
-	DeleteTopic(ctx context.Context, topicID domain.TopicID) error
-	CreateTopicMessage(ctx context.Context, topicID domain.TopicID, userID domain.UserID, text string) (domain.TopicMessageID, error)
-	FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, *domain.TopicCursor, error)
-	NextPagesOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, *domain.TopicCursor, error)
+	UpdateServer(ctx context.Context, serverID domain.ServerID, name string, userID domain.UserID) error
+	DeleteServer(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error
+
+	AddParticipant(ctx context.Context, participant *domain.ServerParticipant) error
+	RemoveParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error
+
+	CreateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) (domain.TopicID, error)
+	UpdateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) error
+	DeleteTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
+	GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error)
+
+	CreateMessage(ctx context.Context, message *domain.TopicMessage) error
+	FirstPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error)
+	NextPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error)
 }
 
 type userService interface {
@@ -58,7 +63,8 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Post("/topic/create", s.CreateTopic)
 		withAuthRouter.Post("/topic/update", s.UpdateTopic)
 		withAuthRouter.Delete("/topic/delete", s.DeleteTopic)
-		withAuthRouter.Post("/topic/message", s.CreateTopicMessage)
+		// TODO rename other methods
+		withAuthRouter.Post("/topic/message", s.PostMessage)
 		withAuthRouter.Get("/topic/messages", s.ListTopicMessages)
 	})
 }

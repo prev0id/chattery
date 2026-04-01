@@ -38,9 +38,9 @@ type UpdateServerRequest struct {
 }
 
 type CreateTopicRequest struct {
-	ServerID int64            `json:"server_id"`
-	Name     string           `json:"name"`
-	Type     domain.TopicType `json:"type"`
+	ServerID int64  `json:"server_id"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
 }
 
 type CreateTopicResponse struct {
@@ -52,13 +52,9 @@ type UpdateTopicRequest struct {
 	Name    string `json:"name"`
 }
 
-type CreateTopicMessageRequest struct {
+type CreateMessageRequest struct {
 	TopicID int64  `json:"topic_id"`
 	Text    string `json:"text"`
-}
-
-type CreateTopicMessageResponse struct {
-	ID int64 `json:"id"`
 }
 
 type ListTopicMessagesRequest struct {
@@ -110,9 +106,9 @@ func convertCreateServerResponse(id domain.ServerID) *CreateServerResponse {
 	}
 }
 
-func convertTopicResponse(topic *domain.Topic) *CreateTopicResponse {
+func convertTopicResponse(topicID domain.TopicID) *CreateTopicResponse {
 	return &CreateTopicResponse{
-		ID: topic.ID.I64(),
+		ID: topicID.I64(),
 	}
 }
 
@@ -154,8 +150,32 @@ func convertListTopicMessagesResponse(cursor *domain.TopicCursor, messages []*do
 	}
 }
 
-func convertCreateTopicMessageResponse(id domain.TopicMessageID) *CreateTopicMessageResponse {
-	return &CreateTopicMessageResponse{
-		ID: id.I64(),
+func convertCreateMessage(request *CreateMessageRequest, userID domain.UserID) *domain.TopicMessage {
+	return &domain.TopicMessage{
+		TopicID:  domain.TopicID(request.TopicID),
+		SenderID: userID,
+		Text:     request.Text,
+	}
+}
+
+func convertJoinServerRequest(request *JoinServerRequest, userID domain.UserID) *domain.ServerParticipant {
+	return &domain.ServerParticipant{
+		ServerID: domain.ServerID(request.ServerID),
+		UserID:   userID,
+		Role:     domain.ServerRoleUser,
+	}
+}
+
+func convertCreateTopicRequest(request *CreateTopicRequest) *domain.Topic {
+	return &domain.Topic{
+		ServerID: domain.ServerID(request.ServerID),
+		Name:     request.Name,
+		Type:     domain.TopicType(request.Type),
+	}
+}
+func convertUpdateTopicRequest(request *UpdateTopicRequest) *domain.Topic {
+	return &domain.Topic{
+		ID:   domain.TopicID(request.TopicID),
+		Name: request.Name,
 	}
 }

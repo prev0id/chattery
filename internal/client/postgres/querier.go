@@ -104,6 +104,29 @@ type Querier interface {
 	//  ORDER BY created_at DESC, id DESC
 	//  LIMIT $2
 	FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOfTopicMessagesParams) ([]*TopicMessage, error)
+	//GetServer
+	//
+	//  SELECT
+	//      s.id AS id,
+	//      s.name AS name,
+	//      t.id AS topic_id,
+	//      t.name AS topic_name,
+	//      t.type AS topic_type
+	//  FROM servers s
+	//  LEFT JOIN topics t ON t.server_id = s.id
+	//  WHERE s.id=$1
+	//  ORDER BY t.updated_at DESC
+	GetServer(ctx context.Context, id int64) ([]*GetServerRow, error)
+	//GetServerParticipant
+	//
+	//  SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+	//  WHERE server_id = $1 AND user_id = $2
+	GetServerParticipant(ctx context.Context, arg *GetServerParticipantParams) (*ServerParticipant, error)
+	//GetTopic
+	//
+	//  SELECT id, server_id, name, type, created_at, updated_at FROM topics
+	//  WHERE id=$1
+	GetTopic(ctx context.Context, id int64) (*Topic, error)
 	//GetUserServers
 	//
 	//  SELECT

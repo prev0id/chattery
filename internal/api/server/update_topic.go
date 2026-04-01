@@ -10,6 +10,7 @@ import (
 
 func (s *Server) UpdateTopic(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	userID := domain.UserIDFromContext(ctx)
 
 	request, err := bind.JSON[UpdateTopicRequest](r)
 	if err != nil {
@@ -17,7 +18,9 @@ func (s *Server) UpdateTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.server.UpdateTopic(ctx, domain.TopicID(request.TopicID), request.Name)
+	topic := convertUpdateTopicRequest(request)
+
+	err = s.server.UpdateTopic(ctx, topic, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return

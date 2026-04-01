@@ -16,6 +16,56 @@ func convertServerMessageFromDB(msg *postgres.TopicMessage) *domain.TopicMessage
 	}
 }
 
+func convertServerFromDB(server *postgres.GetServerRow) *domain.Server {
+	return &domain.Server{
+		ID:     domain.ServerID(server.ID),
+		Name:   server.Name,
+		Topics: []domain.Topic{},
+	}
+}
+
+func convertServerWithTopicsFromDB(rows []*postgres.GetServerRow) *domain.Server {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	server := &domain.Server{
+		ID:   domain.ServerID(rows[0].ID),
+		Name: rows[0].Name,
+	}
+
+	for _, row := range rows {
+		if row.TopicID.Valid {
+			topic := &domain.Topic{
+				ID:       domain.TopicID(row.TopicID.Int64),
+				ServerID: domain.ServerID(row.ID),
+				Name:     row.TopicName.String,
+				Type:     domain.TopicType(row.TopicType.String),
+			}
+			server.Topics = append(server.Topics, *topic)
+		}
+	}
+
+	return server
+}
+
+func convertTopicFromDB(topic *postgres.Topic) *domain.Topic {
+	return &domain.Topic{
+		ID:       domain.TopicID(topic.ID),
+		ServerID: domain.ServerID(topic.ServerID),
+		Name:     topic.Name,
+		Type:     domain.TopicType(topic.Type),
+	}
+}
+
+func convertServerParticipantFromDB(participant *postgres.ServerParticipant) *domain.ServerParticipant {
+	return &domain.ServerParticipant{
+		UserID:   domain.UserID(participant.UserID),
+		ServerID: domain.ServerID(participant.ServerID),
+		Role:     domain.ServerRole(participant.Role),
+	}
+}
+
 func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 	if len(rows) == 0 {
 		return nil

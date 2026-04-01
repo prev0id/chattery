@@ -232,6 +232,115 @@ func (q *Queries) FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOf
 	return items, nil
 }
 
+const getServer = `-- name: GetServer :many
+SELECT
+    s.id AS id,
+    s.name AS name,
+    t.id AS topic_id,
+    t.name AS topic_name,
+    t.type AS topic_type
+FROM servers s
+LEFT JOIN topics t ON t.server_id = s.id
+WHERE s.id=$1
+ORDER BY t.updated_at DESC
+`
+
+type GetServerRow struct {
+	ID        int64
+	Name      string
+	TopicID   pgtype.Int8
+	TopicName pgtype.Text
+	TopicType pgtype.Text
+}
+
+// GetServer
+//
+//	SELECT
+//	    s.id AS id,
+//	    s.name AS name,
+//	    t.id AS topic_id,
+//	    t.name AS topic_name,
+//	    t.type AS topic_type
+//	FROM servers s
+//	LEFT JOIN topics t ON t.server_id = s.id
+//	WHERE s.id=$1
+//	ORDER BY t.updated_at DESC
+func (q *Queries) GetServer(ctx context.Context, id int64) ([]*GetServerRow, error) {
+	rows, err := q.db.Query(ctx, getServer, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetServerRow
+	for rows.Next() {
+		var i GetServerRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.TopicID,
+			&i.TopicName,
+			&i.TopicType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getServerParticipant = `-- name: GetServerParticipant :one
+SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+WHERE server_id = $1 AND user_id = $2
+`
+
+type GetServerParticipantParams struct {
+	ServerID int64
+	UserID   int64
+}
+
+// GetServerParticipant
+//
+//	SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+//	WHERE server_id = $1 AND user_id = $2
+func (q *Queries) GetServerParticipant(ctx context.Context, arg *GetServerParticipantParams) (*ServerParticipant, error) {
+	row := q.db.QueryRow(ctx, getServerParticipant, arg.ServerID, arg.UserID)
+	var i ServerParticipant
+	err := row.Scan(
+		&i.ServerID,
+		&i.UserID,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
+const getTopic = `-- name: GetTopic :one
+SELECT id, server_id, name, type, created_at, updated_at FROM topics
+WHERE id=$1
+`
+
+// GetTopic
+//
+//	SELECT id, server_id, name, type, created_at, updated_at FROM topics
+//	WHERE id=$1
+func (q *Queries) GetTopic(ctx context.Context, id int64) (*Topic, error) {
+	row := q.db.QueryRow(ctx, getTopic, id)
+	var i Topic
+	err := row.Scan(
+		&i.ID,
+		&i.ServerID,
+		&i.Name,
+		&i.Type,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const getUserServers = `-- name: GetUserServers :many
 SELECT
     s.id AS id,

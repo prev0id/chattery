@@ -8,18 +8,19 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Delete(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostMessage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[DeleteServerRequest](r)
+	request, err := bind.JSON[CreateMessageRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	err = s.server.DeleteServer(ctx, domain.ServerID(request.ServerID), userID)
-	if err != nil {
+	message := convertCreateMessage(request, userID)
+
+	if err := s.server.CreateMessage(ctx, message); err != nil {
 		render.Error(w, r, err)
 		return
 	}

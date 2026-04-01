@@ -18,8 +18,9 @@ func (s *Server) Join(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.server.AddServerParticipant(ctx, domain.ServerID(request.ServerID), userID, domain.ServerRoleUser)
-	if err != nil {
+	participant := convertJoinServerRequest(request, userID)
+
+	if err = s.server.AddParticipant(ctx, participant); err != nil {
 		render.Error(w, r, err)
 		return
 	}

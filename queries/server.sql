@@ -22,12 +22,28 @@ LEFT JOIN topics t ON t.server_id = s.id
 WHERE sp.user_id = $1
 ORDER BY sp.created_at DESC, t.updated_at DESC;
 
+-- name: GetServer :many
+SELECT
+    s.id AS id,
+    s.name AS name,
+    t.id AS topic_id,
+    t.name AS topic_name,
+    t.type AS topic_type
+FROM servers s
+LEFT JOIN topics t ON t.server_id = s.id
+WHERE s.id=$1
+ORDER BY t.updated_at DESC;
+
 -- name: CreateServerParticipant :exec
 INSERT INTO server_participants (server_id, user_id, role)
 VALUES ($1, $2, $3);
 
 -- name: DeleteServerParticipant :exec
 DELETE FROM server_participants
+WHERE server_id = $1 AND user_id = $2;
+
+-- name: GetServerParticipant :one
+SELECT * FROM server_participants
 WHERE server_id = $1 AND user_id = $2;
 
 -- name: CreateTopic :one
@@ -50,6 +66,10 @@ WHERE id = $1;
 -- name: DeleteTopic :exec
 DELETE FROM topics
 WHERE id = $1;
+
+-- name: GetTopic :one
+SELECT * FROM topics
+WHERE id=$1;
 
 -- name: DeleteMessagesByServerID :exec
 DELETE FROM topic_messages

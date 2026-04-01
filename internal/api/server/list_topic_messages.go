@@ -10,6 +10,7 @@ import (
 
 func (s *Server) ListTopicMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	userID := domain.UserIDFromContext(ctx)
 
 	request, requestErr := bind.JSON[ListTopicMessagesRequest](r)
 	if requestErr != nil {
@@ -17,18 +18,18 @@ func (s *Server) ListTopicMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cursor := convertTopicCursorRequest(request.Cursor)
-
 	var (
 		messages   []*domain.TopicMessage
 		nextCursor *domain.TopicCursor
 		err        error
+
+		cursor = convertTopicCursorRequest(request.Cursor)
 	)
 
 	if cursor != nil && cursor.MessageID != 0 {
-		messages, nextCursor, err = s.server.NextPagesOfTopicMessages(ctx, cursor)
+		messages, nextCursor, err = s.server.NextPageOfMessages(ctx, cursor, userID)
 	} else {
-		messages, nextCursor, err = s.server.FirstPageOfTopicMessages(ctx, cursor)
+		messages, nextCursor, err = s.server.FirstPageOfMessages(ctx, cursor, userID)
 	}
 
 	if err != nil {
