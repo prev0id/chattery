@@ -1,4 +1,3 @@
-API_PATH=./api
 MIGRATIONS_PATH=migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 DOCKER_COMPOSE_BIN=docker-compose

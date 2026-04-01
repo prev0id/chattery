@@ -27,13 +27,13 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.CloseNow()
 
-	sub := subscriber.New(conn).
+	_ = subscriber.New(conn).
 		WithSession(session).
-		WithUserID(userID).
-		WithChatService(s.chat)
+		WithUserID(userID)
+	// WithChatService(s.chat)
 
-	s.chat.Register(sub)
-	defer s.chat.Unregister(sub)
+	// 	s.chat.Register(sub)
+	// defer s.chat.Unregister(sub)
 
-	sub.Read(ctx)
+	// sub.Read(ctx)
 }

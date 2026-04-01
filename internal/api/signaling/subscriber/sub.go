@@ -18,7 +18,7 @@ var _ domain.Subscriber = (*Subscriber)(nil)
 
 type chatService interface {
 	PostMessage(ctx context.Context, message *domain.TopicMessage) error
-	StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
+	// StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
 	StopListeningToChat(sub domain.Subscriber)
 }
 
@@ -89,8 +89,8 @@ func (sub *Subscriber) Read(ctx context.Context) {
 
 		switch event.Type {
 		case EventTypeJoinChat:
-			chat := domain.ChatID(event.ChatID)
-			sub.chat.StartListeningToChat(ctx, sub, chat)
+			// chat := domain.ChatID(event.ChatID)
+			// sub.chat.StartListeningToChat(ctx, sub, chat)
 
 		case EventTypeLeaveChat:
 			sub.chat.StopListeningToChat(sub)

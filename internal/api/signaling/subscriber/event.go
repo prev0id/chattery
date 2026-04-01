@@ -28,8 +28,8 @@ const (
 
 func convertMessageToEvent(message *domain.TopicMessage) *Event {
 	return &Event{
-		Type:   EventTypeMessage,
-		ChatID: message.ChatID.I64(),
+		Type: EventTypeMessage,
+		// ChatID: message.ChatID.I64(),
 		Message: Message{
 			Text:      message.Text,
 			SenderID:  message.SenderID.I64(),
@@ -39,7 +39,7 @@ func convertMessageToEvent(message *domain.TopicMessage) *Event {
 }
 func convertEventToMessage(event *Event, user domain.UserID) *domain.TopicMessage {
 	return &domain.TopicMessage{
-		ChatID:    domain.ChatID(event.ChatID),
+		// ChatID:    domain.ChatID(event.ChatID),
 		Text:      event.Message.Text,
 		SenderID:  user,
 		CreatedAt: time.Now(),

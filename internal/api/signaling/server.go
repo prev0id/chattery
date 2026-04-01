@@ -13,7 +13,7 @@ type chatService interface {
 	Unregister(sub domain.Subscriber)
 
 	PostMessage(ctx context.Context, message *domain.TopicMessage) error
-	StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
+	// StartListeningToChat(ctx context.Context, sub domain.Subscriber, chat domain.ChatID)
 	StopListeningToChat(sub domain.Subscriber)
 }
 
