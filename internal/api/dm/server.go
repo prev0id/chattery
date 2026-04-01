@@ -41,9 +41,9 @@ func (s *Server) Route(router chi.Router) {
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 
-		withAuthRouter.Get("/list", s.List)
-		withAuthRouter.Post("/create", s.Create)
-		withAuthRouter.Post("/message", s.CreateMessage)
-		withAuthRouter.Get("/messages", s.ListMessages)
+		withAuthRouter.Get("/list", s.GetDMs)
+		withAuthRouter.Post("/create", s.PostCreateDM)
+		withAuthRouter.Post("/message", s.PostMessage)
+		withAuthRouter.Get("/messages", s.GetMessages)
 	})
 }

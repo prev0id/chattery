@@ -8,17 +8,17 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Delete(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostServerUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[DeleteServerRequest](r)
+	request, err := bind.JSON[PostServerUpdateRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	err = s.server.DeleteServer(ctx, domain.ServerID(request.ServerID), userID)
+	err = s.server.UpdateServer(ctx, domain.ServerID(request.ServerID), request.Name, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return

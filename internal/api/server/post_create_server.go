@@ -8,21 +8,21 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[UpdateServerRequest](r)
+	request, err := bind.JSON[PostCreateServerRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	err = s.server.UpdateServer(ctx, domain.ServerID(request.ServerID), request.Name, userID)
+	serverID, err := s.server.CreateServer(ctx, request.Name, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	render.Json(w, r, convertPostCreateServerResponse(serverID))
 }

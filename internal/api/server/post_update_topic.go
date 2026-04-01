@@ -8,17 +8,19 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Leave(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[LeaveServerRequest](r)
+	request, err := bind.JSON[PostUpdateTopicRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	err = s.server.RemoveParticipant(ctx, domain.ServerID(request.ServerID), userID)
+	topic := convertPostUpdateTopicRequest(request)
+
+	err = s.server.UpdateTopic(ctx, topic, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return

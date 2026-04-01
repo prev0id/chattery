@@ -7,7 +7,7 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
-type ListDMResponse struct {
+type GetDMsResponse struct {
 	DMs []DM `json:"dms"`
 }
 
@@ -16,24 +16,24 @@ type DM struct {
 	LastMessage *Message `json:"last_message,omitempty"`
 }
 
-type CreateDMRequest struct {
+type PostCreateDMRequest struct {
 	ParticipantID int64 `json:"participant_id"`
 }
 
-type CreateDMResponse struct {
+type PostCreateDMResponse struct {
 	ID int64 `json:"id"`
 }
 
-type CreateMessageRequest struct {
+type PostMessageRequest struct {
 	DMID int64  `json:"dm_id"`
 	Text string `json:"text"`
 }
 
-type ListMessagesRequest struct {
+type GetMessagesRequest struct {
 	Cursor *Cursor `json:"cursor"`
 }
 
-type ListMessagesResponse struct {
+type GetMessagesResponse struct {
 	Messages []*Message `json:"messages"`
 	Cursor   *Cursor    `json:"cursor"`
 }
@@ -54,17 +54,17 @@ type Cursor struct {
 func convertDMResponse(dm *domain.DM) DM {
 	return DM{
 		ID:          dm.ID.I64(),
-		LastMessage: convertDMMessageResponse(&dm.LastMessage),
+		LastMessage: convertMessageResponse(&dm.LastMessage),
 	}
 }
 
-func convertListDMResponse(dms []*domain.DM) *ListDMResponse {
-	return &ListDMResponse{
+func convertGetDMsResponse(dms []*domain.DM) *GetDMsResponse {
+	return &GetDMsResponse{
 		DMs: sliceutil.Map(dms, convertDMResponse),
 	}
 }
 
-func convertDMMessageResponse(msg *domain.DMMessage) *Message {
+func convertMessageResponse(msg *domain.DMMessage) *Message {
 	return &Message{
 		ID:        msg.ID.I64(),
 		SenderID:  msg.SenderID.I64(),
@@ -73,7 +73,7 @@ func convertDMMessageResponse(msg *domain.DMMessage) *Message {
 	}
 }
 
-func convertListMessagesRequest(request *ListMessagesRequest) *domain.DMCursor {
+func convertGetMessagesRequest(request *GetMessagesRequest) *domain.DMCursor {
 	return &domain.DMCursor{
 		ChatID:    domain.DMID(request.Cursor.DMID),
 		MessageID: domain.DMMessageID(request.Cursor.MessageID),
@@ -81,8 +81,8 @@ func convertListMessagesRequest(request *ListMessagesRequest) *domain.DMCursor {
 	}
 }
 
-func convertCreateDMResponse(id domain.DMID) *CreateDMResponse {
-	return &CreateDMResponse{
+func convertPostCreateDMResponse(id domain.DMID) *PostCreateDMResponse {
+	return &PostCreateDMResponse{
 		ID: id.I64(),
 	}
 }
@@ -98,14 +98,14 @@ func convertCursorResponse(cursor *domain.DMCursor) *Cursor {
 	}
 }
 
-func convertListMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage) *ListMessagesResponse {
-	return &ListMessagesResponse{
-		Messages: sliceutil.Map(messages, convertDMMessageResponse),
+func convertGetMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage) *GetMessagesResponse {
+	return &GetMessagesResponse{
+		Messages: sliceutil.Map(messages, convertMessageResponse),
 		Cursor:   convertCursorResponse(cursor),
 	}
 }
 
-func convertCreateMessageRequest(request *CreateMessageRequest, userID domain.UserID) *domain.DMMessage {
+func convertPostMessageRequest(request *PostMessageRequest, userID domain.UserID) *domain.DMMessage {
 	return &domain.DMMessage{
 		DMID:     domain.DMID(request.DMID),
 		SenderID: userID,

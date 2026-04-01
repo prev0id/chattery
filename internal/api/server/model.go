@@ -7,8 +7,8 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
-type ListServersResponse struct {
-	Servers []*ServerResponse `json:"servers"`
+type GetServersResponse struct {
+	Servers []ServerResponse `json:"servers"`
 }
 
 type ServerResponse struct {
@@ -16,64 +16,64 @@ type ServerResponse struct {
 	Name string `json:"name"`
 }
 
-type CreateServerRequest struct {
+type PostCreateServerRequest struct {
 	Name string `json:"name"`
 }
 
-type CreateServerResponse struct {
+type PostCreateServerResponse struct {
 	ID int64 `json:"id"`
 }
 
-type JoinServerRequest struct {
+type PostJoinServerRequest struct {
 	ServerID int64 `json:"server_id"`
 }
 
-type LeaveServerRequest struct {
+type PostLeaveServerRequest struct {
 	ServerID int64 `json:"server_id"`
 }
 
-type UpdateServerRequest struct {
+type PostServerUpdateRequest struct {
 	ServerID int64  `json:"server_id"`
 	Name     string `json:"name"`
 }
 
-type CreateTopicRequest struct {
+type PostCreateTopicRequest struct {
 	ServerID int64  `json:"server_id"`
 	Name     string `json:"name"`
 	Type     string `json:"type"`
 }
 
-type CreateTopicResponse struct {
+type PostCreateTopicResponse struct {
 	ID int64 `json:"id"`
 }
 
-type UpdateTopicRequest struct {
+type PostUpdateTopicRequest struct {
 	TopicID int64  `json:"topic_id"`
 	Name    string `json:"name"`
 }
 
-type CreateMessageRequest struct {
+type PostMessageRequest struct {
 	TopicID int64  `json:"topic_id"`
 	Text    string `json:"text"`
 }
 
-type ListTopicMessagesRequest struct {
-	Cursor *TopicCursor `json:"cursor"`
+type GetTopicMessagesRequest struct {
+	Cursor *Cursor `json:"cursor"`
 }
 
-type ListTopicMessagesResponse struct {
-	Messages []*TopicMessage `json:"messages"`
-	Cursor   *TopicCursor    `json:"cursor"`
+type GetTopicMessagesResponse struct {
+	Messages []Message `json:"messages"`
+	Cursor   *Cursor   `json:"cursor"`
 }
 
-type TopicMessage struct {
+type Message struct {
 	ID        int64     `json:"id"`
 	SenderID  int64     `json:"sender_id"`
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type TopicCursor struct {
+type Cursor struct {
 	TopicID   int64     `json:"topic_id"`
 	MessageID int64     `json:"message_id"`
 	Timestamp time.Time `json:"timestamp"`
@@ -87,32 +87,32 @@ type DeleteTopicRequest struct {
 	TopicID int64 `json:"topic_id"`
 }
 
-func convertServerResponse(server *domain.Server) *ServerResponse {
-	return &ServerResponse{
+func convertServerResponse(server *domain.Server) ServerResponse {
+	return ServerResponse{
 		ID:   server.ID.I64(),
 		Name: server.Name,
 	}
 }
 
-func convertListServersResponse(servers []*domain.Server) *ListServersResponse {
-	return &ListServersResponse{
+func convertGetServersResponse(servers []*domain.Server) *GetServersResponse {
+	return &GetServersResponse{
 		Servers: sliceutil.Map(servers, convertServerResponse),
 	}
 }
 
-func convertCreateServerResponse(id domain.ServerID) *CreateServerResponse {
-	return &CreateServerResponse{
+func convertPostCreateServerResponse(id domain.ServerID) *PostCreateServerResponse {
+	return &PostCreateServerResponse{
 		ID: id.I64(),
 	}
 }
 
-func convertTopicResponse(topicID domain.TopicID) *CreateTopicResponse {
-	return &CreateTopicResponse{
+func convertPostCreateTopicResponse(topicID domain.TopicID) *PostCreateTopicResponse {
+	return &PostCreateTopicResponse{
 		ID: topicID.I64(),
 	}
 }
 
-func convertTopicCursorRequest(request *TopicCursor) *domain.TopicCursor {
+func convertTopicCursorRequest(request *Cursor) *domain.TopicCursor {
 	if request == nil {
 		return nil
 	}
@@ -123,8 +123,8 @@ func convertTopicCursorRequest(request *TopicCursor) *domain.TopicCursor {
 	}
 }
 
-func convertTopicMessageResponse(msg *domain.TopicMessage) *TopicMessage {
-	return &TopicMessage{
+func convertMessageResponse(msg *domain.TopicMessage) Message {
+	return Message{
 		ID:        msg.ID.I64(),
 		SenderID:  msg.SenderID.I64(),
 		Text:      msg.Text,
@@ -132,25 +132,25 @@ func convertTopicMessageResponse(msg *domain.TopicMessage) *TopicMessage {
 	}
 }
 
-func convertTopicCursorResponse(cursor *domain.TopicCursor) *TopicCursor {
+func convertCursorResponse(cursor *domain.TopicCursor) *Cursor {
 	if cursor == nil {
 		return nil
 	}
-	return &TopicCursor{
+	return &Cursor{
 		TopicID:   cursor.ChatID.I64(),
 		MessageID: cursor.MessageID.I64(),
 		Timestamp: cursor.Timestamp,
 	}
 }
 
-func convertListTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage) *ListTopicMessagesResponse {
-	return &ListTopicMessagesResponse{
-		Messages: sliceutil.Map(messages, convertTopicMessageResponse),
-		Cursor:   convertTopicCursorResponse(cursor),
+func convertGetTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage) *GetTopicMessagesResponse {
+	return &GetTopicMessagesResponse{
+		Messages: sliceutil.Map(messages, convertMessageResponse),
+		Cursor:   convertCursorResponse(cursor),
 	}
 }
 
-func convertCreateMessage(request *CreateMessageRequest, userID domain.UserID) *domain.TopicMessage {
+func convertPostMessageRequest(request *PostMessageRequest, userID domain.UserID) *domain.TopicMessage {
 	return &domain.TopicMessage{
 		TopicID:  domain.TopicID(request.TopicID),
 		SenderID: userID,
@@ -158,7 +158,7 @@ func convertCreateMessage(request *CreateMessageRequest, userID domain.UserID) *
 	}
 }
 
-func convertJoinServerRequest(request *JoinServerRequest, userID domain.UserID) *domain.ServerParticipant {
+func convertPostJoinServerRequest(request *PostJoinServerRequest, userID domain.UserID) *domain.ServerParticipant {
 	return &domain.ServerParticipant{
 		ServerID: domain.ServerID(request.ServerID),
 		UserID:   userID,
@@ -166,14 +166,14 @@ func convertJoinServerRequest(request *JoinServerRequest, userID domain.UserID) 
 	}
 }
 
-func convertCreateTopicRequest(request *CreateTopicRequest) *domain.Topic {
+func convertPostCreateTopicRequest(request *PostCreateTopicRequest) *domain.Topic {
 	return &domain.Topic{
 		ServerID: domain.ServerID(request.ServerID),
 		Name:     request.Name,
 		Type:     domain.TopicType(request.Type),
 	}
 }
-func convertUpdateTopicRequest(request *UpdateTopicRequest) *domain.Topic {
+func convertPostUpdateTopicRequest(request *PostUpdateTopicRequest) *domain.Topic {
 	return &domain.Topic{
 		ID:   domain.TopicID(request.TopicID),
 		Name: request.Name,

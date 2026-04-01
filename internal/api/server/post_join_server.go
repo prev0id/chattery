@@ -8,17 +8,17 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Join(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostJoinServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[JoinServerRequest](r)
+	request, err := bind.JSON[PostJoinServerRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	participant := convertJoinServerRequest(request, userID)
+	participant := convertPostJoinServerRequest(request, userID)
 
 	if err = s.server.AddParticipant(ctx, participant); err != nil {
 		render.Error(w, r, err)

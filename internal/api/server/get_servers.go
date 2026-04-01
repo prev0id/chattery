@@ -7,7 +7,7 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) List(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetServers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
@@ -17,5 +17,5 @@ func (s *Server) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertListServersResponse(servers))
+	render.Json(w, r, convertGetServersResponse(servers))
 }

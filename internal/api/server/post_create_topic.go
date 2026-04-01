@@ -8,21 +8,23 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostTopicCreate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[CreateServerRequest](r)
+	request, err := bind.JSON[PostCreateTopicRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	serverID, err := s.server.CreateServer(ctx, request.Name, userID)
+	topic := convertPostCreateTopicRequest(request)
+
+	topicID, err := s.server.CreateTopic(ctx, topic, userID)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	render.Json(w, r, convertCreateServerResponse(serverID))
+	render.Json(w, r, convertPostCreateTopicResponse(topicID))
 }

@@ -8,17 +8,17 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) ListMessages(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[ListMessagesRequest](r)
+	request, err := bind.JSON[GetMessagesRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	cursor := convertListMessagesRequest(request)
+	cursor := convertGetMessagesRequest(request)
 
 	var (
 		messages   []*domain.DMMessage
@@ -36,5 +36,5 @@ func (s *Server) ListMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertListMessagesResponse(nextCursor, messages))
+	render.Json(w, r, convertGetMessagesResponse(nextCursor, messages))
 }
