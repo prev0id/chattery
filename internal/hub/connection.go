@@ -44,8 +44,9 @@ func (c *Connection) ReadPump(ctx context.Context) {
 	defer cancel()
 
 	defer func() {
-		c.hub.Leave(c.userID, c.channelKey.Type, c.channelKey.ID)
+		c.hub.Leave(ctx, c.userID, c.channelKey.Type, c.channelKey.ID)
 		c.hub.UnregisterConnection(c)
+		close(c.send)
 		c.ws.Close(websocket.StatusNormalClosure, "")
 	}()
 
@@ -85,7 +86,7 @@ func (c *Connection) ReadPump(ctx context.Context) {
 			if !c.active {
 				continue
 			}
-			c.hub.Leave(c.userID, c.channelKey.Type, c.channelKey.ID)
+			c.hub.Leave(ctx, c.userID, c.channelKey.Type, c.channelKey.ID)
 			c.active = false
 			c.channelKey = ChannelKey{}
 
@@ -113,7 +114,7 @@ func (c *Connection) WritePump(ctx context.Context) {
 				continue
 			}
 
-			if err := c.ws.Write(context.Background(), websocket.MessageText, bytes); err != nil {
+			if err := c.ws.Write(ctx, websocket.MessageText, bytes); err != nil {
 				logger.Error(err, "[connection] ws.Write")
 				return
 			}

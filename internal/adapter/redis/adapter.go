@@ -17,7 +17,7 @@ type client interface {
 	SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error
 	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channel string, message string) error
-	Subscribe(ctx context.Context, channel string, sink chan<- string)
+	Subscribe(ctx context.Context, channel string, sink chan<- string, done <-chan struct{})
 }
 
 type Adapter struct {
@@ -80,15 +80,16 @@ func (r *Adapter) PublishTopicMessage(ctx context.Context, message *domain.Topic
 
 func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<- *domain.DMMessage) {
 	sink := make(chan string)
+	done := make(chan struct{})
 
 	go func() {
-		r.client.Subscribe(ctx, dmChannelKey(dmID), sink)
+		r.client.Subscribe(ctx, dmChannelKey(dmID), sink, done)
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
-			close(sink)
+			close(done)
 			return
 		case rawMessage := <-sink:
 			message, err := bind.JsonString[domain.DMMessage](rawMessage)
@@ -103,15 +104,17 @@ func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<
 
 func (r *Adapter) SubscribeToServerTopic(ctx context.Context, topicID domain.TopicID, dst chan<- *domain.TopicMessage) {
 	sink := make(chan string)
+	done := make(chan struct{})
 
 	go func() {
-		r.client.Subscribe(ctx, serverChannelKey(topicID), sink)
+		r.client.Subscribe(ctx, serverChannelKey(topicID), sink, done)
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
-			close(sink)
+			close(done)
+			close(dst)
 			return
 
 		case rawMessage := <-sink:

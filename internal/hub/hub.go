@@ -86,7 +86,7 @@ func (h *Hub) Join(ctx context.Context, userID domain.UserID, channelType Channe
 	return nil
 }
 
-func (h *Hub) Leave(userID domain.UserID, channelType ChannelType, channelID int64) {
+func (h *Hub) Leave(ctx context.Context, userID domain.UserID, channelType ChannelType, channelID int64) {
 	channelKey := ChannelKey{Type: channelType, ID: channelID}
 
 	h.m.Lock()
@@ -193,12 +193,15 @@ func (h *Hub) handleServerMessages(ctx context.Context, channelKey ChannelKey, s
 }
 
 func (h *Hub) broadcast(channelKey ChannelKey, message any) {
-	users := h.GetUsersInChannel(channelKey)
-
 	h.m.RLock()
 	defer h.m.RUnlock()
 
-	for _, userID := range users {
+	users, ok := h.rooms[channelKey]
+	if !ok {
+		return
+	}
+
+	for userID := range users {
 		conns, ok := h.connections[userID]
 		if !ok {
 			continue

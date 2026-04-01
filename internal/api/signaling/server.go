@@ -2,6 +2,7 @@ package signaling_api
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
@@ -55,11 +56,22 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, r, err)
 		return
 	}
-	defer conn.CloseNow()
 
 	connection := hub.NewConnection(s.hub, userID, conn)
 	s.hub.RegisterConnection(connection)
 
-	go connection.WritePump(ctx)
-	connection.ReadPump(ctx)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		connection.WritePump(ctx)
+	}()
+
+	go func() {
+		defer wg.Done()
+		connection.ReadPump(ctx)
+	}()
+
+	wg.Wait()
 }
