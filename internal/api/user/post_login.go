@@ -9,10 +9,10 @@ import (
 )
 
 // Login аутентификация по логину и паролю, ставит сессионную куку
-func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostLogin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	request, err := bind.JSON[LoginRequest](r)
+	request, err := bind.JSON[PostLoginRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return

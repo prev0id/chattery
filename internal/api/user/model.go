@@ -5,19 +5,33 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
-type CreateRequest struct {
+type PostCreateUserRequest struct {
 	Username string `json:"username"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type LoginRequest struct {
+type PostCreateUserResponse struct {
+	ID int64 `json:"id"`
+}
+
+type PostLoginRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type SearchResponse struct {
+type GetUsersResponse struct {
 	Users []User
+}
+
+type PostUpdateUserRequest struct {
+	Username string `json:"username"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type GetMeResponse struct {
+	Me User `json:"me"`
 }
 
 type User struct {
@@ -26,7 +40,7 @@ type User struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
-func convertCreateRequest(req *CreateRequest) *domain.User {
+func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {
 	login := domain.Login(req.Login)
 	return &domain.User{
 		Username: domain.Username(req.Username),
@@ -35,11 +49,26 @@ func convertCreateRequest(req *CreateRequest) *domain.User {
 	}
 }
 
-func converSearchResponse(users []*domain.User) SearchResponse {
-	return SearchResponse{
+func convertPostCreateUserResponse(userID domain.UserID) *PostCreateUserResponse {
+	return &PostCreateUserResponse{
+		ID: userID.I64(),
+	}
+}
+
+func convertGetUsersResponse(users []*domain.User) GetUsersResponse {
+	return GetUsersResponse{
 		Users: sliceutil.Map(users, convertUserResponse),
 	}
+}
 
+func convertPostUpdateUserRequest(req *PostUpdateUserRequest, userID domain.UserID) *domain.User {
+	login := domain.Login(req.Login)
+	return &domain.User{
+		ID:       userID,
+		Username: domain.Username(req.Username),
+		Login:    login,
+		Password: domain.NewPassword(req.Password, login),
+	}
 }
 
 func convertUserResponse(user *domain.User) User {
@@ -50,21 +79,8 @@ func convertUserResponse(user *domain.User) User {
 	}
 }
 
-// type UserCursor struct {
-// 	ID        int64     `json:"id"`
-// 	Timestamp time.Time `json:"timestamp"`
-// }
-
-// func convertCursorRequest(req UserCursor) *domain.UserCursor {
-// 	return &domain.UserCursor{
-// 		ID:        domain.UserID(req.ID),
-// 		Timestamp: req.Timestamp,
-// 	}
-// }
-
-// func converCursorResponse(cursor *domain.UserCursor) UserCursor {
-// 	return UserCursor{
-// 		ID:        cursor.ID.I64(),
-// 		Timestamp: cursor.Timestamp,
-// 	}
-// }
+func convertGetMeResponse(user *domain.User) *GetMeResponse {
+	return &GetMeResponse{
+		Me: convertUserResponse(user),
+	}
+}

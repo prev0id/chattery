@@ -10,9 +10,8 @@ import (
 const searchQueryName = "query"
 
 // Search поиск профиля
-func (s *Server) Search(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
 	userID := domain.UserIDFromContext(ctx)
 
 	query := r.URL.Query().Get(searchQueryName)
@@ -23,5 +22,5 @@ func (s *Server) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, converSearchResponse(users))
+	render.Json(w, r, convertGetUsersResponse(users))
 }

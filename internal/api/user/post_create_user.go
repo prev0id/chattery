@@ -9,21 +9,21 @@ import (
 )
 
 // Create создает новый профиль, ставит сессионную куку
-func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostCreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	request, err := bind.JSON[CreateRequest](r)
+	request, err := bind.JSON[PostCreateUserRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	if err := validateCreateRequest(request); err != nil {
+	if err := validatePostCreateUserRequest(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	user := convertCreateRequest(request)
+	user := convertPostCreateUserRequest(request)
 
 	userID, err := s.user.CreateUser(ctx, user)
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validateCreateRequest(req *CreateRequest) error {
+func validatePostCreateUserRequest(req *PostCreateUserRequest) error {
 	if err := validate.Username(req.Username); err != nil {
 		return err
 	}

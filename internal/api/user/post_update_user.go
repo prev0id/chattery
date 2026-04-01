@@ -9,30 +9,23 @@ import (
 	"chattery/internal/utils/validate"
 )
 
-type UpdateRequest struct {
-	Username string `json:"username"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
-// UpdateMe обновление учетных данных
-func (s *Server) UpdateMe(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostUpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	userID := domain.UserIDFromContext(ctx)
 
-	request, err := bind.JSON[UpdateRequest](r)
+	request, err := bind.JSON[PostUpdateUserRequest](r)
 	if err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	if err := validateUpdateRequest(request); err != nil {
+	if err := validatePostUpdateUserRequest(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
 
-	updated := convertUpdateRequest(request, userID)
+	updated := convertPostUpdateUserRequest(request, userID)
 
 	if err := s.user.UpdateUser(ctx, updated); err != nil {
 		render.Error(w, r, err)
@@ -42,7 +35,7 @@ func (s *Server) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func validateUpdateRequest(req *UpdateRequest) error {
+func validatePostUpdateUserRequest(req *PostUpdateUserRequest) error {
 	if req.Username != "" {
 		if err := validate.Username(req.Username); err != nil {
 			return err
@@ -65,14 +58,4 @@ func validateUpdateRequest(req *UpdateRequest) error {
 		}
 	}
 	return nil
-}
-
-func convertUpdateRequest(req *UpdateRequest, userID domain.UserID) *domain.User {
-	login := domain.Login(req.Login)
-	return &domain.User{
-		ID:       userID,
-		Username: domain.Username(req.Username),
-		Login:    login,
-		Password: domain.NewPassword(req.Password, login),
-	}
 }
