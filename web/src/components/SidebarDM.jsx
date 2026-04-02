@@ -15,7 +15,7 @@ export default function SidebarDM(props) {
     >
       {/* props.dm().unread > 0*/}
       <ProfilePicture
-        src={props.dm().user.profilePicture}
+        src={props.dm().user.avatar}
         unread={props.dm().unread}
         class="size-9 my-auto"
       />

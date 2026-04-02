@@ -37,6 +37,7 @@ type GetMeResponse struct {
 type User struct {
 	ID       int64  `json:"id"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
 }
 
@@ -75,6 +76,7 @@ func convertUserResponse(user *domain.User) User {
 	return User{
 		ID:       user.ID.I64(),
 		Username: user.Username.String(),
+		Email:    user.Login.String(),
 		Avatar:   "/v1/image/" + user.Username.String() + ".png",
 		// AvatarURL: "/image/" + user.AvatarID.String(),
 	}

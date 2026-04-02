@@ -12,8 +12,10 @@ import {
   changeTab,
   selectedTopic,
   selectedDM,
+  userData,
 } from "../stores/app";
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
+import Toasts from "../components/Toast";
 
 export default function App() {
   return (
@@ -30,7 +32,7 @@ export default function App() {
             class="mt-auto hover:scale-105 transition-all duration-300 ease-in-out"
             popovertarget="profile-settings-popover"
           >
-            <ProfilePicture src="https://github.com/identicons/prev0id.png" />
+            <ProfilePicture src={userData()?.avatar} />
           </button>
           <ProfileSettingsModal id="profile-settings-popover" />
         </div>
@@ -70,6 +72,7 @@ export default function App() {
           </Match>
         </Switch>
       </main>
+      <Toasts />
     </>
   );
 }

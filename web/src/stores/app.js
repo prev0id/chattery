@@ -1,7 +1,29 @@
-import { createSignal, createEffect } from "solid-js";
+import { createResource, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
+import { toast } from "./toast";
 
-// TODO resource loading
+async function fetchUserData() {
+  try {
+    const res = await fetch("/v1/user/me");
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to load user data");
+      return null;
+    }
+    const data = await res.json();
+    return data.me;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
+export const [userData, { refetch: refetchUserData }] =
+  createResource(fetchUserData);
 
 export const [selectedTopic, setSelectedTopic] = createSignal(null);
 
@@ -38,7 +60,7 @@ export const [DMs, setDMs] = createStore([
     user: {
       id: 2,
       username: "user_name_2",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     message: {
       date: "Today, 12:30",
@@ -51,7 +73,7 @@ export const [DMs, setDMs] = createStore([
     user: {
       id: 1,
       username: "user_name_1",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     message: {
       date: "Today, 12:30",
@@ -63,26 +85,19 @@ export const [DMs, setDMs] = createStore([
     user: {
       id: 3,
       username: "user_name_3",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     unread: true,
     message: null,
   },
 ]);
 
-export const [userData, setUserData] = createSignal({
-  id: 123,
-  username: "prevoid",
-  email: "email@exmaple.com",
-  profilePicture: "https://github.com/identicons/prev0id.png",
-});
-
 export const [messages, setMessages] = createStore([
   {
     user: {
       id: 12,
       username: "prevoid",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     message: {
       date: "Today at 15:31",
@@ -95,7 +110,7 @@ export const [messages, setMessages] = createStore([
     user: {
       id: 123,
       username: "prevoid",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     message: {
       date: "Today at 15:30",
@@ -107,7 +122,7 @@ export const [messages, setMessages] = createStore([
     user: {
       id: 312,
       username: "user_name",
-      profilePicture: "https://github.com/identicons/prev0id.png",
+      avatar: "https://github.com/identicons/prev0id.png",
     },
     message: {
       date: "Today at 15:31",

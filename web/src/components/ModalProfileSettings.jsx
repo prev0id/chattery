@@ -10,7 +10,7 @@ export function ProfileSettingsModal(props) {
 
         <div class="flex items-center gap-4 mb-6">
           <ProfilePicture
-            src={userData().profilePicture}
+            src={userData()?.avatar}
             class="size-24 object-cover shrink-0"
           />
 

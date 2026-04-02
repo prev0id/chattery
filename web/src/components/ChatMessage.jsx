@@ -16,10 +16,7 @@ export default function ChatMessage(props) {
   return (
     <>
       <div class="flex gap-4">
-        <ProfilePicture
-          src={props.msg.user.profilePicture}
-          class="mt-1 size-10"
-        />
+        <ProfilePicture src={props.msg.user.avatar} class="mt-1 size-10" />
         <div class="flex-1">
           <div class="flex gap-2 items-center">
             <div class="font-semibold text-xl">
