@@ -23,3 +23,6 @@ WHERE login = $1;
 -- name: DeleteUserByID :execrows
 DELETE FROM users
 WHERE id = $1;
+
+-- name: ListUsers :many
+SELECT * FROM users;

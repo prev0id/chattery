@@ -13,6 +13,7 @@ type Config struct {
 	Http     Http
 	Chat     Chat
 	Postgres Postgres
+	Cache    Cache
 }
 
 type App struct {
@@ -45,6 +46,10 @@ type Chat struct {
 	MessagesLimit int
 }
 
+type Cache struct {
+	UserStoreSyncTimeout time.Duration
+}
+
 func Init() *Config {
 	return &Config{
 		App: App{
@@ -67,6 +72,9 @@ func Init() *Config {
 		},
 		Chat: Chat{
 			MessagesLimit: bind.EnvInt("MESSAGES_LIMIT", 20),
+		},
+		Cache: Cache{
+			UserStoreSyncTimeout: bind.EnvDuration("CACHE_USER_SYNC_TIMEOUT", 30*time.Second),
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),

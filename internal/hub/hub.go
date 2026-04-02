@@ -17,8 +17,8 @@ type serverService interface {
 	UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
 }
 
-type userService interface {
-	GetByID(ctx context.Context, userID domain.UserID) (*domain.User, error)
+type userCache interface {
+	GetByID(userID domain.UserID) (*domain.User, error)
 }
 
 type redis interface {
@@ -30,7 +30,7 @@ type Hub struct {
 	redis         redis
 	dmService     dmService
 	serverService serverService
-	user          userService
+	user          userCache
 
 	connections map[domain.UserID]map[*Connection]bool
 
@@ -41,12 +41,12 @@ type Hub struct {
 	m sync.RWMutex
 }
 
-func New(redisAdapter redis, dmSvc dmService, serverSvc serverService, userSvc userService) *Hub {
+func New(redisAdapter redis, dmSvc dmService, serverSvc serverService, userCache userCache) *Hub {
 	return &Hub{
 		redis:         redisAdapter,
 		dmService:     dmSvc,
 		serverService: serverSvc,
-		user:          userSvc,
+		user:          userCache,
 		connections:   make(map[domain.UserID]map[*Connection]bool),
 		rooms:         make(map[ChannelKey]map[domain.UserID]bool),
 		listeners:     make(map[ChannelKey]context.CancelFunc),
@@ -217,7 +217,7 @@ func (h *Hub) broadcast(channelKey ChannelKey, message any) {
 
 func (h *Hub) dmToEventMessage(ctx context.Context, msg *domain.DMMessage) *Event {
 	sender := UserInfo{}
-	if user, err := h.user.GetByID(ctx, msg.SenderID); err == nil {
+	if user, err := h.user.GetByID(msg.SenderID); err == nil {
 		sender = UserInfo{
 			ID:       int64(user.ID),
 			Username: user.Username.String(),
@@ -240,7 +240,7 @@ func (h *Hub) dmToEventMessage(ctx context.Context, msg *domain.DMMessage) *Even
 
 func (h *Hub) topicToEventMessage(ctx context.Context, msg *domain.TopicMessage) *Event {
 	sender := UserInfo{}
-	if user, err := h.user.GetByID(ctx, msg.SenderID); err == nil {
+	if user, err := h.user.GetByID(msg.SenderID); err == nil {
 		sender = UserInfo{
 			ID:       user.ID.I64(),
 			Username: user.Username.String(),

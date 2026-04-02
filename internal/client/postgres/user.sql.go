@@ -50,6 +50,41 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id int64) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
+const listUsers = `-- name: ListUsers :many
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+`
+
+// ListUsers
+//
+//	SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+func (q *Queries) ListUsers(ctx context.Context) ([]*User, error) {
+	rows, err := q.db.Query(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Login,
+			&i.Password,
+			&i.AvatarID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
 SET username=$2,

@@ -7,6 +7,7 @@ import (
 	"chattery/internal/domain"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/errors"
+	"chattery/internal/utils/sliceutil"
 )
 
 const (
@@ -114,4 +115,13 @@ func (a *Adapter) DeleteUser(ctx context.Context, userID domain.UserID) error {
 		return errors.E().Kind(errors.NotFound).Messagef("user %d not found", userID)
 	}
 	return nil
+}
+
+func (a *Adapter) List(ctx context.Context) ([]*domain.User, error) {
+	users, err := a.db.Query(ctx).ListUsers(ctx)
+	if err != nil {
+		return nil, errors.E(err).Debug("Query.ListUsers")
+	}
+
+	return sliceutil.Map(users, convertUserFromDB), nil
 }

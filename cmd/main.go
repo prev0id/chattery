@@ -19,6 +19,8 @@ import (
 	"chattery/internal/service/dm"
 	"chattery/internal/service/server"
 	"chattery/internal/service/user"
+	syncer "chattery/internal/store/syncer"
+	user_store "chattery/internal/store/user"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/transaction"
@@ -52,7 +54,13 @@ func main() {
 	serverService := server.New(serverDB, transactionManager, redisAdapter, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
-	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, userService)
+	userStore := user_store.New(userDB)
+
+	if err := syncer.Start(cfg.Cache.UserStoreSyncTimeout, userStore); err != nil {
+		logger.Fatal(err, "syncer.New")
+	}
+
+	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, userStore)
 
 	server := api.
 		NewServer(cfg).

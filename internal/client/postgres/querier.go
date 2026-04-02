@@ -154,6 +154,10 @@ type Querier interface {
 	//  WHERE sp.user_id = $1
 	//  ORDER BY sp.created_at DESC, t.updated_at DESC
 	GetUserServers(ctx context.Context, userID int64) ([]*GetUserServersRow, error)
+	//ListUsers
+	//
+	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+	ListUsers(ctx context.Context) ([]*User, error)
 	//NextPagesOfDMMessages
 	//
 	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages

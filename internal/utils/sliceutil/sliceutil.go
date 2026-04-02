@@ -8,6 +8,15 @@ func Map[T, V any](in []T, pred func(T) V) []V {
 	return result
 }
 
+func SliceToMap[K comparable, T, V any](in []T, pred func(T) (K, V)) map[K]V {
+	result := make(map[K]V, len(in))
+	for _, el := range in {
+		k, v := pred(el)
+		result[k] = v
+	}
+	return result
+}
+
 func Filter[T any](in []T, pred func(T) bool) []T {
 	result := make([]T, 0, len(in))
 	for _, el := range in {
