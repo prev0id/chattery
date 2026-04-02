@@ -29,6 +29,7 @@ export default function Login() {
         return;
       }
 
+      const data = await res.json().catch(() => ({}));
       toast.error(data.message ?? "Something went wrong");
     } catch (err) {
       toast.error("Network error – please check your connection");

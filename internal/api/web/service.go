@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/render"
 	"chattery/web"
@@ -28,10 +29,18 @@ func (s *Server) Route(router chi.Router) {
 	})
 
 	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if domain.UserIDFromContext(r.Context()) != domain.UserIsUnknown {
+			http.Redirect(w, r, "app", http.StatusFound)
+			return
+		}
 		w.Write(web.LoginPage)
 	})
 
 	router.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		if domain.UserIDFromContext(r.Context()) != domain.UserIsUnknown {
+			http.Redirect(w, r, "app", http.StatusFound)
+			return
+		}
 		w.Write(web.SignupPage)
 	})
 

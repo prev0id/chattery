@@ -7,7 +7,7 @@ run:
 	go tool air -c .air.toml
 
 .PHONY: build
-build:
+build: build-web
 	go build -o ./bin/chattery ./cmd/main.go
 
 .PHONY: down
@@ -28,3 +28,7 @@ up-migrate:
 .PHONY: generate-sqlc
 generate-sqlc:
 	go tool sqlc generate
+
+.PHONY: build-web
+build-web:
+	cd web && npm run build

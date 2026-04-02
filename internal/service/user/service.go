@@ -49,7 +49,7 @@ func New(dbAdapter db, cacheAdapter cache, transaction txManager, cfg *config.Co
 func (s *Service) GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error) {
 	user, err := s.db.UserByLogin(ctx, login)
 	if errors.Is(errors.NotFound, err) {
-		return nil, errors.E(err).Kind(errors.NotFound).Messagef("user with login %q not found", login.String())
+		return nil, errors.E(err).Kind(errors.Permission).Messagef("user with login %q not found", login.String())
 	}
 	if err != nil {
 		return nil, errors.E(err).Debug("s.db.UserByLogin")

@@ -33,6 +33,12 @@ CREATE TABLE topic_messages (
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE servers;
+DROP TABLE server_participants;
+DROP TABLE topics;
+DROP TABLE topic_messages;
+-- +goose StatementEnd
