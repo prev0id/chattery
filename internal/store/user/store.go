@@ -55,16 +55,9 @@ func (s *UserStore) GetByID(id domain.UserID) (*domain.User, error) {
 	return user, nil
 }
 
-func (s *UserStore) ListByIDs(ids ...domain.UserID) map[domain.UserID]*domain.User {
-	result := make(map[domain.UserID]*domain.User, len(ids))
-
+func (s *UserStore) List() map[domain.UserID]*domain.User {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, id := range ids {
-		if user, ok := s.usersByID[id]; ok {
-			result[id] = user
-		}
-	}
-	return result
+	return s.usersByID
 }

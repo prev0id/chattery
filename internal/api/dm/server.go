@@ -21,15 +21,22 @@ type userService interface {
 	AuthRequiredMiddleware(next http.Handler) http.Handler
 }
 
-type Server struct {
-	user userService
-	dm   dmService
+type userCache interface {
+	GetByID(id domain.UserID) (*domain.User, error)
+	List() map[domain.UserID]*domain.User
 }
 
-func New(user userService, dm dmService) *Server {
+type Server struct {
+	user  userService
+	dm    dmService
+	cache userCache
+}
+
+func New(user userService, dm dmService, cache userCache) *Server {
 	return &Server{
-		user: user,
-		dm:   dm,
+		user:  user,
+		dm:    dm,
+		cache: cache,
 	}
 }
 

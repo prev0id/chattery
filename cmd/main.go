@@ -68,9 +68,9 @@ func main() {
 		Register(
 			signaling_api.New(userService, hubInstance),
 			user_api.New(userService),
-			dm_api.New(userService, dmService),
+			dm_api.New(userService, dmService, userStore),
 			web_api.New(),
-			server_api.New(userService, serverService),
+			server_api.New(userService, serverService, userStore),
 		)
 
 	if err := server.Run(); err != nil {

@@ -69,8 +69,15 @@ type GetTopicMessagesResponse struct {
 type Message struct {
 	ID        int64     `json:"id"`
 	SenderID  int64     `json:"sender_id"`
+	Sender    UserInfo  `json:"sender"`
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserInfo struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
 }
 
 type Cursor struct {
@@ -123,10 +130,19 @@ func convertTopicCursorRequest(request *Cursor) *domain.TopicCursor {
 	}
 }
 
-func convertMessageResponse(msg *domain.TopicMessage) Message {
+func convertMessageResponse(msg *domain.TopicMessage, users map[domain.UserID]*domain.User) Message {
+	sender := UserInfo{}
+	if user, ok := users[msg.SenderID]; ok {
+		sender = UserInfo{
+			ID:       user.ID.I64(),
+			Username: user.Username.String(),
+			Avatar:   user.AvatarID.String(),
+		}
+	}
 	return Message{
 		ID:        msg.ID.I64(),
 		SenderID:  msg.SenderID.I64(),
+		Sender:    sender,
 		Text:      msg.Text,
 		CreatedAt: msg.CreatedAt,
 	}
@@ -143,9 +159,13 @@ func convertCursorResponse(cursor *domain.TopicCursor) *Cursor {
 	}
 }
 
-func convertGetTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage) *GetTopicMessagesResponse {
+func convertGetTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage, users map[domain.UserID]*domain.User) *GetTopicMessagesResponse {
+	msgs := make([]Message, len(messages))
+	for i, msg := range messages {
+		msgs[i] = convertMessageResponse(msg, users)
+	}
 	return &GetTopicMessagesResponse{
-		Messages: sliceutil.Map(messages, convertMessageResponse),
+		Messages: msgs,
 		Cursor:   convertCursorResponse(cursor),
 	}
 }

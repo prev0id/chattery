@@ -279,10 +279,12 @@ SELECT
     lm.id AS last_message_id,
     lm.user_id AS last_message_sender_id,
     lm.text AS last_message_text,
-    lm.created_at AS last_message_created_at
+    lm.created_at AS last_message_created_at,
+    p2.user_id AS other_participant_id
 FROM dm_participants p
 JOIN dms d ON d.id = p.dm_id
 LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+JOIN dm_participants p2 ON p2.dm_id = d.id AND p2.user_id != $1
 WHERE p.user_id = $1
 ORDER BY d.updated_at DESC, d.id DESC
 `
@@ -295,6 +297,7 @@ type UserDMsRow struct {
 	LastMessageSenderID  pgtype.Int8
 	LastMessageText      pgtype.Text
 	LastMessageCreatedAt pgtype.Timestamp
+	OtherParticipantID   int64
 }
 
 // UserDMs
@@ -306,10 +309,12 @@ type UserDMsRow struct {
 //	    lm.id AS last_message_id,
 //	    lm.user_id AS last_message_sender_id,
 //	    lm.text AS last_message_text,
-//	    lm.created_at AS last_message_created_at
+//	    lm.created_at AS last_message_created_at,
+//	    p2.user_id AS other_participant_id
 //	FROM dm_participants p
 //	JOIN dms d ON d.id = p.dm_id
 //	LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+//	JOIN dm_participants p2 ON p2.dm_id = d.id AND p2.user_id != $1
 //	WHERE p.user_id = $1
 //	ORDER BY d.updated_at DESC, d.id DESC
 func (q *Queries) UserDMs(ctx context.Context, userID int64) ([]*UserDMsRow, error) {
@@ -329,6 +334,7 @@ func (q *Queries) UserDMs(ctx context.Context, userID int64) ([]*UserDMsRow, err
 			&i.LastMessageSenderID,
 			&i.LastMessageText,
 			&i.LastMessageCreatedAt,
+			&i.OtherParticipantID,
 		); err != nil {
 			return nil, err
 		}

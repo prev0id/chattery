@@ -7,8 +7,9 @@ type DMID int64
 func (id DMID) I64() int64 { return int64(id) }
 
 type DM struct {
-	ID          DMID
-	LastMessage DMMessage
+	ID                 DMID
+	LastMessage        DMMessage
+	OtherParticipantID UserID
 }
 
 type DMParticipant struct {

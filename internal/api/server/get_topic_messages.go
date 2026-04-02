@@ -37,5 +37,5 @@ func (s *Server) GetTopicMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetTopicMessagesResponse(nextCursor, messages))
+	render.Json(w, r, convertGetTopicMessagesResponse(nextCursor, messages, s.cache.List()))
 }

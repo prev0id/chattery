@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/sliceutil"
 )
 
 type GetDMsResponse struct {
@@ -13,6 +12,7 @@ type GetDMsResponse struct {
 
 type DM struct {
 	ID          int64    `json:"id"`
+	Participant UserInfo `json:"participant"`
 	LastMessage *Message `json:"last_message,omitempty"`
 }
 
@@ -40,9 +40,15 @@ type GetMessagesResponse struct {
 
 type Message struct {
 	ID        int64     `json:"id"`
-	SenderID  int64     `json:"sender_id"`
+	Sender    UserInfo  `json:"sender"`
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserInfo struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
 }
 
 type Cursor struct {
@@ -51,23 +57,45 @@ type Cursor struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func convertDMResponse(dm *domain.DM) DM {
+func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {
+	participant := UserInfo{}
+	if user, ok := users[dm.OtherParticipantID]; ok {
+		participant = UserInfo{
+			ID:       user.ID.I64(),
+			Username: user.Username.String(),
+			Avatar:   user.AvatarID.String(),
+		}
+	}
+
 	return DM{
 		ID:          dm.ID.I64(),
-		LastMessage: convertMessageResponse(&dm.LastMessage),
+		Participant: participant,
+		LastMessage: convertMessageResponse(&dm.LastMessage, users),
 	}
 }
 
-func convertGetDMsResponse(dms []*domain.DM) *GetDMsResponse {
+func convertGetDMsResponse(dms []*domain.DM, users map[domain.UserID]*domain.User) *GetDMsResponse {
+	dmResponses := make([]DM, 0, len(dms))
+	for _, dm := range dms {
+		dmResponses = append(dmResponses, convertDMResponse(dm, users))
+	}
 	return &GetDMsResponse{
-		DMs: sliceutil.Map(dms, convertDMResponse),
+		DMs: dmResponses,
 	}
 }
 
-func convertMessageResponse(msg *domain.DMMessage) *Message {
+func convertMessageResponse(msg *domain.DMMessage, users map[domain.UserID]*domain.User) *Message {
+	sender := UserInfo{}
+	if user, ok := users[msg.SenderID]; ok {
+		sender = UserInfo{
+			ID:       user.ID.I64(),
+			Username: user.Username.String(),
+			Avatar:   user.AvatarID.String(),
+		}
+	}
 	return &Message{
 		ID:        msg.ID.I64(),
-		SenderID:  msg.SenderID.I64(),
+		Sender:    sender,
 		Text:      msg.Text,
 		CreatedAt: msg.CreatedAt,
 	}
@@ -98,9 +126,13 @@ func convertCursorResponse(cursor *domain.DMCursor) *Cursor {
 	}
 }
 
-func convertGetMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage) *GetMessagesResponse {
+func convertGetMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage, users map[domain.UserID]*domain.User) *GetMessagesResponse {
+	msgs := make([]*Message, len(messages))
+	for _, msg := range messages {
+		msgs = append(msgs, convertMessageResponse(msg, users))
+	}
 	return &GetMessagesResponse{
-		Messages: sliceutil.Map(messages, convertMessageResponse),
+		Messages: msgs,
 		Cursor:   convertCursorResponse(cursor),
 	}
 }
