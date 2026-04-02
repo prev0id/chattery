@@ -136,7 +136,8 @@ func convertMessageResponse(msg *domain.TopicMessage, users map[domain.UserID]*d
 		sender = UserInfo{
 			ID:       user.ID.I64(),
 			Username: user.Username.String(),
-			Avatar:   user.AvatarID.String(),
+			// Avatar:   user.AvatarID.String(),
+			Avatar: "/v1/image/" + user.Username.String() + ".png",
 		}
 	}
 	return Message{

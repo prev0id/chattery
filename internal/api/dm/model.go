@@ -63,7 +63,8 @@ func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {
 		participant = UserInfo{
 			ID:       user.ID.I64(),
 			Username: user.Username.String(),
-			Avatar:   user.AvatarID.String(),
+			// Avatar:   user.AvatarID.String(),
+			Avatar: "/v1/image/" + user.Username.String() + ".png",
 		}
 	}
 
@@ -90,7 +91,8 @@ func convertMessageResponse(msg *domain.DMMessage, users map[domain.UserID]*doma
 		sender = UserInfo{
 			ID:       user.ID.I64(),
 			Username: user.Username.String(),
-			Avatar:   user.AvatarID.String(),
+			// Avatar:   user.AvatarID.String(),
+			Avatar: "/v1/image/" + user.Username.String() + ".png",
 		}
 	}
 	return &Message{

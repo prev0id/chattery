@@ -9,6 +9,7 @@ import (
 	redis_adapter "chattery/internal/adapter/redis"
 	"chattery/internal/api"
 	dm_api "chattery/internal/api/dm"
+	image_api "chattery/internal/api/image"
 	server_api "chattery/internal/api/server"
 	signaling_api "chattery/internal/api/signaling"
 	user_api "chattery/internal/api/user"
@@ -68,6 +69,7 @@ func main() {
 		Register(
 			signaling_api.New(userService, hubInstance),
 			user_api.New(userService),
+			image_api.New(userStore),
 			dm_api.New(userService, dmService, userStore),
 			web_api.New(),
 			server_api.New(userService, serverService, userStore),

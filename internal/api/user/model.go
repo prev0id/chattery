@@ -35,9 +35,9 @@ type GetMeResponse struct {
 }
 
 type User struct {
-	ID        int64  `json:"id"`
-	Username  string `json:"username"`
-	AvatarURL string `json:"avatar_url"`
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
 }
 
 func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {
@@ -73,9 +73,10 @@ func convertPostUpdateUserRequest(req *PostUpdateUserRequest, userID domain.User
 
 func convertUserResponse(user *domain.User) User {
 	return User{
-		ID:        user.ID.I64(),
-		Username:  user.Username.String(),
-		AvatarURL: "/image/" + user.AvatarID.String(),
+		ID:       user.ID.I64(),
+		Username: user.Username.String(),
+		Avatar:   "/v1/image/" + user.Username.String() + ".png",
+		// AvatarURL: "/image/" + user.AvatarID.String(),
 	}
 }
 
