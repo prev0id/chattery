@@ -1,4 +1,4 @@
-import { createSignal, createEffect, For, Show } from "solid-js";
+import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import Modal from "./Modal";
 import FormTextInput from "./FormTextInput";
 import Button from "./Button";
@@ -11,6 +11,7 @@ import {
   deleteServer,
   leaveTopic,
   setSelectedServerForEdit,
+  refetchServers,
 } from "../stores/app";
 import { Trash2, Check } from "lucide-solid";
 
@@ -19,6 +20,17 @@ export default function EditServerModal(props) {
   const [newTopicName, setNewTopicName] = createSignal("");
   const [newTopicType, setNewTopicType] = createSignal("text");
   const [isLoading, setIsLoading] = createSignal(false);
+
+  onMount(() => {
+    const modal = document.getElementById(props.id);
+    if (modal) {
+      modal.addEventListener("toggle", (e) => {
+        if (e.newState === "closed") {
+          refetchServers();
+        }
+      });
+    }
+  });
 
   createEffect(() => {
     const server = selectedServerForEdit();
@@ -126,43 +138,45 @@ export default function EditServerModal(props) {
               <Check class="size-5" />
             </Button>
           </form>
-          <hr class="my-4" />
-          <h2 class="text-lg tracking-wider font-semibold">Update topics</h2>
-          <For each={selectedServerForEdit().topics}>
-            {(topic) => (
-              <form
-                onSubmit={(e) => handleUpdateTopic(e, topic)}
-                class="flex gap-2 mb-2"
-              >
-                <div
-                  class="rounded-lg neo-shadow border-2 px-2 text-center tracking-wider w-16 flex items-center justify-center"
-                  classList={{
-                    "bg-sky-200": topic.type === "text",
-                    "bg-amber-200": topic.type === "voice",
-                  }}
+          <Show when={selectedServerForEdit().topics?.length > 0}>
+            <hr class="my-4" />
+            <h2 class="text-lg tracking-wider font-semibold">Update topics</h2>
+            <For each={selectedServerForEdit().topics}>
+              {(topic) => (
+                <form
+                  onSubmit={(e) => handleUpdateTopic(e, topic)}
+                  class="flex gap-2 mb-2"
                 >
-                  {topic.type}
-                </div>
+                  <div
+                    class="rounded-lg neo-shadow border-2 px-2 text-center tracking-wider w-16 flex items-center justify-center"
+                    classList={{
+                      "bg-sky-200": topic.type === "text",
+                      "bg-amber-200": topic.type === "voice",
+                    }}
+                  >
+                    {topic.type}
+                  </div>
 
-                <input
-                  class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 flex-1"
-                  type="text"
-                  value={topic.name}
-                />
-                <Button type="submit" variant="sky" disabled={isLoading()}>
-                  <Check class="size-5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="rose"
-                  disabled={isLoading()}
-                  onClick={(e) => handleDeleteTopic(e, topic.id)}
-                >
-                  <Trash2 class="size-5" />
-                </Button>
-              </form>
-            )}
-          </For>
+                  <input
+                    class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 flex-1"
+                    type="text"
+                    value={topic.name}
+                  />
+                  <Button type="submit" variant="sky" disabled={isLoading()}>
+                    <Check class="size-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="rose"
+                    disabled={isLoading()}
+                    onClick={(e) => handleDeleteTopic(e, topic.id)}
+                  >
+                    <Trash2 class="size-5" />
+                  </Button>
+                </form>
+              )}
+            </For>
+          </Show>
 
           <hr class="my-4" />
           <Button

@@ -51,7 +51,7 @@ export default function App() {
               >
                 Create Server
               </Button>
-              <Index each={servers}>
+              <Index each={servers()}>
                 {(server, _) => <SidebarServer server={server} />}
               </Index>
             </Match>

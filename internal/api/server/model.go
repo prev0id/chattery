@@ -12,8 +12,15 @@ type GetServersResponse struct {
 }
 
 type ServerResponse struct {
+	ID     int64           `json:"id"`
+	Name   string          `json:"name"`
+	Topics []TopicResponse `json:"topics"`
+}
+
+type TopicResponse struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type PostCreateServerRequest struct {
@@ -96,8 +103,17 @@ type DeleteTopicRequest struct {
 
 func convertServerResponse(server *domain.Server) ServerResponse {
 	return ServerResponse{
-		ID:   server.ID.I64(),
-		Name: server.Name,
+		ID:     server.ID.I64(),
+		Name:   server.Name,
+		Topics: sliceutil.Map(server.Topics, convertTopicResponse),
+	}
+}
+
+func convertTopicResponse(topic domain.Topic) TopicResponse {
+	return TopicResponse{
+		ID:   topic.ID.I64(),
+		Name: topic.Name,
+		Type: string(topic.Type),
 	}
 }
 

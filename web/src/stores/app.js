@@ -22,8 +22,31 @@ async function fetchUserData() {
   }
 }
 
+async function fetchServers() {
+  try {
+    const res = await fetch("/v1/server/list");
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return [];
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to load servers");
+      return [];
+    }
+    const data = await res.json();
+    return data.servers || [];
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return [];
+  }
+}
+
 export const [userData, { refetch: refetchUserData }] =
   createResource(fetchUserData);
+
+export const [servers, { refetch: refetchServers }] =
+  createResource(fetchServers);
 
 export const [selectedTopic, setSelectedTopic] = createSignal(null);
 
@@ -33,26 +56,6 @@ export const [selectedServerForEdit, setSelectedServerForEdit] =
   createSignal(null);
 
 export const [selectedTab, setSelectedTab] = createSignal("direct");
-
-export const [servers, setServers] = createStore([
-  {
-    id: 1,
-    name: "Server Name",
-    topics: [
-      { id: 1, name: "General", type: "text" },
-      { id: 2, name: "Memes", type: "text" },
-      { id: 3, name: "Voice Lounge", type: "voice" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Gaming Hub",
-    topics: [
-      { id: 4, name: "Valorant", type: "text" },
-      { id: 5, name: "Among Us", type: "voice" },
-    ],
-  },
-]);
 
 export const [selectedDM, setSelectedDM] = createSignal(null);
 
@@ -155,6 +158,9 @@ export function changeTab(tab) {
   setSelectedTab(tab);
   leaveTopic();
   setSelectedDM(null);
+  if (tab === "servers") {
+    refetchServers();
+  }
 }
 
 export async function createServer(name) {
@@ -171,8 +177,6 @@ export async function createServer(name) {
       return false;
     }
 
-    const data = await res.json();
-    setServers((s) => [{ id: data.id, name, topics: [] }, ...s]);
     toast.success("Server created!");
     return true;
   } catch (err) {
@@ -195,7 +199,7 @@ export async function updateServer(serverId, name) {
       return false;
     }
 
-    setServers((s) => s.id === serverId, "name", name);
+    setSelectedServerForEdit((prev) => ({ ...prev, name }));
     toast.success("Server updated!");
     return true;
   } catch (err) {
@@ -218,7 +222,6 @@ export async function deleteServer(serverId) {
       return false;
     }
 
-    setServers((s) => s.filter((server) => server.id !== serverId));
     toast.success("Server deleted!");
     return true;
   } catch (err) {
@@ -242,11 +245,10 @@ export async function createTopic(serverId, name, type) {
     }
 
     const data = await res.json();
-    setServers(
-      (s) => s.id === serverId,
-      "topics",
-      (t) => [...t, { id: data.id, name, type }]
-    );
+    setSelectedServerForEdit((prev) => ({
+      ...prev,
+      topics: [{ id: data.id, name, type }, ...prev.topics],
+    }));
     toast.success("Topic created!");
     return true;
   } catch (err) {
@@ -269,13 +271,10 @@ export async function updateTopic(topicId, name) {
       return false;
     }
 
-    setServers(
-      (s) => s.topics.some((t) => t.id === topicId),
-      "topics",
-      (t) => t.id === topicId,
-      "name",
-      name
-    );
+    setSelectedServerForEdit((prev) => ({
+      ...prev,
+      topics: prev.topics.map((t) => (t.id === topicId ? { ...t, name } : t)),
+    }));
     toast.success("Topic updated!");
     return true;
   } catch (err) {
@@ -298,11 +297,10 @@ export async function deleteTopic(topicId) {
       return false;
     }
 
-    setServers(
-      (s) => s.topics.some((t) => t.id === topicId),
-      "topics",
-      (t) => t.filter((topic) => topic.id !== topicId)
-    );
+    setSelectedServerForEdit((prev) => ({
+      ...prev,
+      topics: prev.topics.filter((t) => t.id !== topicId),
+    }));
     toast.success("Topic deleted!");
     return true;
   } catch (err) {
