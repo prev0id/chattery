@@ -16,6 +16,7 @@ import {
 } from "../stores/app";
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
 import CreateServerModal from "../components/CreateServerModal";
+import EditServerModal from "../components/EditServerModal";
 import Toasts from "../components/Toast";
 
 export default function App() {
@@ -63,6 +64,7 @@ export default function App() {
           </Switch>
         </div>
         <CreateServerModal id="create-server-modal" />
+        <EditServerModal id="edit-server-modal" />
       </aside>
       <main class="flex-1 flex flex-col h-full">
         <AppHeader />

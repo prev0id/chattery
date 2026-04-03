@@ -1,10 +1,12 @@
-import { Index, createMemo } from "solid-js";
+import { Index, Show, createMemo, createUniqueId } from "solid-js";
 import { Mic, MessagesSquare, Settings2 } from "lucide-solid";
+import Button from "./Button";
 import {
   selectedTopic,
   selectTopic,
   selectedServer,
   leaveTopic,
+  setSelectedServerForEdit,
 } from "../stores/app";
 
 export default function SidebarServer(props) {
@@ -35,7 +37,6 @@ export default function SidebarServer(props) {
         }}
       >
         <h2 class="text-lg font-semibold">{props.server().name}</h2>
-        <Settings2 size={20} />
       </summary>
       {textTopics().length > 0 && voiceTopics().length > 0 && (
         <hr class="mt-1" />
@@ -61,6 +62,19 @@ export default function SidebarServer(props) {
           </SidebarTopic>
         )}
       </Index>
+      <Show when={true}>
+        <hr class="my-1" />
+        <Button
+          smallText
+          variant="emerald"
+          popovertarget="edit-server-modal"
+          onClick={() => {
+            setSelectedServerForEdit(props.server());
+          }}
+        >
+          Update
+        </Button>
+      </Show>
     </details>
   );
 }

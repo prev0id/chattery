@@ -5,7 +5,7 @@ import ProfilePicture from "./ProfilePicture";
 export function ProfileSettingsModal(props) {
   return (
     <Modal id={props.id} name="Profile Settings">
-      <div class="mt-6">
+      <div class="mt-4">
         <h2 class="text-xl font-semibold tracking-wide mb-4">Avatar</h2>
 
         <div class="flex items-center gap-4 mb-6">

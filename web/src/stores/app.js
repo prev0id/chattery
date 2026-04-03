@@ -29,6 +29,9 @@ export const [selectedTopic, setSelectedTopic] = createSignal(null);
 
 export const [selectedServer, setSelectedServer] = createSignal(null);
 
+export const [selectedServerForEdit, setSelectedServerForEdit] =
+  createSignal(null);
+
 export const [selectedTab, setSelectedTab] = createSignal("direct");
 
 export const [servers, setServers] = createStore([
@@ -171,6 +174,136 @@ export async function createServer(name) {
     const data = await res.json();
     setServers((s) => [{ id: data.id, name, topics: [] }, ...s]);
     toast.success("Server created!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
+
+export async function updateServer(serverId, name) {
+  try {
+    const res = await fetch("/v1/server/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ server_id: serverId, name }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to update server");
+      return false;
+    }
+
+    setServers((s) => s.id === serverId, "name", name);
+    toast.success("Server updated!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
+
+export async function deleteServer(serverId) {
+  try {
+    const res = await fetch("/v1/server/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ server_id: serverId }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to delete server");
+      return false;
+    }
+
+    setServers((s) => s.filter((server) => server.id !== serverId));
+    toast.success("Server deleted!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
+
+export async function createTopic(serverId, name, type) {
+  try {
+    const res = await fetch("/v1/server/topic/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ server_id: serverId, name, type }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to create topic");
+      return false;
+    }
+
+    const data = await res.json();
+    setServers(
+      (s) => s.id === serverId,
+      "topics",
+      (t) => [...t, { id: data.id, name, type }]
+    );
+    toast.success("Topic created!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
+
+export async function updateTopic(topicId, name) {
+  try {
+    const res = await fetch("/v1/server/topic/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic_id: topicId, name }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to update topic");
+      return false;
+    }
+
+    setServers(
+      (s) => s.topics.some((t) => t.id === topicId),
+      "topics",
+      (t) => t.id === topicId,
+      "name",
+      name
+    );
+    toast.success("Topic updated!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
+
+export async function deleteTopic(topicId) {
+  try {
+    const res = await fetch("/v1/server/topic/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic_id: topicId }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to delete topic");
+      return false;
+    }
+
+    setServers(
+      (s) => s.topics.some((t) => t.id === topicId),
+      "topics",
+      (t) => t.filter((topic) => topic.id !== topicId)
+    );
+    toast.success("Topic deleted!");
     return true;
   } catch (err) {
     toast.error("Network error – please check your connection");
