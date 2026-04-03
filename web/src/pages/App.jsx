@@ -15,6 +15,7 @@ import {
   userData,
 } from "../stores/app";
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
+import CreateServerModal from "../components/CreateServerModal";
 import Toasts from "../components/Toast";
 
 export default function App() {
@@ -42,7 +43,11 @@ export default function App() {
               <Button variant="amber" class="mx-4">
                 Search Server
               </Button>
-              <Button variant="sky" class="mx-4">
+              <Button
+                variant="sky"
+                class="mx-4"
+                popovertarget="create-server-modal"
+              >
                 Create Server
               </Button>
               <Index each={servers}>
@@ -57,6 +62,7 @@ export default function App() {
             </Match>
           </Switch>
         </div>
+        <CreateServerModal id="create-server-modal" />
       </aside>
       <main class="flex-1 flex flex-col h-full">
         <AppHeader />

@@ -153,3 +153,27 @@ export function changeTab(tab) {
   leaveTopic();
   setSelectedDM(null);
 }
+
+export async function createServer(name) {
+  try {
+    const res = await fetch("/v1/server/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to create server");
+      return false;
+    }
+
+    const data = await res.json();
+    setServers((s) => [{ id: data.id, name, topics: [] }, ...s]);
+    toast.success("Server created!");
+    return true;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return false;
+  }
+}
