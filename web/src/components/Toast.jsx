@@ -4,7 +4,7 @@ import { X } from "lucide-solid";
 
 export default function Toasts() {
   return (
-    <div class="fixed top-4 right-4 z-50 flex flex-col gap-3 items-end pointer-events-none">
+    <div class="fixed top-4 right-4 flex flex-col gap-3 items-end pointer-events-none isolate">
       <For each={toasts}>
         {(toast) => (
           <Toast
@@ -31,14 +31,19 @@ function Toast(props) {
                 ERROR
               </div>
             </Match>
-            <Match when={variant === "error"}>
+            <Match when={variant === "warning"}>
               <div class={`font-bold text-amber-600 mb-0.5 tracking-widest`}>
                 WARN
               </div>
             </Match>
-            <Match when={variant === "error"}>
+            <Match when={variant === "info"}>
               <div class={`font-bold text-sky-600 mb-0.5 tracking-widest`}>
                 INFO
+              </div>
+            </Match>
+            <Match when={variant === "success"}>
+              <div class={`font-bold text-green-600 mb-0.5 tracking-widest`}>
+                SUCCESS
               </div>
             </Match>
           </Switch>

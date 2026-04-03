@@ -22,6 +22,7 @@ export const toast = {
   info: (message) => addToast("info", message),
   warning: (message) => addToast("warning", message),
   error: (message) => addToast("error", message),
+  success: (message) => addToast("success", message),
 };
 
 export { toasts, removeToast };
