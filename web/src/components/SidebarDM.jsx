@@ -1,9 +1,19 @@
-import { Show } from "solid-js";
-import { selectDM, selectedDM } from "../stores/dm";
+import { DMs, selectDM, selectedDM } from "../stores/dm";
 import ProfilePicture from "./ProfilePicture";
-import { Info, Mail } from "lucide-solid";
+import Button from "./Button";
 
 export default function SidebarDM(props) {
+  return (
+    <>
+      <Button variant="amber" class="mx-4">
+        Search users
+      </Button>
+      <Index each={DMs()}>{(dm, _) => <DM dm={dm} />}</Index>
+    </>
+  );
+}
+
+function DM(props) {
   return (
     <button
       onClick={() => selectDM(props.dm())}
@@ -13,7 +23,6 @@ export default function SidebarDM(props) {
         "bg-white": props.dm().user.id !== selectedDM()?.user.id,
       }}
     >
-      {/* props.dm().unread > 0*/}
       <ProfilePicture
         src={props.dm().user.avatar}
         unread={props.dm().unread}

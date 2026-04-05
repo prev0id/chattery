@@ -1,12 +1,36 @@
-import { Index, Show, createMemo, createUniqueId } from "solid-js";
-import { Mic, MessagesSquare, Settings2 } from "lucide-solid";
+import { Index, Show, createMemo } from "solid-js";
+import { Mic, MessagesSquare } from "lucide-solid";
 import Button from "./Button";
-import { selectedTopic, selectedServer, setSelectedServerForEdit } from "../stores/server";
+import CreateServerModal from "./CreateServerModal";
+import EditServerModal from "./EditServerModal";
+import {
+  selectedTopic,
+  selectedServer,
+  setSelectedServerForEdit,
+  servers,
+} from "../stores/server";
 import { selectTopic } from "../stores/app";
 import { leaveTopic } from "../stores/app";
 
-
 export default function SidebarServer(props) {
+  return (
+    <>
+      <Button variant="amber" class="mx-4">
+        Search Server
+      </Button>
+      <Button variant="sky" class="mx-4" popovertarget="create-server-modal">
+        Create Server
+      </Button>
+      <Index each={servers()}>
+        {(server, _) => <Server server={server} />}
+      </Index>
+      <CreateServerModal id="create-server-modal" />
+      <EditServerModal id="edit-server-modal" />
+    </>
+  );
+}
+
+function Server(props) {
   const topics = createMemo(() => props.server().topics);
 
   const textTopics = createMemo(() =>
