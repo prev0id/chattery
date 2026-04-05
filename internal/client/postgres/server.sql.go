@@ -190,7 +190,7 @@ func (q *Queries) DeleteTopicsByServerID(ctx context.Context, serverID int64) er
 const firstPageOfTopicMessages = `-- name: FirstPageOfTopicMessages :many
 SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 WHERE topic_id = $1
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id DESC
 LIMIT $2
 `
 
@@ -203,7 +203,7 @@ type FirstPageOfTopicMessagesParams struct {
 //
 //	SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 //	WHERE topic_id = $1
-//	ORDER BY created_at DESC, id DESC
+//	ORDER BY created_at ASC, id DESC
 //	LIMIT $2
 func (q *Queries) FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOfTopicMessagesParams) ([]*TopicMessage, error) {
 	rows, err := q.db.Query(ctx, firstPageOfTopicMessages, arg.TopicID, arg.Limit)
@@ -417,7 +417,7 @@ func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserS
 const nextPagesOfTopicMessages = `-- name: NextPagesOfTopicMessages :many
 SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id DESC
 LIMIT $4
 `
 
@@ -432,7 +432,7 @@ type NextPagesOfTopicMessagesParams struct {
 //
 //	SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 //	WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-//	ORDER BY created_at DESC, id DESC
+//	ORDER BY created_at ASC, id DESC
 //	LIMIT $4
 func (q *Queries) NextPagesOfTopicMessages(ctx context.Context, arg *NextPagesOfTopicMessagesParams) ([]*TopicMessage, error) {
 	rows, err := q.db.Query(ctx, nextPagesOfTopicMessages,

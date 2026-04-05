@@ -94,14 +94,14 @@ type Querier interface {
 	//
 	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 	//  WHERE dm_id = $1
-	//  ORDER BY created_at DESC, id DESC
+	//  ORDER BY created_at ASC, id DESC
 	//  LIMIT $2
 	FirstPageOfDMMessages(ctx context.Context, arg *FirstPageOfDMMessagesParams) ([]*DmMessage, error)
 	//FirstPageOfTopicMessages
 	//
 	//  SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 	//  WHERE topic_id = $1
-	//  ORDER BY created_at DESC, id DESC
+	//  ORDER BY created_at ASC, id DESC
 	//  LIMIT $2
 	FirstPageOfTopicMessages(ctx context.Context, arg *FirstPageOfTopicMessagesParams) ([]*TopicMessage, error)
 	//GetDMBetweenUsers
@@ -164,14 +164,14 @@ type Querier interface {
 	//
 	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 	//  WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-	//  ORDER BY created_at DESC, id DESC
+	//  ORDER BY created_at ASC, id DESC
 	//  LIMIT $4
 	NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMMessagesParams) ([]*DmMessage, error)
 	//NextPagesOfTopicMessages
 	//
 	//  SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 	//  WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-	//  ORDER BY created_at DESC, id DESC
+	//  ORDER BY created_at ASC, id DESC
 	//  LIMIT $4
 	NextPagesOfTopicMessages(ctx context.Context, arg *NextPagesOfTopicMessagesParams) ([]*TopicMessage, error)
 	//SetDMLastReadMessage

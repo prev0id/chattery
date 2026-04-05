@@ -92,11 +92,11 @@ WHERE id = $1;
 -- name: FirstPageOfTopicMessages :many
 SELECT * FROM topic_messages
 WHERE topic_id = $1
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $2;
 
 -- name: NextPagesOfTopicMessages :many
 SELECT * FROM topic_messages
 WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $4;

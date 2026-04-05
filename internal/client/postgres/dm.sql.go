@@ -76,7 +76,7 @@ func (q *Queries) CreateDMParticipant(ctx context.Context, arg *CreateDMParticip
 const firstPageOfDMMessages = `-- name: FirstPageOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id DESC
 LIMIT $2
 `
 
@@ -89,7 +89,7 @@ type FirstPageOfDMMessagesParams struct {
 //
 //	SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 //	WHERE dm_id = $1
-//	ORDER BY created_at DESC, id DESC
+//	ORDER BY created_at ASC, id DESC
 //	LIMIT $2
 func (q *Queries) FirstPageOfDMMessages(ctx context.Context, arg *FirstPageOfDMMessagesParams) ([]*DmMessage, error) {
 	rows, err := q.db.Query(ctx, firstPageOfDMMessages, arg.DmID, arg.Limit)
@@ -175,7 +175,7 @@ func (q *Queries) GetDMParticipant(ctx context.Context, arg *GetDMParticipantPar
 const nextPagesOfDMMessages = `-- name: NextPagesOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id DESC
 LIMIT $4
 `
 
@@ -190,7 +190,7 @@ type NextPagesOfDMMessagesParams struct {
 //
 //	SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 //	WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-//	ORDER BY created_at DESC, id DESC
+//	ORDER BY created_at ASC, id DESC
 //	LIMIT $4
 func (q *Queries) NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMMessagesParams) ([]*DmMessage, error) {
 	rows, err := q.db.Query(ctx, nextPagesOfDMMessages,

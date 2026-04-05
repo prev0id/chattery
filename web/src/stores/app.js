@@ -82,59 +82,73 @@ export const [selectedTab, setSelectedTab] = createSignal("direct");
 
 export const [selectedDM, setSelectedDM] = createSignal(null);
 
-export const [messages, setMessages] = createStore([
-  {
-    user: {
-      id: 12,
-      username: "prevoid",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    message: {
-      date: "Today at 15:31",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin semper purus quis velit egestas gravida. Sed pellentesque eget lacus rhoncus sagittis. Proin ornare ac velit vitae facilisis. Sed et velit vitae diam pretium tristique eget quis purus. Vestibulum tellus neque, sodales in lobortis ac, laoreet nec tellus. Nunc semper dolor vel tortor varius, a tincidunt nulla sollicitudin.",
-    },
-    lastSeenMessage: true,
-  },
-  {
-    user: {
-      id: 123,
-      username: "prevoid",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    message: {
-      date: "Today at 15:30",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin semper purus quis velit egestas gravida. Sed pellentesque eget lacus rhoncus sagittis. Proin ornare ac velit vitae facilisis. Sed et velit vitae diam pretium tristique eget quis purus. Vestibulum tellus neque, sodales in lobortis ac, laoreet nec tellus. Nunc semper dolor vel tortor varius, a tincidunt nulla sollicitudin.",
-    },
-  },
-  {
-    user: {
-      id: 312,
-      username: "user_name",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    message: {
-      date: "Today at 15:31",
-      content: "123 some less long ass message.",
-    },
-  },
-]);
+export const [messages, setMessages] = createStore([]);
+
+export const [messagesCursor, setMessagesCursor] = createSignal(null);
+
+export const [currentChat, setCurrentChat] = createSignal(null);
+
+export async function loadChatMessages(chatId, chatType) {
+  setCurrentChat({ id: chatId, type: chatType });
+  setMessages([]);
+  setMessagesCursor(null);
+
+  let response;
+  if (chatType === "topic") {
+    response = await fetchTopicMessages(chatId);
+  } else {
+    response = await fetchDMMessages(chatId);
+  }
+
+  if (response && response.messages) {
+    setMessages(response.messages);
+    setMessagesCursor(response.cursor);
+  } else {
+    console.log("No messages in response or response is null");
+  }
+}
+
+export async function loadMoreMessages() {
+  const chat = currentChat();
+  const cursor = messagesCursor();
+  if (!chat || !cursor) return;
+
+  let response;
+  if (chat.type === "topic") {
+    response = await fetchTopicMessages(chat.id, cursor);
+  } else {
+    response = await fetchDMMessages(chat.id, cursor);
+  }
+
+  if (response && response.messages && response.messages.length > 0) {
+    setMessages((prev) => [...response.messages, ...prev]);
+    setMessagesCursor(response.cursor);
+  }
+}
+
+export function addMessage(message) {
+  setMessages((prev) => [...prev, message]);
+}
 
 export function selectTopic(topic, server) {
   setSelectedTopic(topic);
   setSelectedServer(server);
   setSelectedDM(null);
+  loadChatMessages(topic.id, "topic");
 }
 
 export function leaveTopic() {
   setSelectedTopic(null);
   setSelectedServer(null);
+  setCurrentChat(null);
+  setMessages([]);
+  setMessagesCursor(null);
 }
 
 export function selectDM(selectedDM) {
   setSelectedDM(selectedDM);
   leaveTopic();
+  loadChatMessages(selectedDM.id, "dm");
 }
 
 export function changeTab(tab) {
@@ -292,5 +306,117 @@ export async function deleteTopic(topicId) {
   } catch (err) {
     toast.error("Network error – please check your connection");
     return false;
+  }
+}
+
+export async function fetchTopicMessages(topicId, cursor = null) {
+  try {
+    const body = {
+      cursor: cursor
+        ? {
+            topic_id: topicId,
+            message_id: cursor.message_id,
+            timestamp: cursor.timestamp,
+          }
+        : { topic_id: topicId },
+    };
+
+    const res = await fetch("/v1/server/topic/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to load messages");
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
+export async function fetchDMMessages(dmId, cursor = null) {
+  try {
+    const body = {
+      cursor: cursor
+        ? {
+            dm_id: dmId,
+            message_id: cursor.message_id,
+            timestamp: cursor.timestamp,
+          }
+        : { dm_id: dmId },
+    };
+
+    const res = await fetch("/v1/dm/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to load messages");
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
+export async function sendTopicMessage(topicId, text) {
+  try {
+    const res = await fetch("/v1/server/topic/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic_id: topicId, text }),
+    });
+
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to send message");
+      return null;
+    }
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
+export async function sendDMMessage(dmId, text) {
+  try {
+    const res = await fetch("/v1/dm/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dm_id: dmId, text }),
+    });
+
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to send message");
+      return null;
+    }
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
   }
 }

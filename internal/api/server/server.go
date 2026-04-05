@@ -71,6 +71,6 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Post("/topic/update", s.PostTopicUpdate)
 		withAuthRouter.Delete("/topic/delete", s.DeleteTopic)
 		withAuthRouter.Post("/topic/message", s.PostTopicMessage)
-		withAuthRouter.Get("/topic/messages", s.GetTopicMessages)
+		withAuthRouter.Post("/topic/messages", s.GetTopicMessages)
 	})
 }

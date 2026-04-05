@@ -43,13 +43,13 @@ RETURNING id;
 -- name: FirstPageOfDMMessages :many
 SELECT * FROM dm_messages
 WHERE dm_id = $1
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $2;
 
 -- name: NextPagesOfDMMessages :many
 SELECT * FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-ORDER BY created_at DESC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $4;
 
 -- name: GetDMParticipant :one
