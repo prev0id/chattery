@@ -238,19 +238,20 @@ SELECT
     s.name AS name,
     t.id AS topic_id,
     t.name AS topic_name,
-    t.type AS topic_type
+    t.type AS topic_type,
+    t.created_at AS topic_created_at
 FROM servers s
 LEFT JOIN topics t ON t.server_id = s.id
 WHERE s.id=$1
-ORDER BY t.updated_at DESC
 `
 
 type GetServerRow struct {
-	ID        int64
-	Name      string
-	TopicID   pgtype.Int8
-	TopicName pgtype.Text
-	TopicType pgtype.Text
+	ID             int64
+	Name           string
+	TopicID        pgtype.Int8
+	TopicName      pgtype.Text
+	TopicType      pgtype.Text
+	TopicCreatedAt pgtype.Timestamp
 }
 
 // GetServer
@@ -260,11 +261,11 @@ type GetServerRow struct {
 //	    s.name AS name,
 //	    t.id AS topic_id,
 //	    t.name AS topic_name,
-//	    t.type AS topic_type
+//	    t.type AS topic_type,
+//	    t.created_at AS topic_created_at
 //	FROM servers s
 //	LEFT JOIN topics t ON t.server_id = s.id
 //	WHERE s.id=$1
-//	ORDER BY t.updated_at DESC
 func (q *Queries) GetServer(ctx context.Context, id int64) ([]*GetServerRow, error) {
 	rows, err := q.db.Query(ctx, getServer, id)
 	if err != nil {
@@ -280,6 +281,7 @@ func (q *Queries) GetServer(ctx context.Context, id int64) ([]*GetServerRow, err
 			&i.TopicID,
 			&i.TopicName,
 			&i.TopicType,
+			&i.TopicCreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -345,22 +347,25 @@ const getUserServers = `-- name: GetUserServers :many
 SELECT
     s.id AS id,
     s.name AS name,
+    sp.created_at AS joined_at,
     t.id AS topic_id,
     t.name AS topic_name,
-    t.type AS topic_type
+    t.type AS topic_type,
+    t.created_at AS topic_created_at
 FROM servers s
 JOIN server_participants sp ON sp.server_id = s.id
 LEFT JOIN topics t ON t.server_id = s.id
 WHERE sp.user_id = $1
-ORDER BY sp.created_at DESC, t.updated_at DESC
 `
 
 type GetUserServersRow struct {
-	ID        int64
-	Name      string
-	TopicID   pgtype.Int8
-	TopicName pgtype.Text
-	TopicType pgtype.Text
+	ID             int64
+	Name           string
+	JoinedAt       time.Time
+	TopicID        pgtype.Int8
+	TopicName      pgtype.Text
+	TopicType      pgtype.Text
+	TopicCreatedAt pgtype.Timestamp
 }
 
 // GetUserServers
@@ -368,14 +373,15 @@ type GetUserServersRow struct {
 //	SELECT
 //	    s.id AS id,
 //	    s.name AS name,
+//	    sp.created_at AS joined_at,
 //	    t.id AS topic_id,
 //	    t.name AS topic_name,
-//	    t.type AS topic_type
+//	    t.type AS topic_type,
+//	    t.created_at AS topic_created_at
 //	FROM servers s
 //	JOIN server_participants sp ON sp.server_id = s.id
 //	LEFT JOIN topics t ON t.server_id = s.id
 //	WHERE sp.user_id = $1
-//	ORDER BY sp.created_at DESC, t.updated_at DESC
 func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserServersRow, error) {
 	rows, err := q.db.Query(ctx, getUserServers, userID)
 	if err != nil {
@@ -388,9 +394,11 @@ func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserS
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.JoinedAt,
 			&i.TopicID,
 			&i.TopicName,
 			&i.TopicType,
+			&i.TopicCreatedAt,
 		); err != nil {
 			return nil, err
 		}

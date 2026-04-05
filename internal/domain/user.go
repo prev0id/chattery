@@ -4,7 +4,7 @@ type User struct {
 	ID       UserID
 	Username Username
 	AvatarID ImageID
-	Login    Login
+	Login    Email
 	Password Password
 }
 

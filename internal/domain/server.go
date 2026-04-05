@@ -3,9 +3,10 @@ package domain
 import "time"
 
 type Server struct {
-	ID     ServerID
-	Name   string
-	Topics []Topic
+	ID       ServerID
+	Name     string
+	JoinedAt time.Time
+	Topics   []*Topic
 }
 
 type ServerID int64
@@ -13,10 +14,11 @@ type ServerID int64
 func (id ServerID) I64() int64 { return int64(id) }
 
 type Topic struct {
-	ID       TopicID
-	ServerID ServerID
-	Name     string
-	Type     TopicType
+	ID        TopicID
+	ServerID  ServerID
+	Name      string
+	Type      TopicType
+	CreatedAt time.Time
 }
 
 type TopicID int64
@@ -41,8 +43,8 @@ type ServerParticipant struct {
 type ServerRole string
 
 const (
-	ServerRoleOwner ServerRole = "owner"
-	ServerRoleUser  ServerRole = "user"
+	ServerRoleOwner  ServerRole = "owner"
+	ServerRoleMember ServerRole = "member"
 )
 
 func (role ServerRole) String() string { return string(role) }

@@ -10,7 +10,7 @@ import (
 )
 
 type db interface {
-	UserByLogin(ctx context.Context, login domain.Login) (*domain.User, error)
+	UserByLogin(ctx context.Context, login domain.Email) (*domain.User, error)
 	UserByID(ctx context.Context, user domain.UserID) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
 	UpdateUser(ctx context.Context, updated *domain.User) error
@@ -46,7 +46,7 @@ func New(dbAdapter db, cacheAdapter cache, transaction txManager, cfg *config.Co
 	}
 }
 
-func (s *Service) GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error) {
+func (s *Service) GetByCredentials(ctx context.Context, login domain.Email, rawPassword string) (*domain.User, error) {
 	user, err := s.db.UserByLogin(ctx, login)
 	if errors.Is(errors.NotFound, err) {
 		return nil, errors.E(err).Kind(errors.Permission).Messagef("user with login %q not found", login.String())

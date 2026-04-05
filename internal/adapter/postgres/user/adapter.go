@@ -29,7 +29,7 @@ func New(db queryProvider) *Adapter {
 	}
 }
 
-func (a *Adapter) UserByLogin(ctx context.Context, login domain.Login) (*domain.User, error) {
+func (a *Adapter) UserByLogin(ctx context.Context, login domain.Email) (*domain.User, error) {
 	user, err := a.db.Query(ctx).UserByLogin(ctx, login.String())
 	if database.NotFound(err) {
 		return nil, errors.E(err).

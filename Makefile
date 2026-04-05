@@ -1,4 +1,5 @@
 MIGRATIONS_PATH=migrations
+E2E_MIGRATIONS_PATH=e2e/migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 DOCKER_COMPOSE_BIN=docker-compose
 
@@ -15,7 +16,7 @@ down:
 	$(DOCKER_COMPOSE_BIN) down -v
 
 .PHONY: up
-up: up-docker up-migrate
+up: up-docker up-migrate up-e2e
 
 .PHONY: up-docker
 up-docker:
@@ -24,6 +25,10 @@ up-docker:
 .PHONY: up-migrate
 up-migrate:
 	GOOSE_DRIVER=postgres GOOSE_DBSTRING='$(POSTGRES_STRING)' goose -dir '$(MIGRATIONS_PATH)' up
+
+.PHONY: up-e2e
+up-e2e:
+	GOOSE_DRIVER=postgres GOOSE_DBSTRING='$(POSTGRES_STRING)' goose -dir '$(E2E_MIGRATIONS_PATH)' up
 
 .PHONY: generate-sqlc
 generate-sqlc:

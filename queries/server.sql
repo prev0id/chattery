@@ -13,14 +13,15 @@ WHERE id=$1;
 SELECT
     s.id AS id,
     s.name AS name,
+    sp.created_at AS joined_at,
     t.id AS topic_id,
     t.name AS topic_name,
-    t.type AS topic_type
+    t.type AS topic_type,
+    t.created_at AS topic_created_at
 FROM servers s
 JOIN server_participants sp ON sp.server_id = s.id
 LEFT JOIN topics t ON t.server_id = s.id
-WHERE sp.user_id = $1
-ORDER BY sp.created_at DESC, t.updated_at DESC;
+WHERE sp.user_id = $1;
 
 -- name: GetServer :many
 SELECT
@@ -28,11 +29,11 @@ SELECT
     s.name AS name,
     t.id AS topic_id,
     t.name AS topic_name,
-    t.type AS topic_type
+    t.type AS topic_type,
+    t.created_at AS topic_created_at
 FROM servers s
 LEFT JOIN topics t ON t.server_id = s.id
-WHERE s.id=$1
-ORDER BY t.updated_at DESC;
+WHERE s.id=$1;
 
 -- name: CreateServerParticipant :exec
 INSERT INTO server_participants (server_id, user_id, role)

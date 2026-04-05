@@ -18,7 +18,7 @@ func (s *Server) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.user.GetByCredentials(ctx, domain.Login(request.Login), request.Password)
+	user, err := s.user.GetByCredentials(ctx, domain.Email(request.Login), request.Password)
 	if err != nil {
 		render.Error(w, r, err)
 		return

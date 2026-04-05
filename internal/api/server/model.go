@@ -109,7 +109,7 @@ func convertServerResponse(server *domain.Server) ServerResponse {
 	}
 }
 
-func convertTopicResponse(topic domain.Topic) TopicResponse {
+func convertTopicResponse(topic *domain.Topic) TopicResponse {
 	return TopicResponse{
 		ID:   topic.ID.I64(),
 		Name: topic.Name,
@@ -199,7 +199,7 @@ func convertPostJoinServerRequest(request *PostJoinServerRequest, userID domain.
 	return &domain.ServerParticipant{
 		ServerID: domain.ServerID(request.ServerID),
 		UserID:   userID,
-		Role:     domain.ServerRoleUser,
+		Role:     domain.ServerRoleMember,
 	}
 }
 

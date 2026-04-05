@@ -42,7 +42,7 @@ type User struct {
 }
 
 func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {
-	login := domain.Login(req.Login)
+	login := domain.Email(req.Login)
 	return &domain.User{
 		Username: domain.Username(req.Username),
 		Login:    login,
@@ -63,7 +63,7 @@ func convertGetUsersResponse(users []*domain.User) GetUsersResponse {
 }
 
 func convertPostUpdateUserRequest(req *PostUpdateUserRequest, userID domain.UserID) *domain.User {
-	login := domain.Login(req.Login)
+	login := domain.Email(req.Login)
 	return &domain.User{
 		ID:       userID,
 		Username: domain.Username(req.Username),

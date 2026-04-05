@@ -10,7 +10,7 @@ import (
 )
 
 type userService interface {
-	GetByCredentials(ctx context.Context, login domain.Login, rawPassword string) (*domain.User, error)
+	GetByCredentials(ctx context.Context, login domain.Email, rawPassword string) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
 	UpdateUser(ctx context.Context, updated *domain.User) error
 	DeleteUser(ctx context.Context, userID domain.UserID) error

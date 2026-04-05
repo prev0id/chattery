@@ -8,6 +8,7 @@ func (id DMID) I64() int64 { return int64(id) }
 
 type DM struct {
 	ID                 DMID
+	LastActivityAt     time.Time
 	LastMessage        DMMessage
 	OtherParticipantID UserID
 }

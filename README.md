@@ -132,7 +132,7 @@
     - [ ] Call UI для voice топиков
 
 To fix:
-sort services, topics, dms
+- [x] sort services, topics, dms
 
 ### Extra (на подумать)
 - [ ] Turn server

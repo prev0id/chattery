@@ -16,14 +16,6 @@ func convertServerMessageFromDB(msg *postgres.TopicMessage) *domain.TopicMessage
 	}
 }
 
-func convertServerFromDB(server *postgres.GetServerRow) *domain.Server {
-	return &domain.Server{
-		ID:     domain.ServerID(server.ID),
-		Name:   server.Name,
-		Topics: []domain.Topic{},
-	}
-}
-
 func convertServerWithTopicsFromDB(rows []*postgres.GetServerRow) *domain.Server {
 	if len(rows) == 0 {
 		return nil
@@ -37,12 +29,13 @@ func convertServerWithTopicsFromDB(rows []*postgres.GetServerRow) *domain.Server
 	for _, row := range rows {
 		if row.TopicID.Valid {
 			topic := &domain.Topic{
-				ID:       domain.TopicID(row.TopicID.Int64),
-				ServerID: domain.ServerID(row.ID),
-				Name:     row.TopicName.String,
-				Type:     domain.TopicType(row.TopicType.String),
+				ID:        domain.TopicID(row.TopicID.Int64),
+				ServerID:  domain.ServerID(row.ID),
+				Name:      row.TopicName.String,
+				Type:      domain.TopicType(row.TopicType.String),
+				CreatedAt: row.TopicCreatedAt.Time,
 			}
-			server.Topics = append(server.Topics, *topic)
+			server.Topics = append(server.Topics, topic)
 		}
 	}
 
@@ -82,19 +75,21 @@ func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 		}
 
 		server := &domain.Server{
-			ID:   domain.ServerID(serverID),
-			Name: serverRows[0].Name,
+			ID:       domain.ServerID(serverID),
+			Name:     serverRows[0].Name,
+			JoinedAt: serverRows[0].JoinedAt,
 		}
 
 		for _, row := range serverRows {
 			if row.TopicID.Valid {
 				topic := &domain.Topic{
-					ID:       domain.TopicID(row.TopicID.Int64),
-					ServerID: domain.ServerID(serverID),
-					Name:     row.TopicName.String,
-					Type:     domain.TopicType(row.TopicType.String),
+					ID:        domain.TopicID(row.TopicID.Int64),
+					ServerID:  domain.ServerID(serverID),
+					Name:      row.TopicName.String,
+					Type:      domain.TopicType(row.TopicType.String),
+					CreatedAt: row.TopicCreatedAt.Time,
 				}
-				server.Topics = append(server.Topics, *topic)
+				server.Topics = append(server.Topics, topic)
 			}
 		}
 

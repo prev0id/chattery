@@ -23,8 +23,7 @@ FROM dm_participants p
 JOIN dms d ON d.id = p.dm_id
 LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
 JOIN dm_participants p2 ON p2.dm_id = d.id AND p2.user_id != $1
-WHERE p.user_id = $1
-ORDER BY d.updated_at DESC, d.id DESC;
+WHERE p.user_id = $1;
 
 -- name: CreateDMParticipant :exec
 INSERT INTO dm_participants(dm_id, user_id)
