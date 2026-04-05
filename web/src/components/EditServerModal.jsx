@@ -2,8 +2,17 @@ import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import Modal from "./Modal";
 import FormTextInput from "./FormTextInput";
 import Button from "./Button";
-import { selectedServerForEdit, updateServer, createTopic, updateTopic, deleteTopic, deleteServer, setSelectedServerForEdit, refetchServers } from "../stores/server";
-import { leaveTopic } from "../stores/app";
+import {
+  selectedServerForEdit,
+  setSelectedServerForEdit,
+} from "../stores/serverState";
+import {
+  updateServer,
+  createTopic,
+  updateTopic,
+  deleteTopic,
+  deleteServer,
+} from "../lib/api";
 
 import { Trash2, Check } from "lucide-solid";
 
@@ -12,17 +21,6 @@ export default function EditServerModal(props) {
   const [newTopicName, setNewTopicName] = createSignal("");
   const [newTopicType, setNewTopicType] = createSignal("text");
   const [isLoading, setIsLoading] = createSignal(false);
-
-  onMount(() => {
-    const modal = document.getElementById(props.id);
-    if (modal) {
-      modal.addEventListener("toggle", (e) => {
-        if (e.newState === "closed") {
-          refetchServers();
-        }
-      });
-    }
-  });
 
   createEffect(() => {
     const server = selectedServerForEdit();
@@ -36,8 +34,8 @@ export default function EditServerModal(props) {
     const server = selectedServerForEdit();
     if (!server) return;
     setIsLoading(true);
-    const success = await updateServer(server.id, name());
-    if (success) {
+    const result = await updateServer(server.id, name());
+    if (result) {
       setSelectedServerForEdit({ ...server, name: name() });
     }
     setIsLoading(false);
@@ -48,13 +46,14 @@ export default function EditServerModal(props) {
     const server = selectedServerForEdit();
     if (!server || !newTopicName()) return;
     setIsLoading(true);
-    const success = await createTopic(
-      server.id,
-      newTopicName(),
-      newTopicType(),
-    );
-    if (success) {
+    const result = await createTopic(server.id, newTopicName(), newTopicType());
+    if (result) {
       setNewTopicName("");
+      const updatedTopics = [
+        { id: result.id, name: newTopicName(), type: newTopicType() },
+        ...(server.topics || []),
+      ];
+      setSelectedServerForEdit({ ...server, topics: updatedTopics });
     }
     setIsLoading(false);
   };
@@ -67,6 +66,13 @@ export default function EditServerModal(props) {
     if (!newName || newName === topic.name) return;
     setIsLoading(true);
     await updateTopic(topic.id, newName);
+    const server = selectedServerForEdit();
+    if (server) {
+      const updatedTopics = server.topics.map((t) =>
+        t.id === topic.id ? { ...t, name: newName } : t,
+      );
+      setSelectedServerForEdit({ ...server, topics: updatedTopics });
+    }
     setIsLoading(false);
   };
 
@@ -75,6 +81,11 @@ export default function EditServerModal(props) {
     if (!confirm("Are you sure you want to delete this topic?")) return;
     setIsLoading(true);
     await deleteTopic(topicId);
+    const server = selectedServerForEdit();
+    if (server) {
+      const updatedTopics = server.topics.filter((t) => t.id !== topicId);
+      setSelectedServerForEdit({ ...server, topics: updatedTopics });
+    }
     setIsLoading(false);
   };
 
@@ -84,11 +95,11 @@ export default function EditServerModal(props) {
     if (!server) return;
     if (!confirm("Are you sure you want to delete this server?")) return;
     setIsLoading(true);
-    const success = await deleteServer(server.id);
-    if (success) {
-      leaveTopic();
+    const result = await deleteServer(server.id);
+    if (result) {
       setSelectedServerForEdit(null);
       document.getElementById(props.id)?.hidePopover();
+      window.location.reload();
     }
     setIsLoading(false);
   };

@@ -4,11 +4,7 @@ import { Mic, MessagesSquare } from "lucide-solid";
 import Button from "./Button";
 import CreateServerModal from "./CreateServerModal";
 import EditServerModal from "./EditServerModal";
-import {
-  selectedServer,
-  setSelectedServerForEdit,
-  servers,
-} from "../stores/server";
+import { setSelectedServerForEdit } from "../stores/serverState";
 import { TopicTypeText, TopicTypeVoice } from "./Chat";
 
 export default function SidebarServer(props) {
@@ -20,8 +16,13 @@ export default function SidebarServer(props) {
       <Button variant="sky" class="mx-4" popovertarget="create-server-modal">
         Create Server
       </Button>
-      <Index each={servers()}>
-        {(server, _) => <Server server={server} />}
+      <Index each={props.servers()}>
+        {(server) => (
+          <Server
+            server={server}
+            selectedServerID={props.selectedServer()?.id}
+          />
+        )}
       </Index>
       <CreateServerModal id="create-server-modal" />
       <EditServerModal id="edit-server-modal" />
@@ -30,8 +31,7 @@ export default function SidebarServer(props) {
 }
 
 function Server(props) {
-  const serverId = () => props.server().id;
-  const topics = createMemo(() => props.server().topics);
+  const topics = createMemo(() => props.server().topics || []);
 
   const textTopics = createMemo(() =>
     topics().filter((topic) => topic.type === TopicTypeText),
@@ -46,8 +46,7 @@ function Server(props) {
       <summary
         class="px-2 flex justify-between items-center rounded-lg border-2 transition-all duration-300 ease-in-out cursor-pointer hover:bg-emerald-200 hover:border-black border-white focus:outline-none focus:border-black"
         classList={{
-          // TODO fix selected Server
-          "bg-emerald-200": props.server().id == selectedServer()?.id,
+          "bg-emerald-200": props.server().id === props.selectedServerID,
         }}
       >
         <h2 class="text-lg font-semibold">{props.server().name}</h2>
@@ -56,9 +55,9 @@ function Server(props) {
         <hr class="mt-1" />
       )}
       <Index each={textTopics()}>
-        {(topic, _) => (
+        {(topic) => (
           <SidebarTopic
-            href={`/server/${serverId()}/${TopicTypeText}/${topic().id}`}
+            href={`/server/${props.server().id}/${TopicTypeText}/${topic().id}`}
           >
             <MessagesSquare class="size-5" />
             <p>{topic().name}</p>
@@ -67,9 +66,9 @@ function Server(props) {
       </Index>
       {textTopics().length > 0 && voiceTopics().length > 0 && <hr />}
       <Index each={voiceTopics()}>
-        {(topic, _) => (
+        {(topic) => (
           <SidebarTopic
-            href={`/server/${serverId()}/${TopicTypeVoice}/${topic().id}`}
+            href={`/server/${props.server().id}/${TopicTypeVoice}/${topic().id}`}
           >
             <Mic class="size-5" />
             <p>{topic().name}</p>

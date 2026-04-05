@@ -1,15 +1,18 @@
-import { useParams } from "@solidjs/router";
+import { useParams, createAsync } from "@solidjs/router";
+import { createMemo, Suspense, Show, createSignal, onMount } from "solid-js";
+import { fetchServers } from "../lib/api";
 import AppHeader from "../components/AppHeader";
 import { Chat, ServersType, TopicTypeText } from "../components/Chat";
 
 import Toasts from "../components/Toast";
 import Sidebar from "../components/Sidebar";
 import SidebarServer from "../components/SidebarServer";
-import { Match, Switch, createMemo, Show } from "solid-js";
-import { servers } from "../stores/server";
+import { Loader } from "lucide-solid";
 
 export default function Servers() {
   const params = useParams();
+
+  const serversQuery = createAsync(() => fetchServers());
 
   const serverData = createMemo(() => {
     const serverId = parseInt(params.serverID, 10);
@@ -18,7 +21,7 @@ export default function Servers() {
 
     if (!serverId || !topicId || !topicType) return null;
 
-    const server = servers()?.find((s) => s.id === serverId);
+    const server = serversQuery()?.find((s) => s.id === serverId);
     if (!server) return null;
 
     const topic = server.topics?.find((t) => t.id === topicId);
@@ -26,6 +29,7 @@ export default function Servers() {
 
     return {
       serverName: server.name,
+      serverID: server.id,
       topicName: topic.name,
       topicType: topic.type,
     };
@@ -34,7 +38,9 @@ export default function Servers() {
   return (
     <>
       <Sidebar>
-        <SidebarServer />
+        <Suspense fallback={<LoadingSpinner />}>
+          <SidebarServer servers={serversQuery} selectedServer={serverData} />
+        </Suspense>
       </Sidebar>
       <main class="flex-1 flex flex-col h-full">
         <Show when={serverData()} fallback={<AppHeader />}>
@@ -44,13 +50,31 @@ export default function Servers() {
             topicType={serverData().topicType}
           />
         </Show>
-        <Switch>
-          <Match when={params.topicType === TopicTypeText}>
-            <Chat chatID={parseInt(params.topicID, 10)} type={ServersType} />
-          </Match>
-        </Switch>
+        <Show when={params.topicType === TopicTypeText}>
+          <Chat chatID={parseInt(params.topicID, 10)} type={ServersType} />
+        </Show>
       </main>
       <Toasts />
     </>
+  );
+}
+
+function LoadingSpinner() {
+  const [show, setShow] = createSignal(false);
+
+  onMount(() => {
+    const timer = setTimeout(() => setShow(true), 300);
+    return () => clearTimeout(timer);
+  });
+
+  return (
+    <Show when={show()}>
+      <div class="mx-auto mt-8 flex items-center gap-2">
+        <Loader class="size-5 animate-spin" />
+        <span class="tracking-wider text-lg font-semibold">
+          Loading servers...
+        </span>
+      </div>
+    </Show>
   );
 }

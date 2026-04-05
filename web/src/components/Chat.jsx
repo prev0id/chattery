@@ -1,12 +1,18 @@
-import { createEffect, onCleanup, For, Show } from "solid-js";
 import {
-  messages,
-  loadMoreMessages,
-  currentChat,
-  loadChatMessages,
-} from "../stores/app";
-import { sendTopicMessage } from "../stores/server";
-import { sendDMMessage } from "../stores/dm";
+  createEffect,
+  onCleanup,
+  For,
+  Show,
+  createSignal,
+  onMount,
+} from "solid-js";
+import { createStore } from "solid-js/store";
+import {
+  fetchTopicMessages,
+  sendTopicMessage,
+  fetchDMMessages,
+  sendDMMessage,
+} from "../lib/api";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import { ArrowLeftToLine, Loader } from "lucide-solid";
@@ -19,8 +25,53 @@ const TopicTypeVoice = "voice";
 export { DMsType, ServersType, TopicTypeText, TopicTypeVoice };
 
 export function Chat(props) {
+  const [messages, setMessages] = createStore([]);
+  const [messagesCursor, setMessagesCursor] = createSignal(null);
+  const [currentChat, setCurrentChat] = createSignal(null);
+  const [loading, setLoading] = createSignal(false);
+
   let sentinelRef;
   let containerRef;
+
+  const loadChatMessages = async (chatId, chatType) => {
+    setCurrentChat({ id: chatId, type: chatType });
+    setMessages([]);
+    setMessagesCursor(null);
+    setLoading(true);
+
+    let response;
+    if (chatType === "topic") {
+      response = await fetchTopicMessages(chatId);
+    } else {
+      response = await fetchDMMessages(chatId);
+    }
+
+    setLoading(false);
+    if (response && response.messages) {
+      setMessages(response.messages);
+      setMessagesCursor(response.cursor);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    const chat = currentChat();
+    const cursor = messagesCursor();
+    if (!chat || !cursor || loading()) return;
+
+    setLoading(true);
+    let response;
+    if (chat.type === "topic") {
+      response = await fetchTopicMessages(chat.id, cursor);
+    } else {
+      response = await fetchDMMessages(chat.id, cursor);
+    }
+    setLoading(false);
+
+    if (response && response.messages && response.messages.length > 0) {
+      setMessages((prev) => [...response.messages, ...prev]);
+      setMessagesCursor(response.cursor);
+    }
+  };
 
   createEffect(() => {
     const chatId = props.chatID;
@@ -59,6 +110,7 @@ export function Chat(props) {
     } else {
       await sendDMMessage(chat.id, text);
     }
+    loadChatMessages(chat.id, chat.type);
   };
 
   return (
@@ -68,8 +120,11 @@ export function Chat(props) {
         ref={containerRef}
       >
         <div ref={sentinelRef} class="h-1" />
+        <Show when={loading()}>
+          <LoadingSpinner />
+        </Show>
         <For each={messages} fallback={<div>No messages yet.</div>}>
-          {(message, _) => <ChatMessage msg={message} />}
+          {(message) => <ChatMessage msg={message} />}
         </For>
       </div>
       <ChatInput onSend={handleSend} />
@@ -89,10 +144,22 @@ function selectChatMessage() {
 }
 
 function LoadingSpinner() {
+  const [show, setShow] = createSignal(false);
+
+  onMount(() => {
+    const timer = setTimeout(() => setShow(true), 300);
+    return () => clearTimeout(timer);
+  });
+
   return (
-    <div class="m-auto flex items-center gap-4 text-2xl tracking-wider font-semibold">
-      <Loader class="size-10 animate-spin" />
-      Loading...
-    </div>
+    <Show when={show()}>
+      {props.children}
+      <div class="m-auto flex items-center gap-4">
+        <Loader class="size-10 animate-spin" />
+        <span class="tracking-wider text-2xl font-semibold">
+          Loading chat...
+        </span>
+      </div>
+    </Show>
   );
 }

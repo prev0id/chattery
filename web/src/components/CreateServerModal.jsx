@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 import Modal from "./Modal";
 import FormTextInput from "./FormTextInput";
 import Button from "./Button";
-import { createServer, refetchServers } from "../stores/server";
+import { createServer } from "../lib/api";
 
 export default function CreateServerModal(props) {
   const [name, setName] = createSignal("");
@@ -12,11 +12,11 @@ export default function CreateServerModal(props) {
     event.preventDefault();
     setIsLoading(true);
 
-    const success = await createServer(name());
-    if (success) {
+    const result = await createServer(name());
+    if (result) {
       setName("");
-      refetchServers();
       document.getElementById(props.id).hidePopover();
+      window.location.reload();
     }
 
     setIsLoading(false);

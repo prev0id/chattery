@@ -2,7 +2,6 @@ import Button from "../components/Button";
 import ProfilePicture from "../components/ProfilePicture";
 import { userData } from "../stores/auth";
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
-import { changeTab } from "../stores/app";
 import { useNavigate } from "@solidjs/router";
 
 export default function Sidebar(props) {

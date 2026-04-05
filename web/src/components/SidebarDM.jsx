@@ -1,22 +1,22 @@
-import { DMs, selectedDM } from "../stores/dm";
+import { For } from "solid-js";
 import { A } from "@solidjs/router";
 import ProfilePicture from "./ProfilePicture";
 import Button from "./Button";
 
-export default function SidebarDM() {
+export default function SidebarDM(props) {
   return (
     <>
       <Button variant="amber" class="mx-4">
         Search users
       </Button>
-      <Index each={DMs()}>{(dm, _) => <DM dm={dm} />}</Index>
+      <For each={props.dms()}>{(dm) => <DM dm={dm} />}</For>
     </>
   );
 }
 
 function DM(props) {
-  const dmID = () => props.dm().id;
-  const username = () => props.dm().user.username;
+  const dmID = () => props.dm.id;
+  const username = () => props.dm.user.username;
 
   return (
     <A
@@ -26,14 +26,14 @@ function DM(props) {
       inactiveClass="bg-white"
     >
       <ProfilePicture
-        src={props.dm().user.avatar}
-        unread={props.dm().unread}
+        src={props.dm.user.avatar}
+        unread={props.dm.unread}
         class="size-9 my-auto"
       />
       <div class="flex-1 overflow-hidden grid grid-rows-2">
         <p class="font-semibold truncate">{username()}</p>
         <p class="truncate max-w-full text-sm">
-          {props.dm().message?.content ?? ""}
+          {props.dm.message?.content ?? ""}
         </p>
       </div>
     </A>
