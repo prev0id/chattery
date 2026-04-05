@@ -2,17 +2,9 @@ import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import Modal from "./Modal";
 import FormTextInput from "./FormTextInput";
 import Button from "./Button";
-import {
-  selectedServerForEdit,
-  updateServer,
-  createTopic,
-  updateTopic,
-  deleteTopic,
-  deleteServer,
-  leaveTopic,
-  setSelectedServerForEdit,
-  refetchServers,
-} from "../stores/app";
+import { selectedServerForEdit, updateServer, createTopic, updateTopic, deleteTopic, deleteServer, setSelectedServerForEdit, refetchServers } from "../stores/server";
+import { leaveTopic } from "../stores/app";
+
 import { Trash2, Check } from "lucide-solid";
 
 export default function EditServerModal(props) {

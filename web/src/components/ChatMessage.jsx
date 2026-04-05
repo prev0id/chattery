@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { userData } from "../stores/app";
+import { userData } from "../stores/auth";
 import ProfilePicture from "./ProfilePicture";
 
 export default function ChatMessage(props) {

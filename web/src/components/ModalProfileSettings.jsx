@@ -1,4 +1,4 @@
-import { userData } from "../stores/app";
+import { userData } from "../stores/auth";
 import Modal from "./Modal";
 import ProfilePicture from "./ProfilePicture";
 

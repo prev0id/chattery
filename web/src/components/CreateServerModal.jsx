@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 import Modal from "./Modal";
 import FormTextInput from "./FormTextInput";
 import Button from "./Button";
-import { createServer, refetchServers } from "../stores/app";
+import { createServer, refetchServers } from "../stores/server";
 
 export default function CreateServerModal(props) {
   const [name, setName] = createSignal("");

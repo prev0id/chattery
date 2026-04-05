@@ -1,6 +1,7 @@
 import { ChevronRight, MessagesSquare, Mic, Sparkles } from "lucide-solid";
 import { Match, Switch } from "solid-js";
-import { selectedDM, selectedServer, selectedTopic } from "../stores/app";
+import { selectedServer, selectedTopic } from "../stores/server";
+import { selectedDM } from "../stores/dm";
 
 const iconClasses = "size-8 mr-4";
 const textClasses = "text-2xl font-semibold tracking-wider";

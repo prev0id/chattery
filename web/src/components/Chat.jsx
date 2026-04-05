@@ -1,11 +1,8 @@
 import { createEffect, onCleanup, For } from "solid-js";
-import {
-  messages,
-  loadMoreMessages,
-  currentChat,
-  sendTopicMessage,
-  sendDMMessage,
-} from "../stores/app";
+import { messages, loadMoreMessages, currentChat } from "../stores/app";
+import { sendTopicMessage } from "../stores/server";
+import { sendDMMessage } from "../stores/dm";
+
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import { Loader } from "lucide-solid";

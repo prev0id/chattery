@@ -5,15 +5,13 @@ import ProfilePicture from "../components/ProfilePicture";
 import SidebarDM from "../components/SidebarDM";
 import SidebarServer from "../components/SidebarServer";
 import Chat from "../components/Chat";
-import {
-  servers,
-  selectedTab,
-  DMs,
-  changeTab,
-  selectedTopic,
-  selectedDM,
-  userData,
-} from "../stores/app";
+import { servers } from "../stores/server";
+import { selectedTab, changeTab } from "../stores/app";
+import { DMs } from "../stores/dm";
+import { selectedTopic } from "../stores/server";
+import { selectedDM } from "../stores/dm";
+import { userData } from "../stores/auth";
+
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
 import CreateServerModal from "../components/CreateServerModal";
 import EditServerModal from "../components/EditServerModal";

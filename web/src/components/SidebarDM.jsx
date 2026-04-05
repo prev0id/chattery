@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { selectDM, selectedDM } from "../stores/app";
+import { selectDM, selectedDM } from "../stores/dm";
 import ProfilePicture from "./ProfilePicture";
 import { Info, Mail } from "lucide-solid";
 
