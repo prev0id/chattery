@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"chattery/internal/domain"
+	"chattery/internal/utils/render"
 	"chattery/internal/utils/sliceutil"
 )
 
@@ -75,11 +76,11 @@ type GetTopicMessagesResponse struct {
 }
 
 type Message struct {
-	ID        int64     `json:"id"`
-	SenderID  int64     `json:"sender_id"`
-	Sender    UserInfo  `json:"sender"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64    `json:"id"`
+	SenderID  int64    `json:"sender_id"`
+	Sender    UserInfo `json:"sender"`
+	Text      string   `json:"text"`
+	CreatedAt string   `json:"created_at"`
 }
 
 type UserInfo struct {
@@ -163,7 +164,7 @@ func convertMessageResponse(msg *domain.TopicMessage, users map[domain.UserID]*d
 		SenderID:  msg.SenderID.I64(),
 		Sender:    sender,
 		Text:      msg.Text,
-		CreatedAt: msg.CreatedAt,
+		CreatedAt: render.Timestamp(msg.CreatedAt),
 	}
 }
 

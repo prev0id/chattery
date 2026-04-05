@@ -8,6 +8,7 @@ import {
 } from "../stores/app";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
+import { Loader } from "lucide-solid";
 
 export default function Chat(props) {
   let sentinelRef;
@@ -54,5 +55,14 @@ export default function Chat(props) {
       </div>
       <ChatInput onSend={handleSend} />
     </>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <div class="m-auto flex items-center gap-4 text-2xl tracking-wider font-semibold">
+      <Loader class="size-10 animate-spin" />
+      Loading...
+    </div>
   );
 }
