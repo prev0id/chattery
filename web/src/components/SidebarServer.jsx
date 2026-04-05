@@ -62,7 +62,7 @@ export default function SidebarServer(props) {
           </SidebarTopic>
         )}
       </Index>
-      <Show when={true}>
+      <Show when={props.server().role === "owner"}>
         <hr class="my-1" />
         <Button
           smallText

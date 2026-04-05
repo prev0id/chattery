@@ -348,6 +348,7 @@ SELECT
     s.id AS id,
     s.name AS name,
     sp.created_at AS joined_at,
+    sp.role AS role,
     t.id AS topic_id,
     t.name AS topic_name,
     t.type AS topic_type,
@@ -362,6 +363,7 @@ type GetUserServersRow struct {
 	ID             int64
 	Name           string
 	JoinedAt       time.Time
+	Role           string
 	TopicID        pgtype.Int8
 	TopicName      pgtype.Text
 	TopicType      pgtype.Text
@@ -374,6 +376,7 @@ type GetUserServersRow struct {
 //	    s.id AS id,
 //	    s.name AS name,
 //	    sp.created_at AS joined_at,
+//	    sp.role AS role,
 //	    t.id AS topic_id,
 //	    t.name AS topic_name,
 //	    t.type AS topic_type,
@@ -395,6 +398,7 @@ func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserS
 			&i.ID,
 			&i.Name,
 			&i.JoinedAt,
+			&i.Role,
 			&i.TopicID,
 			&i.TopicName,
 			&i.TopicType,

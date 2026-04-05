@@ -6,6 +6,7 @@ type Server struct {
 	ID       ServerID
 	Name     string
 	JoinedAt time.Time
+	Role     ServerRole
 	Topics   []*Topic
 }
 

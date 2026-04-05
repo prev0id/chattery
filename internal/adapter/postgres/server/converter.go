@@ -78,6 +78,7 @@ func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 			ID:       domain.ServerID(serverID),
 			Name:     serverRows[0].Name,
 			JoinedAt: serverRows[0].JoinedAt,
+			Role:     domain.ServerRole(serverRows[0].Role),
 		}
 
 		for _, row := range serverRows {

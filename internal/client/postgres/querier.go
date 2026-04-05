@@ -146,6 +146,7 @@ type Querier interface {
 	//      s.id AS id,
 	//      s.name AS name,
 	//      sp.created_at AS joined_at,
+	//      sp.role AS role,
 	//      t.id AS topic_id,
 	//      t.name AS topic_name,
 	//      t.type AS topic_type,
