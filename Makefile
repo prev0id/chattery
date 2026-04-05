@@ -7,9 +7,17 @@ DOCKER_COMPOSE_BIN=docker-compose
 run:
 	go tool air -c .air.toml
 
+.PHONY: run-web
+run-web:
+	cd web && npm run dev
+
 .PHONY: build
-build: build-web
+build:
 	go build -o ./bin/chattery ./cmd/main.go
+
+.PHONY: build-web
+build-web:
+	cd web && npm run build
 
 .PHONY: down
 down:
@@ -33,7 +41,3 @@ up-e2e:
 .PHONY: generate-sqlc
 generate-sqlc:
 	go tool sqlc generate
-
-.PHONY: build-web
-build-web:
-	cd web && npm run build

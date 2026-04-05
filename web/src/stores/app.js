@@ -42,11 +42,34 @@ async function fetchServers() {
   }
 }
 
+async function fetchDMs() {
+  try {
+    const res = await fetch("/v1/dm/list");
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return [];
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? "Failed to load DMs");
+      return [];
+    }
+    const data = await res.json();
+    return data.dms || [];
+  } catch (err) {
+    console.log(err);
+    toast.error("Network error – please check your connection");
+    return [];
+  }
+}
+
 export const [userData, { refetch: refetchUserData }] =
   createResource(fetchUserData);
 
 export const [servers, { refetch: refetchServers }] =
   createResource(fetchServers);
+
+export const [DMs, { refetch: refetchDMs }] = createResource(fetchDMs);
 
 export const [selectedTopic, setSelectedTopic] = createSignal(null);
 
@@ -58,45 +81,6 @@ export const [selectedServerForEdit, setSelectedServerForEdit] =
 export const [selectedTab, setSelectedTab] = createSignal("direct");
 
 export const [selectedDM, setSelectedDM] = createSignal(null);
-
-export const [DMs, setDMs] = createStore([
-  {
-    id: 123,
-    unread: false,
-    user: {
-      id: 2,
-      username: "user_name_2",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    message: {
-      date: "Today, 12:30",
-      content: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
-    },
-  },
-  {
-    id: 1234,
-    unread: true,
-    user: {
-      id: 1,
-      username: "user_name_1",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    message: {
-      date: "Today, 12:30",
-      content: "hello! slksjf slkjfsla bllka sfsfiuhjfklsd",
-    },
-  },
-  {
-    id: 12345,
-    user: {
-      id: 3,
-      username: "user_name_3",
-      avatar: "https://github.com/identicons/prev0id.png",
-    },
-    unread: true,
-    message: null,
-  },
-]);
 
 export const [messages, setMessages] = createStore([
   {
@@ -150,7 +134,6 @@ export function leaveTopic() {
 
 export function selectDM(selectedDM) {
   setSelectedDM(selectedDM);
-  setDMs((dm) => dm.user.id === selectedDM.user.id, "unread", 0);
   leaveTopic();
 }
 
@@ -160,6 +143,9 @@ export function changeTab(tab) {
   setSelectedDM(null);
   if (tab === "servers") {
     refetchServers();
+  }
+  if (tab === "direct") {
+    refetchDMs();
   }
 }
 

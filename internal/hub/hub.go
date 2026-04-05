@@ -3,10 +3,10 @@ package hub
 import (
 	"context"
 	"sync"
-	"time"
 
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
+	"chattery/internal/utils/render"
 )
 
 type dmService interface {
@@ -163,11 +163,11 @@ func (h *Hub) startListener(channelKey ChannelKey) {
 	case ChannelDM:
 		dst := make(chan *domain.DMMessage)
 		go h.redis.SubscribeToDM(ctx, channelKey.DMID(), dst)
-		go h.handleDMMessages(ctx, channelKey, dst)
+		go h.handleDMMessages(channelKey, dst)
 	case ChannelServer:
 		dst := make(chan *domain.TopicMessage)
 		go h.redis.SubscribeToServerTopic(ctx, channelKey.TopicID(), dst)
-		go h.handleServerMessages(ctx, channelKey, dst)
+		go h.handleServerMessages(channelKey, dst)
 	}
 }
 
@@ -178,16 +178,16 @@ func (h *Hub) stopListener(channelKey ChannelKey) {
 	}
 }
 
-func (h *Hub) handleDMMessages(ctx context.Context, channelKey ChannelKey, src chan *domain.DMMessage) {
+func (h *Hub) handleDMMessages(channelKey ChannelKey, src chan *domain.DMMessage) {
 	for message := range src {
-		event := h.dmToEventMessage(ctx, message)
+		event := h.dmToEventMessage(message)
 		h.broadcast(channelKey, event)
 	}
 }
 
-func (h *Hub) handleServerMessages(ctx context.Context, channelKey ChannelKey, src chan *domain.TopicMessage) {
+func (h *Hub) handleServerMessages(channelKey ChannelKey, src chan *domain.TopicMessage) {
 	for message := range src {
-		event := h.topicToEventMessage(ctx, message)
+		event := h.topicToEventMessage(message)
 		h.broadcast(channelKey, event)
 	}
 }
@@ -215,7 +215,7 @@ func (h *Hub) broadcast(channelKey ChannelKey, message any) {
 	}
 }
 
-func (h *Hub) dmToEventMessage(ctx context.Context, msg *domain.DMMessage) *Event {
+func (h *Hub) dmToEventMessage(msg *domain.DMMessage) *Event {
 	sender := UserInfo{}
 	if user, err := h.user.GetByID(msg.SenderID); err == nil {
 		sender = UserInfo{
@@ -233,12 +233,12 @@ func (h *Hub) dmToEventMessage(ctx context.Context, msg *domain.DMMessage) *Even
 			ID:        msg.ID.I64(),
 			Sender:    sender,
 			Text:      msg.Text,
-			CreatedAt: formatTimestamp(msg.CreatedAt),
+			CreatedAt: render.Timestamp(msg.CreatedAt),
 		},
 	}
 }
 
-func (h *Hub) topicToEventMessage(ctx context.Context, msg *domain.TopicMessage) *Event {
+func (h *Hub) topicToEventMessage(msg *domain.TopicMessage) *Event {
 	sender := UserInfo{}
 	if user, err := h.user.GetByID(msg.SenderID); err == nil {
 		sender = UserInfo{
@@ -256,22 +256,7 @@ func (h *Hub) topicToEventMessage(ctx context.Context, msg *domain.TopicMessage)
 			ID:        msg.ID.I64(),
 			Sender:    sender,
 			Text:      msg.Text,
-			CreatedAt: formatTimestamp(msg.CreatedAt),
+			CreatedAt: render.Timestamp(msg.CreatedAt),
 		},
 	}
-}
-
-func formatTimestamp(t time.Time) string {
-	now := time.Now()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	yesterday := today.AddDate(0, 0, -1)
-	msgDate := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-
-	if msgDate.Equal(today) {
-		return "Today, " + t.Format("15:04")
-	}
-	if msgDate.Equal(yesterday) {
-		return "Yesterday, " + t.Format("15:04")
-	}
-	return t.Format("Jan 2, 15:04")
 }

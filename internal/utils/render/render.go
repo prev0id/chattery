@@ -3,10 +3,32 @@ package render
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 )
+
+const (
+	formatTime     = "15:04"
+	formatDate     = "Jan 2"
+	formatDateTime = formatDate + ", " + formatTime
+)
+
+func Timestamp(t time.Time) string {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	yesterday := today.AddDate(0, 0, -1)
+	msgDate := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+
+	if msgDate.Equal(today) {
+		return "Today, " + t.Format(formatTime)
+	}
+	if msgDate.Equal(yesterday) {
+		return "Yesterday, " + t.Format(formatTime)
+	}
+	return t.Format(formatDateTime)
+}
 
 func Json[T any](w http.ResponseWriter, r *http.Request, value T) {
 	response, err := json.Marshal(value)

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"chattery/internal/domain"
+	"chattery/internal/utils/render"
 )
 
 type GetDMsResponse struct {
@@ -11,9 +12,15 @@ type GetDMsResponse struct {
 }
 
 type DM struct {
-	ID          int64    `json:"id"`
-	Participant UserInfo `json:"participant"`
-	LastMessage *Message `json:"last_message,omitempty"`
+	ID      int64            `json:"id"`
+	Unread  bool             `json:"unread"`
+	User    UserInfo         `json:"user"`
+	Message *LastMessageInfo `json:"message,omitempty"`
+}
+
+type LastMessageInfo struct {
+	Date    string `json:"date"`
+	Content string `json:"content"`
 }
 
 type PostCreateDMRequest struct {
@@ -39,10 +46,10 @@ type GetMessagesResponse struct {
 }
 
 type Message struct {
-	ID        int64     `json:"id"`
-	Sender    UserInfo  `json:"sender"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64    `json:"id"`
+	Sender    UserInfo `json:"sender"`
+	Text      string   `json:"text"`
+	CreatedAt string   `json:"created_at"`
 }
 
 type UserInfo struct {
@@ -58,20 +65,20 @@ type Cursor struct {
 }
 
 func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {
-	participant := UserInfo{}
-	if user, ok := users[dm.OtherParticipantID]; ok {
-		participant = UserInfo{
-			ID:       user.ID.I64(),
-			Username: user.Username.String(),
-			// Avatar:   user.AvatarID.String(),
-			Avatar: "/v1/image/" + user.Username.String() + ".png",
+	user := UserInfo{}
+	if u, ok := users[dm.OtherParticipantID]; ok {
+		user = UserInfo{
+			ID:       u.ID.I64(),
+			Username: u.Username.String(),
+			Avatar:   "/v1/image/" + u.Username.String() + ".png",
 		}
 	}
 
 	return DM{
-		ID:          dm.ID.I64(),
-		Participant: participant,
-		LastMessage: convertMessageResponse(&dm.LastMessage, users),
+		ID:      dm.ID.I64(),
+		Unread:  dm.LastMessage.ID > dm.LastReadMessageID,
+		User:    user,
+		Message: convertLastMessageResponse(dm.LastMessage),
 	}
 }
 
@@ -99,7 +106,7 @@ func convertMessageResponse(msg *domain.DMMessage, users map[domain.UserID]*doma
 		ID:        msg.ID.I64(),
 		Sender:    sender,
 		Text:      msg.Text,
-		CreatedAt: msg.CreatedAt,
+		CreatedAt: render.Timestamp(msg.CreatedAt),
 	}
 }
 
@@ -144,5 +151,15 @@ func convertPostMessageRequest(request *PostMessageRequest, userID domain.UserID
 		DMID:     domain.DMID(request.DMID),
 		SenderID: userID,
 		Text:     request.Text,
+	}
+}
+
+func convertLastMessageResponse(message domain.DMMessage) *LastMessageInfo {
+	if message.ID == 0 {
+		return nil
+	}
+	return &LastMessageInfo{
+		Date:    render.Timestamp(message.CreatedAt),
+		Content: message.Text,
 	}
 }

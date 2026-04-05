@@ -59,7 +59,7 @@ export default function App() {
               <Button variant="amber" class="mx-4">
                 Search users
               </Button>
-              <Index each={DMs}>{(dm, _) => <SidebarDM dm={dm} />}</Index>
+              <Index each={DMs()}>{(dm, _) => <SidebarDM dm={dm} />}</Index>
             </Match>
           </Switch>
         </div>

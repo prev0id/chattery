@@ -11,6 +11,7 @@ type DM struct {
 	LastActivityAt     time.Time
 	LastMessage        DMMessage
 	OtherParticipantID UserID
+	LastReadMessageID  DMMessageID
 }
 
 type DMParticipant struct {
