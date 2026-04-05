@@ -1,16 +1,15 @@
 import { Index, Show, createMemo } from "solid-js";
+import { A } from "@solidjs/router";
 import { Mic, MessagesSquare } from "lucide-solid";
 import Button from "./Button";
 import CreateServerModal from "./CreateServerModal";
 import EditServerModal from "./EditServerModal";
 import {
-  selectedTopic,
   selectedServer,
   setSelectedServerForEdit,
   servers,
 } from "../stores/server";
-import { selectTopic } from "../stores/app";
-import { leaveTopic } from "../stores/app";
+import { TopicTypeText, TopicTypeVoice } from "./Chat";
 
 export default function SidebarServer(props) {
   return (
@@ -31,29 +30,23 @@ export default function SidebarServer(props) {
 }
 
 function Server(props) {
+  const serverId = () => props.server().id;
   const topics = createMemo(() => props.server().topics);
 
   const textTopics = createMemo(() =>
-    topics().filter((topic) => topic.type === "text"),
+    topics().filter((topic) => topic.type === TopicTypeText),
   );
 
   const voiceTopics = createMemo(() =>
-    topics().filter((topic) => topic.type === "voice"),
+    topics().filter((topic) => topic.type === TopicTypeVoice),
   );
-
-  const toggleVoiceTopic = (topic) => {
-    if (selectedTopic()?.id === topic.id) {
-      leaveTopic();
-      return;
-    }
-    selectTopic(topic, props.server());
-  };
 
   return (
     <details open class="border-2 rounded-lg p-1 bg-white">
       <summary
         class="px-2 flex justify-between items-center rounded-lg border-2 transition-all duration-300 ease-in-out cursor-pointer hover:bg-emerald-200 hover:border-black border-white focus:outline-none focus:border-black"
         classList={{
+          // TODO fix selected Server
           "bg-emerald-200": props.server().id == selectedServer()?.id,
         }}
       >
@@ -65,10 +58,10 @@ function Server(props) {
       <Index each={textTopics()}>
         {(topic, _) => (
           <SidebarTopic
-            topic={topic()}
-            onClick={() => selectTopic(topic(), props.server())}
+            href={`/server/${serverId()}/${TopicTypeText}/${topic().id}`}
           >
             <MessagesSquare class="size-5" />
+            <p>{topic().name}</p>
           </SidebarTopic>
         )}
       </Index>
@@ -76,10 +69,10 @@ function Server(props) {
       <Index each={voiceTopics()}>
         {(topic, _) => (
           <SidebarTopic
-            topic={topic()}
-            onClick={() => toggleVoiceTopic(topic())}
+            href={`/server/${serverId()}/${TopicTypeVoice}/${topic().id}`}
           >
             <Mic class="size-5" />
+            <p>{topic().name}</p>
           </SidebarTopic>
         )}
       </Index>
@@ -102,15 +95,12 @@ function Server(props) {
 
 function SidebarTopic(props) {
   return (
-    <div
-      onClick={() => props.onClick()}
+    <A
+      href={props.href}
       class="flex items-center gap-1 px-2 my-1 py-0.5 border-2 rounded-lg neo-shadow-white hover:neo-shadow transition-all duration-300 ease-in-out cursor-pointer border-white hover:border-black"
-      classList={{
-        "bg-emerald-200": props.topic.id === selectedTopic()?.id,
-      }}
+      activeClass="bg-emerald-200"
     >
       {props.children}
-      <p>{props.topic.name}</p>
-    </div>
+    </A>
   );
 }

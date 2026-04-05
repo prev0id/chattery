@@ -1,15 +1,37 @@
-import { createEffect, onCleanup, For } from "solid-js";
-import { messages, loadMoreMessages, currentChat } from "../stores/app";
+import { createEffect, onCleanup, For, Show } from "solid-js";
+import {
+  messages,
+  loadMoreMessages,
+  currentChat,
+  loadChatMessages,
+} from "../stores/app";
 import { sendTopicMessage } from "../stores/server";
 import { sendDMMessage } from "../stores/dm";
-
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
-import { Loader } from "lucide-solid";
+import { ArrowLeftToLine, Loader } from "lucide-solid";
 
-export default function Chat(props) {
+const DMsType = "dms";
+const ServersType = "servers";
+const TopicTypeText = "text";
+const TopicTypeVoice = "voice";
+
+export { DMsType, ServersType, TopicTypeText, TopicTypeVoice };
+
+export function Chat(props) {
   let sentinelRef;
   let containerRef;
+
+  createEffect(() => {
+    const chatId = props.chatID;
+    const chatType = props.type;
+    if (!chatId) return;
+
+    const messageType = chatType === DMsType ? "dm" : "topic";
+    loadChatMessages(chatId, messageType);
+  });
+
+  const hasChat = () => !!props.chatID;
 
   createEffect(() => {
     if (!sentinelRef) return;
@@ -40,7 +62,7 @@ export default function Chat(props) {
   };
 
   return (
-    <>
+    <Show when={hasChat()} fallback={selectChatMessage}>
       <div
         class="max-w-5xl min-w-sm w-full h-full mx-auto p-4 flex flex-col overflow-auto"
         ref={containerRef}
@@ -51,7 +73,18 @@ export default function Chat(props) {
         </For>
       </div>
       <ChatInput onSend={handleSend} />
-    </>
+    </Show>
+  );
+}
+
+function selectChatMessage() {
+  return (
+    <div class="m-auto flex items-center justify-center gap-4">
+      <ArrowLeftToLine class="size-10" />
+      <span class="text-2xl tracking-wider font-semibold">
+        Select a chat to start messaging
+      </span>
+    </div>
   );
 }
 

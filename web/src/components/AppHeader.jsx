@@ -1,34 +1,48 @@
 import { ChevronRight, MessagesSquare, Mic, Sparkles } from "lucide-solid";
 import { Match, Switch } from "solid-js";
-import { selectedServer, selectedTopic } from "../stores/server";
-import { selectedDM } from "../stores/dm";
+import { TopicTypeText, TopicTypeVoice } from "./Chat";
 
 const iconClasses = "size-8 mr-4";
 const textClasses = "text-2xl font-semibold tracking-wider";
 
 export default function AppHeader(props) {
+  const hasServer = () => !!props.serverName;
+  const hasDM = () => {
+    const username =
+      typeof props.dmUsername === "function"
+        ? props.dmUsername()
+        : props.dmUsername;
+    return !!username;
+  };
+
+  const dmUsernameValue = () => {
+    return typeof props.dmUsername === "function"
+      ? props.dmUsername()
+      : props.dmUsername;
+  };
+
   return (
     <div class="border-b-3 px-4 py-2 flex items-center  bg-emerald-50">
       <Switch fallback={DefaultHeader()}>
-        <Match when={selectedTopic() !== null}>
+        <Match when={hasServer()}>
           <Switch>
-            <Match when={selectedTopic()?.type === "text"}>
+            <Match when={props.topicType === TopicTypeText}>
               <MessagesSquare class={iconClasses} />
             </Match>
-            <Match when={selectedTopic()?.type === "voice"}>
+            <Match when={props.topicType === TopicTypeVoice}>
               <Mic class={iconClasses} />
             </Match>
           </Switch>
 
-          <h1 class={textClasses}>{selectedServer()?.name}</h1>
+          <h1 class={textClasses}>{props.serverName}</h1>
 
           <ChevronRight class="size-6" />
 
-          <h1 class={textClasses}>{selectedTopic()?.name}</h1>
+          <h1 class={textClasses}>{props.topicName}</h1>
         </Match>
-        <Match when={selectedDM() !== null}>
+        <Match when={hasDM()}>
           <MessagesSquare class={iconClasses} />
-          <h1 class={textClasses}>{selectedDM()?.user.username}</h1>
+          <h1 class={textClasses}>{dmUsernameValue()}</h1>
         </Match>
       </Switch>
     </div>

@@ -27,16 +27,16 @@ export const [DMs, { refetch: refetchDMs }] = createResource(fetchDMs);
 
 export const [selectedDM, setSelectedDM] = createSignal(null);
 
-export async function fetchDMMessages(dmId, cursor = null) {
+export async function fetchDMMessages(dmID, cursor = null) {
   try {
     const body = {
       cursor: cursor
         ? {
-            dm_id: dmId,
+            dm_id: dmID,
             message_id: cursor.message_id,
             timestamp: cursor.timestamp,
           }
-        : { dm_id: dmId },
+        : { dm_id: dmID },
     };
 
     const res = await fetch("/v1/dm/messages", {
@@ -60,12 +60,12 @@ export async function fetchDMMessages(dmId, cursor = null) {
   }
 }
 
-export async function sendDMMessage(dmId, text) {
+export async function sendDMMessage(dmID, text) {
   try {
     const res = await fetch("/v1/dm/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dm_id: dmId, text }),
+      body: JSON.stringify({ dm_id: dmID, text }),
     });
 
     if (res.status === 401) {

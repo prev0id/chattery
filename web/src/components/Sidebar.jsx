@@ -3,15 +3,18 @@ import ProfilePicture from "../components/ProfilePicture";
 import { userData } from "../stores/auth";
 import { ProfileSettingsModal } from "../components/ModalProfileSettings";
 import { changeTab } from "../stores/app";
+import { useNavigate } from "@solidjs/router";
 
 export default function Sidebar(props) {
+  const navigate = useNavigate();
+
   return (
     <aside class="h-full w-98 flex bg-rose-50">
       <div class="w-18 border-r-3 flex flex-col gap-4 p-4">
-        <Button sideways variant="amber" onClick={() => changeTab("direct")}>
+        <Button sideways variant="amber" onClick={() => navigate("/dm")}>
           Direct
         </Button>
-        <Button sideways variant="sky" onClick={() => changeTab("servers")}>
+        <Button sideways variant="sky" onClick={() => navigate("/server")}>
           Servers
         </Button>
 

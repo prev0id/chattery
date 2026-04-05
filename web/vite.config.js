@@ -12,12 +12,14 @@ export default defineConfig({
   },
 
   build: {
-    rollupOptions: {
-      input: {
-        login: "login.html",
-        signup: "signup.html",
-        app: "app.html",
-      },
-    },
+    target: "esnext",
+    // rollupOptions: {
+    //   input: {
+    //     login: "login.html",
+    //     signup: "signup.html",
+    //     app: "app.html",
+    //     app2: "app2.html",
+    //   },
+    // },
   },
 });
