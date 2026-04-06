@@ -1,5 +1,11 @@
 import { children, Match, Show, Switch } from "solid-js";
-import { ChevronRight, MessagesSquare, Mic, Sparkles } from "lucide-solid";
+import {
+  ChevronRight,
+  MessagesSquare,
+  Mic,
+  Settings,
+  Sparkles,
+} from "lucide-solid";
 
 const iconClasses = "size-8 mr-4";
 
@@ -16,6 +22,9 @@ export default function Header(props) {
         </Match>
         <Match when={props.icon === "voice"}>
           <Mic class={iconClasses} />
+        </Match>
+        <Match when={props.icon === "settings"}>
+          <Settings class={iconClasses} />
         </Match>
       </Switch>
       <For each={items.toArray()}>

@@ -29,7 +29,9 @@ export default function SidebarServer(props) {
       )}
       <Index each={textTopics()}>
         {(topic) => (
-          <SidebarTopic href={`/server/${props.server().id}/${topic().id}`}>
+          <SidebarTopic
+            href={`/server/${props.server().id}/${topic().type}/${topic().id}`}
+          >
             <MessagesSquare class="size-5" />
             <p>{topic().name}</p>
           </SidebarTopic>
@@ -38,7 +40,9 @@ export default function SidebarServer(props) {
       {textTopics().length > 0 && voiceTopics().length > 0 && <hr />}
       <Index each={voiceTopics()}>
         {(topic) => (
-          <SidebarTopic href={`/server/${props.server().id}/${topic().id}`}>
+          <SidebarTopic
+            href={`/server/${props.server().id}/${topic().type}/${topic().id}`}
+          >
             <Mic class="size-5" />
             <p>{topic().name}</p>
           </SidebarTopic>

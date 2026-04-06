@@ -1,8 +1,8 @@
-import HeaderItem from "../components/HeaderItem";
-import Header from "../components/Header";
+import HeaderItem from "~/components/HeaderItem";
+import Header from "~/components/Header";
 import { ArrowLeftToLine } from "lucide-solid";
 
-export default function SelectServer() {
+export default function Select() {
   return (
     <>
       <Header>

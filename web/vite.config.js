@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import tailwindcss from "@tailwindcss/vite";
+import path from "node:path";
 
 export default defineConfig({
   plugins: [tailwindcss(), solid()],
@@ -8,6 +9,12 @@ export default defineConfig({
   server: {
     proxy: {
       "/v1": "http://localhost:8080",
+    },
+  },
+
+  resolve: {
+    alias: {
+      "~": path.resolve(__dirname, "./src"),
     },
   },
 
