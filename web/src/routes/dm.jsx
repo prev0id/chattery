@@ -1,7 +1,8 @@
 import { useParams, createAsync } from "@solidjs/router";
 import { createMemo, Show, Suspense, createSignal, onMount } from "solid-js";
 import { fetchDMs } from "../lib/api";
-import AppHeader from "../components/AppHeader";
+import Header from "../components/Header";
+import HeaderItem from "../components/HeaderItem";
 import SidebarDM from "../components/SidebarDM";
 import { Chat, DMsType } from "../components/Chat";
 
@@ -29,7 +30,11 @@ export default function DMs() {
         </Suspense>
       </Sidebar>
       <main class="flex-1 flex flex-col h-full">
-        <AppHeader dmUsername={dmUsername} />
+        <Show when={dmUsername()} fallback={<Header />}>
+          <Header icon="text">
+            <HeaderItem>{dmUsername()}</HeaderItem>
+          </Header>
+        </Show>
         <Chat chatID={parseInt(params.dmID, 10)} type={DMsType} />
       </main>
       <Toasts />

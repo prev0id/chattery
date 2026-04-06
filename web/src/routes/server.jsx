@@ -1,7 +1,8 @@
 import { useParams, createAsync } from "@solidjs/router";
 import { createMemo, Suspense, Show, createSignal, onMount } from "solid-js";
 import { fetchServers } from "../lib/api";
-import AppHeader from "../components/AppHeader";
+import Header from "../components/Header";
+import HeaderItem from "../components/HeaderItem";
 import { Chat, ServersType, TopicTypeText } from "../components/Chat";
 
 import Toasts from "../components/Toast";
@@ -43,12 +44,11 @@ export default function Servers() {
         </Suspense>
       </Sidebar>
       <main class="flex-1 flex flex-col h-full">
-        <Show when={serverData()} fallback={<AppHeader />}>
-          <AppHeader
-            serverName={serverData().serverName}
-            topicName={serverData().topicName}
-            topicType={serverData().topicType}
-          />
+        <Show when={serverData()} fallback={<Header />}>
+          <Header icon={serverData().topicType}>
+            <HeaderItem>{serverData().serverName}</HeaderItem>
+            <HeaderItem>{serverData().topicName}</HeaderItem>
+          </Header>
         </Show>
         <Show when={params.topicType === TopicTypeText}>
           <Chat chatID={parseInt(params.topicID, 10)} type={ServersType} />
