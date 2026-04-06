@@ -8,7 +8,7 @@ import { Chat, DMsType } from "../components/Chat";
 
 import Toasts from "../components/Toast";
 import Sidebar from "../components/Sidebar";
-import { Loader } from "lucide-solid";
+import Button from "../components/Button";
 
 export default function DMs() {
   const params = useParams();
@@ -24,10 +24,11 @@ export default function DMs() {
 
   return (
     <>
-      <Sidebar>
-        <Suspense fallback={<LoadingSpinner />}>
-          <SidebarDM dms={dmsQuery} />
-        </Suspense>
+      <Sidebar fallback="Loading DMs...">
+        <Button variant="amber" class="mx-4">
+          Search users
+        </Button>
+        <For each={dmsQuery()}>{(dm) => <SidebarDM dm={dm} />}</For>
       </Sidebar>
       <main class="flex-1 flex flex-col h-full">
         <Show when={dmUsername()} fallback={<Header />}>
@@ -39,24 +40,5 @@ export default function DMs() {
       </main>
       <Toasts />
     </>
-  );
-}
-
-function LoadingSpinner() {
-  const [show, setShow] = createSignal(false);
-
-  onMount(() => {
-    const timer = setTimeout(() => setShow(true), 300);
-    return () => clearTimeout(timer);
-  });
-
-  return (
-    <Show when={show()}>
-      return (
-      <div class="mx-auto mt-8 flex items-center gap-2">
-        <Loader class="size-5 animate-spin" />
-        <span class="tracking-wider text-lg font-semibold">Loading DMs...</span>
-      </div>
-    </Show>
   );
 }

@@ -6,7 +6,7 @@ const iconClasses = "size-8 mr-4";
 export default function Header(props) {
   const items = children(() => props.children);
 
-  console.log(items());
+  console.log(items.toArray().length);
 
   return (
     <header class="border-b-3 px-4 py-2 flex items-center bg-emerald-50">
@@ -18,11 +18,11 @@ export default function Header(props) {
           <Mic class={iconClasses} />
         </Match>
       </Switch>
-      <For each={items()}>
+      <For each={items.toArray()}>
         {(item, index) => (
           <>
             {item}
-            <Show when={index() + 1 !== items().length}>
+            <Show when={index() + 1 !== items.toArray().length}>
               <ChevronRight class="size-6" />
             </Show>
           </>

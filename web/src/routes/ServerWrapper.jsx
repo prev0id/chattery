@@ -1,9 +1,6 @@
 import { useParams, createAsync } from "@solidjs/router";
 import { createMemo, Suspense, Show, createSignal, onMount } from "solid-js";
 import { fetchServers } from "../lib/api";
-import Header from "../components/Header";
-import HeaderItem from "../components/HeaderItem";
-import { Chat, ServersType, TopicTypeText } from "../components/Chat";
 
 import Toasts from "../components/Toast";
 import Sidebar from "../components/Sidebar";
@@ -11,7 +8,7 @@ import SidebarServer from "../components/SidebarServer";
 import { Loader } from "lucide-solid";
 import Button from "../components/Button";
 
-export default function Servers() {
+export default function ServerPage(props) {
   const params = useParams();
 
   const serversQuery = createAsync(() => fetchServers());
@@ -57,17 +54,7 @@ export default function Servers() {
           </Index>
         </Suspense>
       </Sidebar>
-      <main class="flex-1 flex flex-col h-full">
-        <Show when={state()} fallback={<Header />}>
-          <Header icon={state().topic?.type}>
-            <HeaderItem>{state().server?.name}</HeaderItem>
-            <HeaderItem>{state().topic?.name}</HeaderItem>
-          </Header>
-        </Show>
-        <Show when={state().topic?.type === TopicTypeText}>
-          <Chat chatID={parseInt(params.topicID, 10)} type={ServersType} />
-        </Show>
-      </main>
+      <main class="flex-1 flex flex-col h-full">{props.children}</main>
       <Toasts />
     </>
   );

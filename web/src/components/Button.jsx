@@ -1,6 +1,6 @@
 export default function Button(props) {
   const base =
-    " px-2 text-center hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none";
+    "px-2 text-center hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none";
 
   const colorMap = {
     amber:
