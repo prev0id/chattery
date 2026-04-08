@@ -41,7 +41,7 @@ type PostLeaveServerRequest struct {
 	ServerID int64 `json:"server_id"`
 }
 
-type PostServerUpdateRequest struct {
+type PostUpdateServerRequest struct {
 	ServerID int64  `json:"server_id"`
 	Name     string `json:"name"`
 }

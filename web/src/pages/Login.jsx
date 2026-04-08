@@ -25,7 +25,7 @@ export default function Login() {
       });
 
       if (res.ok) {
-        window.location.href = "/app";
+        window.location.href = "/app/dm";
         return;
       }
 

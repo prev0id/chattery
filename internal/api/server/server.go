@@ -64,7 +64,7 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Post("/create", s.PostCreateServer)
 		withAuthRouter.Post("/join", s.PostJoinServer)
 		withAuthRouter.Post("/leave", s.PostLeaveServer)
-		withAuthRouter.Post("/update", s.PostServerUpdate)
+		withAuthRouter.Post("/update", s.PostUpdateServer)
 		withAuthRouter.Delete("/delete", s.DeleteServer)
 
 		withAuthRouter.Post("/topic/create", s.PostTopicCreate)

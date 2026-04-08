@@ -6,6 +6,7 @@ import (
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/render"
+	"chattery/internal/utils/validate"
 )
 
 func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +19,10 @@ func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := validatePostCreateServer(request); err != nil {
+
+	}
+
 	serverID, err := s.server.CreateServer(ctx, request.Name, userID)
 	if err != nil {
 		render.Error(w, r, err)
@@ -25,4 +30,12 @@ func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Json(w, r, convertPostCreateServerResponse(serverID))
+}
+
+func validatePostCreateServer(request *PostCreateServerRequest) error {
+	if err := validate.ServerName(request.Name); err != nil {
+		return err
+	}
+
+	return nil
 }

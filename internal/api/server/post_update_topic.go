@@ -6,6 +6,7 @@ import (
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/render"
+	"chattery/internal/utils/validate"
 )
 
 func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
@@ -14,6 +15,11 @@ func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
 
 	request, err := bind.JSON[PostUpdateTopicRequest](r)
 	if err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
+	if err := validatePostUpdateTopic(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
@@ -27,4 +33,12 @@ func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func validatePostUpdateTopic(request *PostUpdateTopicRequest) error {
+	if err := validate.TopicName(request.Name); err != nil {
+		return err
+	}
+
+	return nil
 }

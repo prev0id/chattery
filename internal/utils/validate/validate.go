@@ -2,14 +2,23 @@ package validate
 
 import (
 	"net/mail"
+	"regexp"
+	"slices"
 
+	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 )
 
 const (
 	UsernameFieldName = "username"
+	NameFieldName     = "name"
+	TypeFieldName     = "type"
 	PasswordFieldName = "password"
 	LoginFieldName    = "login"
+)
+
+var (
+	onlyWords = regexp.MustCompile(`^[\w- ]+$`)
 )
 
 func Username(username string) error {
@@ -52,6 +61,39 @@ func Password(password string) error {
 		return err
 	}
 	if err := hasDigit(password, PasswordFieldName); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ServerName(name string) error {
+	if err := minLength(name, 5, NameFieldName); err != nil {
+		return err
+	}
+	if err := maxLength(name, 25, NameFieldName); err != nil {
+		return err
+	}
+	if err := containsOnlyWords(name, NameFieldName); err != nil {
+		return err
+	}
+	return nil
+}
+
+func TopicName(name string) error {
+	if err := minLength(name, 2, NameFieldName); err != nil {
+		return err
+	}
+	if err := maxLength(name, 20, NameFieldName); err != nil {
+		return err
+	}
+	if err := containsOnlyWords(name, NameFieldName); err != nil {
+		return err
+	}
+	return nil
+}
+
+func TopicType(type_ string) error {
+	if err := oneOf(type_, TypeFieldName, domain.TopicTypeText.String(), domain.TopicTypeVoice.String()); err != nil {
 		return err
 	}
 	return nil
@@ -134,7 +176,7 @@ func validEmail(str, field string) error {
 	}
 	return errors.E(err).
 		Kind(errors.InvalidRequest).
-		Messagef("%s must be a valid email address", LoginFieldName)
+		Messagef("%s must be a valid email address", field)
 }
 
 func containsOnlyLowerCaseAndUnderscore(str, field string) error {
@@ -151,6 +193,25 @@ func containsOnlyLowerCaseAndUnderscore(str, field string) error {
 	return errors.E().
 		Kind(errors.InvalidRequest).
 		Messagef("%s can only contain lowercase letters (a-z) and underscores", field)
+}
+
+func containsOnlyWords(str, field string) error {
+	if onlyWords.MatchString(str) {
+		return nil
+	}
+	return errors.E().
+		Kind(errors.InvalidRequest).
+		Messagef("%s can only contain letters (a-z, A-Z), digits, underscores and dashes -", field)
+}
+
+func oneOf[T comparable](value T, field string, targets ...T) error {
+	if slices.Contains(targets, value) {
+		return nil
+	}
+
+	return errors.E().
+		Kind(errors.InvalidRequest).
+		Messagef("%s can only one of values %v", field, targets)
 }
 
 func NotEmpty[T comparable](value T, field string) error {
