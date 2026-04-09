@@ -1,7 +1,5 @@
-import { Check, Trash2, X } from "lucide-solid";
-import { createSignal, For, Show } from "solid-js";
+import { Check, Trash2 } from "lucide-solid";
 import Button from "~/components/Button";
-import FormTextInput from "~/components/FormTextInput";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
 import { UseServerContext } from "~/stores/server";
@@ -11,8 +9,8 @@ import {
   updateTopicAction,
   deleteTopicAction,
   deleteServerAction,
-} from "~/lib/api";
-import { useAction, useSubmission, useSubmissions } from "@solidjs/router";
+} from "~/lib/edit_server";
+import { useAction, useSubmission } from "@solidjs/router";
 
 export default function Edit() {
   const { currentServer } = UseServerContext();
@@ -22,10 +20,11 @@ export default function Edit() {
   return (
     <>
       <Header icon="settings">
+        <HeaderItem>Edit</HeaderItem>
         <HeaderItem>{serverName()}</HeaderItem>
       </Header>
       <div class="m-auto max-w-xl min-w-sm w-full border-3 neo-shadow-lg rounded-xl p-4">
-        <SectionHeader>Update Server Name</SectionHeader>
+        <SectionHeader>Change Name</SectionHeader>
         <UpdateServerForm server={currentServer} />
 
         <SectionSeparator />

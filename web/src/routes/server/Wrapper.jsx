@@ -3,14 +3,14 @@ import Sidebar from "~/components/Sidebar";
 import SidebarServer from "~/components/SidebarServer";
 import Button from "~/components/Button";
 import { GetServers, ServerContext } from "~/stores/server";
-import { createAsync, useParams } from "@solidjs/router";
+import { createAsync, useNavigate, useParams } from "@solidjs/router";
 import { createMemo } from "solid-js";
 
 export default function Wrapper(props) {
+  const navigate = useNavigate();
+
   const params = useParams();
   const servers = createAsync(() => GetServers());
-
-  console.log(servers());
 
   const currentServerID = () => parseInt(params.serverID, 10);
   const currentTopicID = () => parseInt(params.topicID, 10);
@@ -28,7 +28,12 @@ export default function Wrapper(props) {
         <Button variant="amber" class="mx-4">
           Search Server
         </Button>
-        <Button variant="sky" class="mx-4" popovertarget="create-server-modal">
+        <Button
+          variant="sky"
+          class="mx-4"
+          popovertarget="create-server-modal"
+          onClick={() => navigate("/server/create")}
+        >
           Create Server
         </Button>
         <Index each={servers()}>

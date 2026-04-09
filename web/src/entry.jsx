@@ -7,6 +7,7 @@ import TextTopic from "./routes/server/TextTopic";
 import SelectServer from "./routes/server/Select";
 import VoiceTopic from "./routes/server/VoiceTopic";
 import EditServer from "./routes/server/Edit";
+import CreateServer from "./routes/server/Create";
 
 import DMWrapper from "./routes/dm/Wrapper";
 import SelectDM from "./routes/dm/Select";
@@ -27,6 +28,7 @@ render(
       </Route>
       <Route path="/server" component={ServerWrapper}>
         <Route path="/" component={SelectServer} />
+        <Route path="/create" component={CreateServer} />
         <Route
           path="/:serverID/text/:topicID"
           component={TextTopic}
