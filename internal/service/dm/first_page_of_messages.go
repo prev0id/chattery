@@ -35,7 +35,7 @@ func (s *Service) firstPageOfDMMessages(ctx context.Context, userID domain.UserI
 	}
 
 	if len(messages) > 0 {
-		lastSeenMessage := messages[0]
+		lastSeenMessage := messages[len(messages)-1]
 		if err := s.db.SetDMLastReadMessage(ctx, cursor.ChatID, userID, lastSeenMessage.ID); err != nil {
 			return nil, nil, errors.E(err).Debug("s.db.SetDMLastReadMessage")
 		}
