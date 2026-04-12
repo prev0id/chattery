@@ -25,13 +25,16 @@ export default function Wrapper(props) {
   return (
     <>
       <Sidebar>
-        <Button variant="amber" class="mx-4">
-          Search Server
+        <Button
+          variant="amber"
+          class="mx-4"
+          onClick={() => navigate("/server/manage")}
+        >
+          Manage Servers
         </Button>
         <Button
           variant="sky"
           class="mx-4"
-          popovertarget="create-server-modal"
           onClick={() => navigate("/server/create")}
         >
           Create Server
@@ -49,9 +52,8 @@ export default function Wrapper(props) {
         <ServerContext.Provider
           value={{
             currentServer,
-            currentServerID,
             currentTopic,
-            currentTopicID,
+            servers,
           }}
         >
           {props.children}

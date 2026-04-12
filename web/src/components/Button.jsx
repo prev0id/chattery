@@ -1,4 +1,15 @@
+import { splitProps } from "solid-js";
+
+const cn = (...classes) => classes.filter(Boolean).join(" ");
+
 export default function Button(props) {
+  const [local, rest] = splitProps(props, [
+    "variant",
+    "smallText",
+    "sideways",
+    "class",
+  ]);
+
   const base =
     "px-2 text-center hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none";
 
@@ -13,12 +24,15 @@ export default function Button(props) {
 
   return (
     <button
-      {...props}
-      class={`${base} ${colorMap[props.variant ?? "sky"]} ${props.class ?? ""}`}
-      classList={{
-        "[writing-mode:sideways-lr]": props.sideways,
-        "text-lg font-semibold tracking-widest": !props.smallText,
-      }}
+      {...rest}
+      type={rest.type ?? "button"}
+      class={cn(
+        base,
+        colorMap[local.variant ?? "sky"],
+        !local.smallText && "text-lg font-semibold tracking-widest",
+        local.sideways && "[writing-mode:sideways-lr]",
+        local.class,
+      )}
     >
       {props.children}
     </button>

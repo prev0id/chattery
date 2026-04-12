@@ -1,4 +1,4 @@
-import { action } from "@solidjs/router";
+import { action, redirect } from "@solidjs/router";
 
 async function updateServer(serverId, name) {
   try {
@@ -150,7 +150,7 @@ export const deleteServerAction = action(async (serverID) => {
   if (result?.error) {
     return { ok: false, error: result.error };
   }
-  return { ok: true };
+  return redirect("/server");
 }, "delete_server_action");
 
 export async function fetchDMs() {

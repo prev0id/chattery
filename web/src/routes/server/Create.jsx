@@ -1,8 +1,7 @@
-import { Check, Trash2 } from "lucide-solid";
 import Button from "~/components/Button";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { useNavigate, useSubmission } from "@solidjs/router";
+import { useSubmission } from "@solidjs/router";
 import { createServerAction } from "~/lib/create_server";
 
 export default function Create() {
