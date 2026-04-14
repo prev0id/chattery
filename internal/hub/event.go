@@ -30,13 +30,16 @@ const (
 	EventLeave   EventType = "leave"
 	EventMessage EventType = "message"
 	EventError   EventType = "error"
+	EventPing    EventType = "ping"
+	EventPong    EventType = "pong"
 )
 
 type ChannelType string
 
 const (
-	ChannelDM     ChannelType = "dm"
-	ChannelServer ChannelType = "server"
+	ChannelDM        ChannelType = "dm"
+	ChannelTextTopic ChannelType = "text_topic"
+	ChannelVoice     ChannelType = "voice"
 )
 
 type ChannelKey struct {

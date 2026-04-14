@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 )
+
+const userActivityTTL = 90 * time.Second
 
 func (s *Service) CreateMessage(ctx context.Context, message *domain.TopicMessage) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
@@ -22,8 +25,21 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 		return errors.E(err).Debug("s.db.CreateMessage")
 	}
 
-	if err := s.redis.PublishTopicMessage(ctx, message); err != nil {
-		return errors.E(err).Debug("s.redis.PublishTopicMessage")
+	participants, err := s.redis.ListUsersInTextTopic(ctx, message.TopicID, userActivityTTL)
+	if err != nil {
+		return errors.E(err).Debug("s.db.GetTopicParticipants")
+	}
+
+	userMsg := &domain.UserMessage{
+		Type:      domain.UserMessageTypeTopic,
+		ChannelID: message.TopicID.I64(),
+		TopicMsg:  message,
+	}
+
+	for _, participantID := range participants {
+		if err := s.redis.PublishToUser(ctx, participantID, userMsg); err != nil {
+			errors.E(err).Debug("s.redis.PublishToUser")
+		}
 	}
 
 	return nil

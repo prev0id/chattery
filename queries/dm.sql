@@ -62,3 +62,7 @@ JOIN dm_participants p2 ON p1.dm_id = p2.dm_id
 JOIN dms d ON d.id = p1.dm_id
 WHERE p1.user_id = $1 AND p2.user_id = $2
 LIMIT 1;
+
+-- name: GetDMParticipants :many
+SELECT user_id FROM dm_participants
+WHERE dm_id = $1;

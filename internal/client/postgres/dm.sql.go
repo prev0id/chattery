@@ -76,7 +76,7 @@ func (q *Queries) CreateDMParticipant(ctx context.Context, arg *CreateDMParticip
 const firstPageOfDMMessages = `-- name: FirstPageOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1
-ORDER BY created_at ASC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $2
 `
 
@@ -89,7 +89,7 @@ type FirstPageOfDMMessagesParams struct {
 //
 //	SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 //	WHERE dm_id = $1
-//	ORDER BY created_at ASC, id DESC
+//	ORDER BY created_at ASC, id ASC
 //	LIMIT $2
 func (q *Queries) FirstPageOfDMMessages(ctx context.Context, arg *FirstPageOfDMMessagesParams) ([]*DmMessage, error) {
 	rows, err := q.db.Query(ctx, firstPageOfDMMessages, arg.DmID, arg.Limit)
@@ -172,10 +172,39 @@ func (q *Queries) GetDMParticipant(ctx context.Context, arg *GetDMParticipantPar
 	return &i, err
 }
 
+const getDMParticipants = `-- name: GetDMParticipants :many
+SELECT user_id FROM dm_participants
+WHERE dm_id = $1
+`
+
+// GetDMParticipants
+//
+//	SELECT user_id FROM dm_participants
+//	WHERE dm_id = $1
+func (q *Queries) GetDMParticipants(ctx context.Context, dmID int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getDMParticipants, dmID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var user_id int64
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const nextPagesOfDMMessages = `-- name: NextPagesOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-ORDER BY created_at ASC, id DESC
+ORDER BY created_at ASC, id ASC
 LIMIT $4
 `
 
@@ -190,7 +219,7 @@ type NextPagesOfDMMessagesParams struct {
 //
 //	SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 //	WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
-//	ORDER BY created_at ASC, id DESC
+//	ORDER BY created_at ASC, id ASC
 //	LIMIT $4
 func (q *Queries) NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMMessagesParams) ([]*DmMessage, error) {
 	rows, err := q.db.Query(ctx, nextPagesOfDMMessages,

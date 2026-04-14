@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
@@ -34,7 +35,10 @@ type txManager interface {
 }
 
 type redis interface {
-	PublishTopicMessage(ctx context.Context, message *domain.TopicMessage) error
+	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
+	AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
+	ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error)
+	RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
 }
 
 type Service struct {

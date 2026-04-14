@@ -57,7 +57,7 @@ func (s *Server) WebsocketEntrypoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	connection := hub.NewConnection(s.hub, userID, conn)
+	connection := hub.NewConnection(s.hub, userID, conn, ctx)
 	s.hub.RegisterConnection(connection)
 
 	var wg sync.WaitGroup

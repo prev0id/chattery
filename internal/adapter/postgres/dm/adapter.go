@@ -160,3 +160,11 @@ func (a *Adapter) GetDMBetweenUsers(ctx context.Context, userID1, userID2 domain
 		ID: domain.DMID(dmID),
 	}, nil
 }
+
+func (a *Adapter) GetDMParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error) {
+	ids, err := a.db.Query(ctx).GetDMParticipants(ctx, dmID.I64())
+	if err != nil {
+		return nil, errors.E(err).Debug("Query.GetDMParticipants")
+	}
+	return sliceutil.Map(ids, func(id int64) domain.UserID { return domain.UserID(id) }), nil
+}

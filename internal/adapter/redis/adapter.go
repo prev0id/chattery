@@ -10,7 +10,10 @@ import (
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
+	"chattery/internal/utils/sliceutil"
 )
+
+const userActivityTTL = 90 * time.Second
 
 type client interface {
 	GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error)
@@ -18,6 +21,9 @@ type client interface {
 	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channel string, message string) error
 	Subscribe(ctx context.Context, channel string, sink chan<- string, done <-chan struct{})
+	ZMembersI64(ctx context.Context, key string, threshold time.Duration) ([]int64, error)
+	ZAddI64(ctx context.Context, key string, value int64) error
+	ZRemoveI64(ctx context.Context, key string, value int64) error
 }
 
 type Adapter struct {
@@ -52,38 +58,34 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 
 }
 
-func (r *Adapter) PublishDMMessage(ctx context.Context, message *domain.DMMessage) error {
-	renderedMessage, err := render.JsonString(message)
-	if err != nil {
-		return errors.E(err).Debug("render.JsonString")
+func (r *Adapter) AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
+	if err := r.client.ZAddI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
+		return errors.E(err).Debug("r.client.ZAddI64")
 	}
-
-	if err := r.client.Publish(ctx, dmChannelKey(message.DMID), renderedMessage); err != nil {
-		return errors.E(err).Debug("r.client.Publish")
-	}
-
 	return nil
 }
 
-func (r *Adapter) PublishTopicMessage(ctx context.Context, message *domain.TopicMessage) error {
-	renderedMessage, err := render.JsonString(message)
+func (r *Adapter) ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error) {
+	users, err := r.client.ZMembersI64(ctx, textTopicMembersKey(topicID), threshold)
 	if err != nil {
-		return errors.E(err).Debug("render.JsonString")
+		return nil, errors.E(err).Debug("r.client.ZMembersI64")
 	}
+	return sliceutil.Map(users, convertI64ToUserID), nil
+}
 
-	if err := r.client.Publish(ctx, serverChannelKey(message.TopicID), renderedMessage); err != nil {
-		return errors.E(err).Debug("r.client.Publish")
+func (r *Adapter) RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
+	if err := r.client.ZRemoveI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
+		return errors.E(err).Debug("r.client.ZRemoveI64")
 	}
-
 	return nil
 }
 
-func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<- *domain.DMMessage) {
+func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst chan<- *domain.UserMessage) {
 	sink := make(chan string)
 	done := make(chan struct{})
 
 	go func() {
-		r.client.Subscribe(ctx, dmChannelKey(dmID), sink, done)
+		r.client.Subscribe(ctx, userChannelKey(userID), sink, done)
 	}()
 
 	for {
@@ -92,9 +94,9 @@ func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<
 			close(done)
 			return
 		case rawMessage := <-sink:
-			message, err := bind.JsonString[domain.DMMessage](rawMessage)
+			message, err := bind.JsonString[domain.UserMessage](rawMessage)
 			if err != nil {
-				logger.Error(err, "[redis_adapter] bind.JsonString DMMessage")
+				logger.Error(err, "[redis_adapter] bind.JsonString UserMessage")
 				continue
 			}
 			dst <- message
@@ -102,40 +104,35 @@ func (r *Adapter) SubscribeToDM(ctx context.Context, dmID domain.DMID, dst chan<
 	}
 }
 
-func (r *Adapter) SubscribeToServerTopic(ctx context.Context, topicID domain.TopicID, dst chan<- *domain.TopicMessage) {
-	sink := make(chan string)
-	done := make(chan struct{})
-
-	go func() {
-		r.client.Subscribe(ctx, serverChannelKey(topicID), sink, done)
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			close(done)
-			close(dst)
-			return
-
-		case rawMessage := <-sink:
-			message, err := bind.JsonString[domain.TopicMessage](rawMessage)
-			if err != nil {
-				logger.Error(err, "[redis_adapter] bind.JsonString TopicMessage")
-				continue
-			}
-			dst <- message
-		}
+func (r *Adapter) PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error {
+	renderedMessage, err := render.JsonString(message)
+	if err != nil {
+		return errors.E(err).Debug("render.JsonString")
 	}
+
+	if err := r.client.Publish(ctx, userChannelKey(userID), renderedMessage); err != nil {
+		return errors.E(err).Debug("r.client.Publish")
+	}
+
+	return nil
+}
+
+func textTopicMembersKey(topicID domain.TopicID) string {
+	return "topic:text:" + topicID.String() + ":members"
 }
 
 func sessionKey(session domain.Session) string {
 	return "Session_" + session.String()
 }
 
-func dmChannelKey(dmID domain.DMID) string {
-	return "DM:" + strconv.FormatInt(dmID.I64(), 10)
+func userChannelKey(userID domain.UserID) string {
+	return "user:" + strconv.FormatInt(userID.I64(), 10)
 }
 
-func serverChannelKey(topicID domain.TopicID) string {
-	return "Server:" + strconv.FormatInt(topicID.I64(), 10)
+func userActivityKey(userID domain.UserID) string {
+	return "user:activity:" + strconv.FormatInt(userID.I64(), 10)
+}
+
+func convertI64ToUserID(userID int64) domain.UserID {
+	return domain.UserID(userID)
 }

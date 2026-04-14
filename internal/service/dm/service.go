@@ -18,10 +18,11 @@ type db interface {
 	NextPagesOfDMMessages(ctx context.Context, cursor *domain.DMCursor) ([]*domain.DMMessage, error)
 	GetDMParticipant(ctx context.Context, dmID domain.DMID, userID domain.UserID) (*domain.DMParticipant, error)
 	GetDMBetweenUsers(ctx context.Context, userID1, userID2 domain.UserID) (*domain.DM, error)
+	GetDMParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error)
 }
 
 type redis interface {
-	PublishDMMessage(ctx context.Context, message *domain.DMMessage) error
+	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
 }
 
 type txManager interface {
@@ -63,4 +64,8 @@ func (s *Service) UserHasAccessToDM(ctx context.Context, userID domain.UserID, d
 		return err
 	}
 	return nil
+}
+
+func (s *Service) GetParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error) {
+	return s.db.GetDMParticipants(ctx, dmID)
 }

@@ -29,8 +29,21 @@ func (s *Service) createDMMessage(ctx context.Context, message *domain.DMMessage
 
 	message.ID = messageID
 
-	if err := s.redis.PublishDMMessage(ctx, message); err != nil {
-		return errors.E(err).Debug("s.redis.PublishDMMessage")
+	participants, err := s.db.GetDMParticipants(ctx, message.DMID)
+	if err != nil {
+		return errors.E(err).Debug("s.db.GetDMParticipants")
+	}
+
+	userMsg := &domain.UserMessage{
+		Type:      domain.UserMessageTypeDM,
+		ChannelID: message.DMID.I64(),
+		DMMessage: message,
+	}
+
+	for _, participantID := range participants {
+		if err := s.redis.PublishToUser(ctx, participantID, userMsg); err != nil {
+			errors.E(err).Debug("s.redis.PublishToUser")
+		}
 	}
 
 	return nil

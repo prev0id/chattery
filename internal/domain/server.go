@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type Server struct {
 	ID       ServerID
@@ -25,6 +28,8 @@ type Topic struct {
 type TopicID int64
 
 func (id TopicID) I64() int64 { return int64(id) }
+
+func (id TopicID) String() string { return strconv.FormatInt(id.I64(), 10) }
 
 type TopicType string
 

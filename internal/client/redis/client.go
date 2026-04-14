@@ -2,12 +2,15 @@ package redis
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 
 	"chattery/internal/utils/errors"
 )
+
+const inf = "+inf"
 
 type Client struct {
 	conn *redis.Client
@@ -53,6 +56,39 @@ func (c *Client) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+func (c *Client) ZAddI64(ctx context.Context, key string, value int64) error {
+	member := redis.Z{
+		Member: value,
+		Score:  float64(time.Now().Unix()),
+	}
+	if err := c.conn.ZAdd(ctx, key, member).Err(); err != nil {
+		return errors.E(err).Debug("key:"+key, "c.conn.SAdd")
+	}
+	return nil
+}
+
+func (c *Client) ZMembersI64(ctx context.Context, key string, threshold time.Duration) ([]int64, error) {
+	rangeOpts := &redis.ZRangeBy{
+		Min: strconv.FormatInt(time.Now().Add(-threshold).Unix(), 10),
+		Max: inf,
+	}
+
+	members, err := c.conn.ZRangeByScore(ctx, key, rangeOpts).Result()
+	if err != nil {
+		return nil, errors.E(err).Debug("key:"+key, "c.conn.SMembers")
+	}
+
+	result := make([]int64, 0, len(members))
+	for _, member := range members {
+		i64, err := strconv.ParseInt(member, 10, 64)
+		if err != nil {
+			return nil, errors.E(err).Debug("key:"+key, "can't parse int64", member)
+		}
+		result = append(result, i64)
+	}
+	return result, nil
+}
+
 func (c *Client) Publish(ctx context.Context, channel string, message string) error {
 	if err := c.conn.Publish(ctx, channel, message).Err(); err != nil {
 		return errors.E(err).Debug("channel:" + channel)
@@ -76,4 +112,11 @@ func (c *Client) Subscribe(ctx context.Context, channel string, sink chan<- stri
 			sink <- message.Payload
 		}
 	}
+}
+
+func (c *Client) ZRemoveI64(ctx context.Context, key string, value int64) error {
+	if err := c.conn.ZRem(ctx, key, value).Err(); err != nil {
+		return errors.E(err).Debug("key:"+key, "c.conn.ZRem")
+	}
+	return nil
 }

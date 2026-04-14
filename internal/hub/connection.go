@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/coder/websocket"
 
@@ -12,22 +13,28 @@ import (
 	"chattery/internal/utils/render"
 )
 
+const pingInterval = 15 * time.Second
+
 type Connection struct {
-	hub        *Hub
-	userID     domain.UserID
-	ws         *websocket.Conn
-	send       chan any
-	active     bool
-	channelKey ChannelKey
+	hub    *Hub
+	userID domain.UserID
+	ws     *websocket.Conn
+	send   chan *Event
+	active bool
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-func NewConnection(hub *Hub, userID domain.UserID, ws *websocket.Conn) *Connection {
+func NewConnection(hub *Hub, userID domain.UserID, ws *websocket.Conn, ctx context.Context) *Connection {
+	ctx, cancel := context.WithCancel(ctx)
 	return &Connection{
 		hub:    hub,
 		userID: userID,
 		ws:     ws,
-		send:   make(chan any, 256),
-		active: false,
+		send:   make(chan *Event, 256),
+		active: true,
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 
@@ -35,20 +42,15 @@ func (c *Connection) GetUserID() domain.UserID {
 	return c.userID
 }
 
-func (c *Connection) GetChannelKey() ChannelKey {
-	return c.channelKey
-}
-
 func (c *Connection) ReadPump(ctx context.Context) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	defer func() {
-		c.hub.Leave(ctx, c.userID, c.channelKey.Type, c.channelKey.ID)
+		c.cancel()
 		c.hub.UnregisterConnection(c)
 		close(c.send)
 		c.ws.Close(websocket.StatusNormalClosure, "")
 	}()
+
+	c.hub.SubscribeUser(c.ctx, c.userID)
 
 	for {
 		_, rawEvent, err := c.ws.Read(ctx)
@@ -66,30 +68,12 @@ func (c *Connection) ReadPump(ctx context.Context) {
 		}
 
 		switch event.Type {
+		case EventPong:
+			c.handlePong(event)
 		case EventJoin:
-			if event.ChannelType == "" || event.ChannelID == 0 {
-				c.sendError("channel_type and channel_id required")
-				continue
-			}
-			if c.active {
-				c.sendError("already joined a channel")
-				continue
-			}
-			if err := c.hub.Join(ctx, c.userID, event.ChannelType, event.ChannelID); err != nil {
-				c.sendError(err.Error())
-				continue
-			}
-			c.active = true
-			c.channelKey = ChannelKey{Type: event.ChannelType, ID: event.ChannelID}
-
+			c.handleJoin(event)
 		case EventLeave:
-			if !c.active {
-				continue
-			}
-			c.hub.Leave(ctx, c.userID, c.channelKey.Type, c.channelKey.ID)
-			c.active = false
-			c.channelKey = ChannelKey{}
-
+			c.handleLeave(event)
 		default:
 			c.sendError("unknown event type")
 		}
@@ -99,10 +83,15 @@ func (c *Connection) ReadPump(ctx context.Context) {
 func (c *Connection) WritePump(ctx context.Context) {
 	defer c.ws.Close(websocket.StatusNormalClosure, "")
 
+	pingTicker := time.NewTicker(pingInterval)
+	defer pingTicker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
+		case <-pingTicker.C:
+			c.sendPing()
 		case message, ok := <-c.send:
 			if !ok {
 				return
@@ -119,6 +108,39 @@ func (c *Connection) WritePump(ctx context.Context) {
 				return
 			}
 		}
+	}
+}
+
+func (c *Connection) sendPing() {
+	event := Event{
+		Type: EventPing,
+	}
+	bytes, err := render.JsonBytes(event)
+	if err != nil {
+		logger.Error(err, "[connection] render.JsonBytes ping")
+		return
+	}
+	c.ws.Write(context.Background(), websocket.MessageText, bytes)
+}
+
+func (c *Connection) handlePong(event Event) {
+	topicID := domain.TopicID(event.ChannelID)
+	if err := c.hub.AddUserInTextTopic(c.ctx, c.userID, topicID); err != nil {
+		logger.Error(err, "[connection] ackPong: AddUserInTextTopic")
+	}
+}
+
+func (c *Connection) handleJoin(event Event) {
+	topicID := domain.TopicID(event.ChannelID)
+	if err := c.hub.AddUserInTextTopic(c.ctx, c.userID, topicID); err != nil {
+		logger.Error(err, "[connection] handleJoin: AddUserInTextTopic")
+	}
+}
+
+func (c *Connection) handleLeave(event Event) {
+	topicID := domain.TopicID(event.ChannelID)
+	if err := c.hub.RemoveUserFromTextTopic(c.ctx, c.userID, topicID); err != nil {
+		logger.Error(err, "[connection] handleLeave: RemoveUserFromTextTopic")
 	}
 }
 
