@@ -66,6 +66,7 @@ export default function Login() {
             value={password}
             onInput={(e) => setPassword(e.currentTarget.value)}
             required
+            autocomplete="off"
           />
           <Button
             type="button"
