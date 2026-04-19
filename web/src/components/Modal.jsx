@@ -5,7 +5,7 @@ export default function Modal(props) {
     <div
       popover
       id={props.id}
-      class="border-3 w-md neo-shadow-lg rounded-xl m-auto p-4"
+      class="border-3 w-md neo-shadow-lg rounded-xl m-auto p-4 backdrop:backdrop-blur-sm backdrop:bg-rose-50/20"
     >
       <div class="flex justify-between items-center">
         <h1 class="text-2xl font-semibold tracking-wider">{props.name}</h1>

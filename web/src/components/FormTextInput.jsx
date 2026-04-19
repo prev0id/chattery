@@ -5,7 +5,7 @@ export default function FormTextInput(props) {
   return (
     <>
       <Show when={props.label}>
-        <label class="block font-semibold" for={id}>
+        <label class="block font-semibold tracking-wider" for={id}>
           {props.label}
         </label>
       </Show>
@@ -16,6 +16,7 @@ export default function FormTextInput(props) {
         value={props.value()}
         onInput={(event) => props.onInput(event)}
         required={props.required}
+        autocomplete={props.autocomplete}
       />
     </>
   );

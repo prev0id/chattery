@@ -20,13 +20,12 @@ export default defineConfig({
 
   build: {
     target: "esnext",
-    // rollupOptions: {
-    //   input: {
-    //     login: "login.html",
-    //     signup: "signup.html",
-    //     app: "app.html",
-    //     app2: "app2.html",
-    //   },
-    // },
+    rollupOptions: {
+      input: {
+        login: "login.html",
+        signup: "signup.html",
+        index: "index.html",
+      },
+    },
   },
 });
