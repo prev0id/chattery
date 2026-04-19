@@ -139,3 +139,29 @@ To fix:
 - [ ] Unit tests
 - [ ] E2E tests
 - [ ] Push notifications
+
+## работа очередей
+
+### Messaging
+
+-> function call
+<- PUBSUB by user_id
+
+user -> ws :  {join, chat_id}
+ws -> rabbitmq : PUBLISH chat_events {chat_id, join, user_id}
+rabbitmq -> chat : CONSUME chat_events {chat_id, join, user_id}
+chat -> reddis : SET chat:chat_id:active
+
+user -> chat : POST /v1/api/chat/message {chat_id, message}
+chat -> reddis : GET chat:chat_id:active
+chat -> rabbitmq : PUBLISH user_events_exchange {chat_id, message}
+rabbitmq -> ws : CONSUME user_events_queue {chat_id, join, user_id}
+
+### Call service
+
+user -> ws : {join, call_id}
+ws -> call : JoinUser(call_id, user_id, conn_id)
+call -> reddis : SET call:{call_id}:lock {service_id} NX PX 10000
+call -> rabbitmq : PUBLISH user_events_exchange {conn_id, call, message}
+rabbitmq -> ws : CONSUME user_events_queue {chat_id, join, user_id}
+user -> ws :  {join_ok, chat_id}
