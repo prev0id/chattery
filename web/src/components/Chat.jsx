@@ -72,7 +72,6 @@ export function Chat(props) {
           : await fetchDMMessages(chat.id, cursor);
 
       const olderMessages = response?.messages.reverse() ?? [];
-      console.log(cursor);
       if (olderMessages.length > 0) {
         setMessages((prev) => [...olderMessages, ...prev]);
         setMessagesCursor(response?.cursor ?? null);
@@ -81,6 +80,8 @@ export function Chat(props) {
           const newScrollHeight = el.scrollHeight;
           el.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
         });
+      } else {
+        setMessagesCursor(null);
       }
     } finally {
       setLoading(false);
