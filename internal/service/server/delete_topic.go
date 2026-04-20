@@ -29,7 +29,7 @@ func (s *Service) validateDeleteTopic(ctx context.Context, topicID domain.TopicI
 		return err
 	}
 
-	topic, err := s.GetTopic(ctx, topicID)
+	topic, err := s.getTopic(ctx, topicID)
 	if err != nil {
 		return err
 	}

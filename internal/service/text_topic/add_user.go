@@ -1,4 +1,4 @@
-package server
+package text_topic
 
 import (
 	"context"

@@ -20,7 +20,7 @@ func (s *Server) PostTopicMessage(w http.ResponseWriter, r *http.Request) {
 
 	message := convertPostMessageRequest(request, userID)
 
-	if err := s.server.CreateMessage(ctx, message); err != nil {
+	if err := s.textTopic.CreateMessage(ctx, message); err != nil {
 		render.Error(w, r, err)
 		return
 	}

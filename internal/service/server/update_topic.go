@@ -29,7 +29,7 @@ func (s *Service) validateUpdateTopic(ctx context.Context, topic *domain.Topic, 
 		return err
 	}
 
-	topicFromDB, err := s.GetTopic(ctx, topic.ID)
+	topicFromDB, err := s.getTopic(ctx, topic.ID)
 	if err != nil {
 		return err
 	}

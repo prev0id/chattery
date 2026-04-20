@@ -1,4 +1,4 @@
-package server
+package text_topic
 
 import (
 	"context"
@@ -46,7 +46,7 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 }
 
 func (s *Service) validateCreateMessage(ctx context.Context, message *domain.TopicMessage) error {
-	topic, err := s.GetTopic(ctx, message.TopicID)
+	topic, err := s.getTopic(ctx, message.TopicID)
 	if err != nil {
 		return err
 	}

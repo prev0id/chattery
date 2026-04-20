@@ -19,6 +19,7 @@ import (
 	hub_pkg "chattery/internal/hub"
 	"chattery/internal/service/dm"
 	"chattery/internal/service/server"
+	text_topic "chattery/internal/service/text_topic"
 	"chattery/internal/service/user"
 	syncer "chattery/internal/store/syncer"
 	user_store "chattery/internal/store/user"
@@ -53,6 +54,7 @@ func main() {
 
 	dmService := dm.New(dmDB, transactionManager, redisAdapter, cfg)
 	serverService := server.New(serverDB, transactionManager, redisAdapter, cfg)
+	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	userStore := user_store.New(userDB)
@@ -61,7 +63,7 @@ func main() {
 		logger.Fatal(err, "syncer.New")
 	}
 
-	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, userStore)
+	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, textTopicService, userStore)
 
 	server := api.
 		NewServer(cfg).
@@ -72,7 +74,7 @@ func main() {
 			image_api.New(userStore),
 			dm_api.New(userService, dmService, userStore),
 			web_api.New(),
-			server_api.New(userService, serverService, userStore),
+			server_api.New(userService, serverService, textTopicService, userStore),
 		)
 
 	if err := server.Run(); err != nil {

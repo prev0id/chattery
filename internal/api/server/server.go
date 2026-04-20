@@ -22,8 +22,9 @@ type serverService interface {
 	CreateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) (domain.TopicID, error)
 	UpdateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) error
 	DeleteTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
-	GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error)
+}
 
+type textTopicService interface {
 	CreateMessage(ctx context.Context, message *domain.TopicMessage) error
 	FirstPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error)
 	NextPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error)
@@ -39,16 +40,18 @@ type userCache interface {
 }
 
 type Server struct {
-	user   userService
-	server serverService
-	cache  userCache
+	user      userService
+	server    serverService
+	textTopic textTopicService
+	cache     userCache
 }
 
-func New(user userService, server serverService, cache userCache) *Server {
+func New(user userService, server serverService, textTopic textTopicService, cache userCache) *Server {
 	return &Server{
-		user:   user,
-		server: server,
-		cache:  cache,
+		user:      user,
+		server:    server,
+		textTopic: textTopic,
+		cache:     cache,
 	}
 }
 

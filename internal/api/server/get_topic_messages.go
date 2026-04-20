@@ -27,9 +27,9 @@ func (s *Server) GetTopicMessages(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if cursor != nil && cursor.MessageID != 0 {
-		messages, nextCursor, err = s.server.NextPageOfMessages(ctx, cursor, userID)
+		messages, nextCursor, err = s.textTopic.NextPageOfMessages(ctx, cursor, userID)
 	} else {
-		messages, nextCursor, err = s.server.FirstPageOfMessages(ctx, cursor, userID)
+		messages, nextCursor, err = s.textTopic.FirstPageOfMessages(ctx, cursor, userID)
 	}
 
 	if err != nil {

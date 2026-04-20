@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"time"
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
+	"chattery/internal/utils/errors"
 )
 
 type db interface {
@@ -24,10 +24,6 @@ type db interface {
 	CreateTopic(ctx context.Context, topic *domain.Topic) (domain.TopicID, error)
 	UpdateTopic(ctx context.Context, topic *domain.Topic) error
 	DeleteTopic(ctx context.Context, topicID domain.TopicID) error
-
-	CreateMessage(ctx context.Context, message *domain.TopicMessage) error
-	FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
-	NextPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
 }
 
 type txManager interface {
@@ -36,9 +32,6 @@ type txManager interface {
 
 type redis interface {
 	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
-	AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
-	ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error)
-	RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
 }
 
 type Service struct {
@@ -57,29 +50,15 @@ func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Co
 	}
 }
 
-func (s *Service) getNextCursor(topicID domain.TopicID, messages []*domain.TopicMessage) *domain.TopicCursor {
-	if len(messages) != s.limit {
-		return nil
-	}
-
-	lastMessage := messages[len(messages)-1]
-	return &domain.TopicCursor{
-		ChatID:    topicID,
-		MessageID: lastMessage.ID,
-		Timestamp: lastMessage.CreatedAt,
-	}
-}
-
-func (s *Service) UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
+func (s *Service) getTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error) {
 	topic, err := s.db.GetTopic(ctx, topicID)
-	if err != nil {
-		return err
+	if errors.Is(errors.NotFound, err) {
+		return nil, errors.E(err).Messagef("topic id='%d' not found", topicID.I64())
 	}
 
-	_, err = s.db.GetServerParticipant(ctx, topic.ServerID, userID)
 	if err != nil {
-		return err
+		return nil, errors.E(err).Debug("s.db.GetTopic")
 	}
 
-	return nil
+	return topic, nil
 }

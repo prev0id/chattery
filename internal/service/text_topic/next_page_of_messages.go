@@ -1,4 +1,4 @@
-package server
+package text_topic
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"chattery/internal/utils/errors"
 )
 
-func (s *Service) FirstPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
+func (s *Service) NextPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
 	var (
 		messages   []*domain.TopicMessage
 		nextCursor *domain.TopicCursor
@@ -15,21 +15,21 @@ func (s *Service) FirstPageOfMessages(ctx context.Context, cursor *domain.TopicC
 	)
 
 	err = s.transaction.InTransaction(ctx, func(ctx context.Context) error {
-		messages, nextCursor, err = s.firstPageOfMessages(ctx, cursor, userID)
+		messages, nextCursor, err = s.nextPageOfMessages(ctx, cursor, userID)
 		return err
 	})
 
 	return messages, nextCursor, err
 }
 
-func (s *Service) firstPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
-	if err := s.validateFirstPageOfMessages(ctx, cursor.ChatID, userID); err != nil {
+func (s *Service) nextPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
+	if err := s.validateNextPageOfMessages(ctx, cursor.ChatID, userID); err != nil {
 		return nil, nil, err
 	}
 
 	cursor.Limit = s.limit
 
-	messages, err := s.db.FirstPageOfTopicMessages(ctx, cursor)
+	messages, err := s.db.NextPageOfTopicMessages(ctx, cursor)
 	if err != nil {
 		return nil, nil, errors.E(err).Debug("s.db.FirstPageOfTopicMessages")
 	}
@@ -37,8 +37,8 @@ func (s *Service) firstPageOfMessages(ctx context.Context, cursor *domain.TopicC
 	return messages, s.getNextCursor(cursor.ChatID, messages), nil
 }
 
-func (s *Service) validateFirstPageOfMessages(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
-	topic, err := s.GetTopic(ctx, topicID)
+func (s *Service) validateNextPageOfMessages(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
+	topic, err := s.getTopic(ctx, topicID)
 	if err != nil {
 		return err
 	}

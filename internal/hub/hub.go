@@ -14,9 +14,12 @@ type dmService interface {
 }
 
 type serverService interface {
+	UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
+}
+
+type textTopicService interface {
 	AddUserInTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
 	RemoveUserFromTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
-	UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
 }
 
 type userCache interface {
@@ -30,10 +33,11 @@ type redis interface {
 }
 
 type Hub struct {
-	redis         redis
-	dmService     dmService
-	serverService serverService
-	user          userCache
+	redis           redis
+	dmService       dmService
+	serverService   serverService
+	textTopicService textTopicService
+	user            userCache
 
 	connections     map[domain.UserID]map[*Connection]bool
 	userSubscribers map[domain.UserID]chan *domain.UserMessage
@@ -41,11 +45,12 @@ type Hub struct {
 	m sync.RWMutex
 }
 
-func New(redisAdapter redis, dmSvc dmService, serverSvc serverService, userCache userCache) *Hub {
+func New(redisAdapter redis, dmSvc dmService, serverSvc serverService, textTopicSvc textTopicService, userCache userCache) *Hub {
 	return &Hub{
 		redis:           redisAdapter,
 		dmService:       dmSvc,
 		serverService:   serverSvc,
+		textTopicService: textTopicSvc,
 		user:            userCache,
 		connections:     make(map[domain.UserID]map[*Connection]bool),
 		userSubscribers: make(map[domain.UserID]chan *domain.UserMessage),
@@ -61,21 +66,21 @@ func (h *Hub) AddUserInTextTopic(ctx context.Context, userID domain.UserID, topi
 		return errors.E(err).Debug("h.serverService.UserHasAccessToTopic")
 	}
 
-	if err := h.serverService.AddUserInTextTopic(ctx, userID, topicID); err != nil {
-		return errors.E(err).Debug("h.serverService.AddUserInTextTopic")
+	if err := h.textTopicService.AddUserInTextTopic(ctx, userID, topicID); err != nil {
+		return errors.E(err).Debug("h.textTopicService.AddUserInTextTopic")
 	}
 	return nil
 }
 
 func (h *Hub) UpdateUserInTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
-	if err := h.serverService.AddUserInTextTopic(ctx, userID, topicID); err != nil {
-		return errors.E(err).Debug("h.serverService.AddUserInTextTopic")
+	if err := h.textTopicService.AddUserInTextTopic(ctx, userID, topicID); err != nil {
+		return errors.E(err).Debug("h.textTopicService.AddUserInTextTopic")
 	}
 	return nil
 }
 
 func (h *Hub) RemoveUserFromTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
-	return h.serverService.RemoveUserFromTextTopic(ctx, userID, topicID)
+	return h.textTopicService.RemoveUserFromTextTopic(ctx, userID, topicID)
 }
 
 func (h *Hub) RegisterConnection(conn *Connection) {
