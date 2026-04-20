@@ -5,7 +5,7 @@ import ProfilePicture from "./ProfilePicture";
 export default function ChatMessage(props) {
   return (
     <Show when={props.msg}>
-      <div class="flex gap-4 py-2">
+      <div class="flex gap-4 py-2 max-w-5xl min-w-sm w-full mx-auto">
         <ProfilePicture src={props.msg?.sender?.avatar} class="mt-1 size-10" />
         <div class="flex-1">
           <div class="flex gap-2 items-center">

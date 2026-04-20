@@ -30,35 +30,12 @@ INSERT INTO topics (id, server_id, name, type) VALUES
 (8, 4, 'jazz', 'voice'),
 (9, 4, 'classical', 'text');
 
-INSERT INTO topic_messages (topic_id, user_id, text) VALUES
-(1, 1, 'Welcome to Work Space!'),
-(1, 2, 'Thanks, happy to be here'),
-(1, 1, 'Lets get some work done'),
-(2, 2, 'Anyone for a voice chat?'),
-(3, 1, 'Please read the rules'),
-(4, 2, 'Who wants to play Minecraft?'),
-(4, 1, 'Count me in!'),
-(5, 1, 'Looking for teammates'),
-(5, 2, 'I am in'),
-(6, 2, 'Anyone up for Dota?'),
-(7, 1, 'What is your favorite rock band?'),
-(7, 2, 'Pink Floyd'),
-(8, 2, 'Jazz session tonight'),
-(9, 1, 'Beethoven is the best');
-
 INSERT INTO dms (id, last_message_id) VALUES
-(1, 5);
+(1, 0);
 
 INSERT INTO dm_participants (dm_id, user_id, last_read_message_id) VALUES
-(1, 1, 5),
-(1, 2, 5);
-
-INSERT INTO dm_messages (dm_id, user_id, text) VALUES
-(1, 1, 'Hey bob, how are you?'),
-(1, 2, 'I am doing great!'),
-(1, 1, 'Wanna play some games later?'),
-(1, 2, 'Sure, what do you have in mind?'),
-(1, 1, 'Maybe some Minecraft?');
+(1, 1, 0),
+(1, 2, 0);
 -- +goose StatementEnd
 
 -- +goose Down

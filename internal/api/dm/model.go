@@ -136,7 +136,7 @@ func convertCursorResponse(cursor *domain.DMCursor) *Cursor {
 }
 
 func convertGetMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage, users map[domain.UserID]*domain.User) *GetMessagesResponse {
-	msgs := make([]*Message, len(messages))
+	msgs := make([]*Message, 0, len(messages))
 	for _, msg := range messages {
 		msgs = append(msgs, convertMessageResponse(msg, users))
 	}

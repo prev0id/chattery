@@ -1,12 +1,4 @@
-import {
-  createEffect,
-  onCleanup,
-  For,
-  Show,
-  createSignal,
-  onMount,
-} from "solid-js";
-import { createStore } from "solid-js/store";
+import { createEffect, For, Show, createSignal } from "solid-js";
 import {
   fetchTopicMessages,
   sendTopicMessage,
@@ -25,80 +17,91 @@ const TopicTypeVoice = "voice";
 export { DMsType, ServersType, TopicTypeText, TopicTypeVoice };
 
 export function Chat(props) {
-  const [messages, setMessages] = createStore([]);
+  const [messages, setMessages] = createSignal([]);
   const [messagesCursor, setMessagesCursor] = createSignal(null);
   const [currentChat, setCurrentChat] = createSignal(null);
   const [loading, setLoading] = createSignal(false);
 
-  let sentinelRef;
   let containerRef;
+  let bottomRef;
+
+  const scrollToBottom = (smooth = false) => {
+    requestAnimationFrame(() => {
+      bottomRef?.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "end",
+      });
+    });
+  };
 
   const loadChatMessages = async (chatId, chatType) => {
     setCurrentChat({ id: chatId, type: chatType });
-    setMessages([]);
-    setMessagesCursor(null);
     setLoading(true);
 
-    let response;
-    if (chatType === "topic") {
-      response = await fetchTopicMessages(chatId);
-    } else {
-      response = await fetchDMMessages(chatId);
-    }
+    try {
+      const response =
+        chatType === "topic"
+          ? await fetchTopicMessages(chatId)
+          : await fetchDMMessages(chatId);
 
-    setLoading(false);
-    if (response && response.messages) {
-      setMessages(response.messages);
-      setMessagesCursor(response.cursor);
+      setMessages(response?.messages.reverse() ?? []);
+      setMessagesCursor(response?.cursor ?? null);
+
+      scrollToBottom(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadMoreMessages = async () => {
     const chat = currentChat();
     const cursor = messagesCursor();
-    if (!chat || !cursor || loading()) return;
+    const el = containerRef;
+
+    if (!chat || !cursor || loading() || !el) return;
+
+    const prevScrollHeight = el.scrollHeight;
+    const prevScrollTop = el.scrollTop;
 
     setLoading(true);
-    let response;
-    if (chat.type === "topic") {
-      response = await fetchTopicMessages(chat.id, cursor);
-    } else {
-      response = await fetchDMMessages(chat.id, cursor);
-    }
-    setLoading(false);
 
-    if (response && response.messages && response.messages.length > 0) {
-      setMessages((prev) => [...response.messages, ...prev]);
-      setMessagesCursor(response.cursor);
+    try {
+      const response =
+        chat.type === "topic"
+          ? await fetchTopicMessages(chat.id, cursor)
+          : await fetchDMMessages(chat.id, cursor);
+
+      const olderMessages = response?.messages.reverse() ?? [];
+      console.log(cursor);
+      if (olderMessages.length > 0) {
+        setMessages((prev) => [...olderMessages, ...prev]);
+        setMessagesCursor(response?.cursor ?? null);
+
+        requestAnimationFrame(() => {
+          const newScrollHeight = el.scrollHeight;
+          el.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScroll = () => {
+    const el = containerRef;
+    if (!el) return;
+
+    if (el.scrollTop <= 50) {
+      loadMoreMessages();
     }
   };
 
   createEffect(() => {
     const chatId = props.chatID;
-    const chatType = props.type;
     if (!chatId) return;
 
-    const messageType = chatType === DMsType ? "dm" : "topic";
-    loadChatMessages(chatId, messageType);
-  });
-
-  const hasChat = () => !!props.chatID;
-
-  createEffect(() => {
-    if (!sentinelRef) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && currentChat()) {
-          loadMoreMessages();
-        }
-      },
-      { root: containerRef, threshold: 0.1 },
-    );
-
-    observer.observe(sentinelRef);
-
-    onCleanup(() => observer.disconnect());
+    const chatType = props.type === DMsType ? "dm" : "topic";
+    loadChatMessages(chatId, chatType);
   });
 
   const handleSend = async (text) => {
@@ -110,55 +113,41 @@ export function Chat(props) {
     } else {
       await sendDMMessage(chat.id, text);
     }
-    loadChatMessages(chat.id, chat.type);
+
+    await loadChatMessages(chat.id, chat.type);
+    scrollToBottom(true);
   };
 
   return (
-    <Show when={hasChat()} fallback={selectChatMessage}>
-      <div
-        class="max-w-5xl min-w-sm w-full h-full mx-auto p-4 flex flex-col overflow-auto"
-        ref={containerRef}
-      >
-        <div ref={sentinelRef} class="h-1" />
-        <Show when={loading()}>
-          <LoadingSpinner />
-        </Show>
-        <For each={messages} fallback={<div>No messages yet.</div>}>
-          {(message) => <ChatMessage msg={message} />}
-        </For>
-      </div>
-      <ChatInput onSend={handleSend} />
-    </Show>
-  );
-}
+    <Show
+      when={props.chatID}
+      fallback={
+        <div class="m-auto flex items-center justify-center gap-4">
+          <ArrowLeftToLine class="size-10" />
+          <span class="text-2xl tracking-wider font-semibold">
+            Select a chat to start messaging
+          </span>
+        </div>
+      }
+    >
+      <div class="w-full h-full flex flex-col min-h-0">
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          class="flex-1 min-h-0 overflow-y-auto p-4"
+        >
+          <Show when={loading()}>
+            <div class="mb-4">Loading chat...</div>
+          </Show>
 
-function selectChatMessage() {
-  return (
-    <div class="m-auto flex items-center justify-center gap-4">
-      <ArrowLeftToLine class="size-10" />
-      <span class="text-2xl tracking-wider font-semibold">
-        Select a chat to start messaging
-      </span>
-    </div>
-  );
-}
+          <For each={messages()}>
+            {(message) => <ChatMessage msg={message} />}
+          </For>
 
-function LoadingSpinner() {
-  const [show, setShow] = createSignal(false);
+          <div ref={bottomRef} />
+        </div>
 
-  onMount(() => {
-    const timer = setTimeout(() => setShow(true), 300);
-    return () => clearTimeout(timer);
-  });
-
-  return (
-    <Show when={show()}>
-      {props.children}
-      <div class="m-auto flex items-center gap-4">
-        <Loader class="size-10 animate-spin" />
-        <span class="tracking-wider text-2xl font-semibold">
-          Loading chat...
-        </span>
+        <ChatInput onSend={handleSend} />
       </div>
     </Show>
   );
