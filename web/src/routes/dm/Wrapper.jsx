@@ -1,21 +1,31 @@
 import { useParams, createAsync } from "@solidjs/router";
-import { createMemo } from "solid-js";
+import { createEffect, createMemo, createResource } from "solid-js";
 import SidebarDM from "~/components/SidebarDM";
 
 import Toasts from "~/components/Toast";
 import Sidebar from "~/components/Sidebar";
 import Button from "~/components/Button";
 import { DMContext, GetDMs } from "~/stores/dm";
+import { fetchDMs } from "~/lib/api";
 
 export default function DMs(props) {
   const params = useParams();
-  const dms = createAsync(() => GetDMs());
+  const [dms, { mutate: mutateDMs, refetch: refetchDMs }] =
+    createResource(fetchDMs);
 
   const currentDMID = () => parseInt(params.dmID, 10);
 
   const currentDM = createMemo(() =>
     dms()?.find((dm) => dm.id === currentDMID()),
   );
+
+  createEffect(() => {
+    mutateDMs((prev) =>
+      prev?.map((dm) =>
+        dm.id === currentDMID() ? { ...dm, unread: false } : dm,
+      ),
+    );
+  });
 
   return (
     <>
