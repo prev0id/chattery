@@ -9,8 +9,6 @@ export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { servers } = UseServerContext();
 
-  console.log(servers());
-
   return (
     <>
       <Header icon="settings">

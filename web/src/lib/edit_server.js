@@ -27,8 +27,6 @@ export const updateServerAction = action(
       return { ok: false, error: "Name didn't changed" };
     }
 
-    console.log("here");
-
     const result = await updateServer(serverID, newName);
     if (result?.error) {
       return { ok: false, error: result.error };

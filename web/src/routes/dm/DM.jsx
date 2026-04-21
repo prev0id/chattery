@@ -9,7 +9,7 @@ export default function DM() {
   return (
     <>
       <Header icon="text">
-        <HeaderItem>{currentDM()?.name}</HeaderItem>
+        <HeaderItem>{currentDM()?.user?.username}</HeaderItem>
       </Header>
       <Chat chatID={currentDM()?.id} type="dms" />
     </>
