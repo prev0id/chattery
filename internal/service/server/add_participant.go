@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) AddParticipant(ctx context.Context, participant *domain.ServerParticipant) error {
@@ -19,7 +19,7 @@ func (s *Service) addParticipant(ctx context.Context, participant *domain.Server
 	}
 
 	if err := s.db.CreateServerParticipant(ctx, participant); err != nil {
-		return errors.E(err).Debug("s.db.CreateServerParticipant")
+		return errutil.E(err).Debug("s.db.CreateServerParticipant")
 	}
 
 	return nil
@@ -30,9 +30,5 @@ func (s *Service) validateAddParticipant(ctx context.Context, participant *domai
 		return err
 	}
 
-	if err := s.validateParticipantNotExists(ctx, participant.ServerID, participant.UserID); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateParticipantNotExists(ctx, participant.ServerID, participant.UserID)
 }

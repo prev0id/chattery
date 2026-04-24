@@ -6,13 +6,13 @@ import (
 
 	"chattery/internal/domain"
 	"chattery/internal/utils/compare"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) GetUserServers(ctx context.Context, userID domain.UserID) ([]*domain.Server, error) {
 	servers, err := s.db.GetUserServers(ctx, userID)
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.GetUserServers")
+		return nil, errutil.E(err).Debug("s.db.GetUserServers")
 	}
 
 	slices.SortFunc(servers, compare.Servers)

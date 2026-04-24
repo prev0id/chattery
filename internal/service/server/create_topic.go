@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) CreateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) (domain.TopicID, error) {
@@ -28,7 +28,7 @@ func (s *Service) createTopic(ctx context.Context, topic *domain.Topic, userID d
 
 	id, err := s.db.CreateTopic(ctx, topic)
 	if err != nil {
-		return 0, errors.E(err).Debug("s.db.CreateTopic")
+		return 0, errutil.E(err).Debug("s.db.CreateTopic")
 	}
 
 	return id, nil
@@ -43,9 +43,5 @@ func (s *Service) validateCreateTopic(ctx context.Context, topic *domain.Topic, 
 		return err
 	}
 
-	if err := s.validateTopicNameUnique(ctx, topic); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateTopicNameUnique(ctx, topic)
 }

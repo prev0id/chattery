@@ -10,7 +10,7 @@ import (
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func Init(cfg *config.Config) {
@@ -29,7 +29,7 @@ func Init(cfg *config.Config) {
 }
 
 func Error(err error, message string, attr ...slog.Attr) {
-	e := errors.E(err)
+	e := errutil.E(err)
 	attr = append(attr,
 		slog.Group("error",
 			slog.String("kind", e.GetKind().String()),

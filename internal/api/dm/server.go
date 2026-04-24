@@ -1,4 +1,4 @@
-package dm_api
+package dm
 
 import (
 	"context"
@@ -40,7 +40,7 @@ func New(user userService, dm dmService, cache userCache) *Server {
 	}
 }
 
-func (_ *Server) Pattern() string {
+func (*Server) Pattern() string {
 	return "/v1/dm"
 }
 

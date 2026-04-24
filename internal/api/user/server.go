@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func New(user userService) *Server {
 	}
 }
 
-func (s *Server) Pattern() string {
+func (*Server) Pattern() string {
 	return "/v1/user"
 }
 

@@ -1,4 +1,4 @@
-package server_api
+package server
 
 import (
 	"time"
@@ -76,9 +76,9 @@ type GetTopicMessagesResponse struct {
 }
 
 type Message struct {
-	Sender    UserInfo `json:"sender"`
 	Text      string   `json:"text"`
 	CreatedAt string   `json:"created_at"`
+	Sender    UserInfo `json:"sender"`
 	ID        int64    `json:"id"`
 	SenderID  int64    `json:"sender_id"`
 }

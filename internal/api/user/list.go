@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 const searchQueryName = "query"
 
-// Search поиск профиля
+// GetUsers поиск пользователей по имени
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)

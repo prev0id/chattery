@@ -1,4 +1,4 @@
-package image_api
+package image
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -20,7 +20,7 @@ func New(user userStore) *Server {
 	}
 }
 
-func (s *Server) Pattern() string {
+func (*Server) Pattern() string {
 	return "/v1/image"
 }
 

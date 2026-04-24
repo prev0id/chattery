@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"chattery/internal/utils/validate"
 )
 
-// Create создает новый профиль, ставит сессионную куку
+// PostCreateUser создает новый профиль, ставит сессионную куку
 func (s *Server) PostCreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -18,7 +18,7 @@ func (s *Server) PostCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatePostCreateUserRequest(request); err != nil {
+	if err = validatePostCreateUserRequest(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
@@ -44,8 +44,5 @@ func validatePostCreateUserRequest(req *PostCreateUserRequest) error {
 	if err := validate.Password(req.Password); err != nil {
 		return err
 	}
-	if err := validate.Login(req.Login); err != nil {
-		return err
-	}
-	return nil
+	return validate.Login(req.Login)
 }

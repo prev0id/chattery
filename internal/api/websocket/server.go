@@ -1,4 +1,4 @@
-package websocket_api
+package websocket
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/render"
 )
 
@@ -35,8 +35,8 @@ func New(user userService, wsManager websocketManager) *Server {
 	}
 }
 
-func (s *Server) Pattern() string {
-	return "/v1/ws"
+func (*Server) Pattern() string {
+	return "/ws"
 }
 
 func (s *Server) Route(router chi.Router) {
@@ -57,8 +57,8 @@ func (s *Server) establishWebsocket(w http.ResponseWriter, r *http.Request, user
 
 	conn, err := websocket.Accept(w, r, options)
 	if err != nil {
-		err = errors.E(err).
-			Kind(errors.InvalidRequest).
+		err = errutil.E(err).
+			Kind(errutil.InvalidRequest).
 			Message("unable to upgrade to websocket").
 			Debug("websocket.Accept")
 		render.Error(w, r, err)
@@ -70,12 +70,10 @@ func (s *Server) establishWebsocket(w http.ResponseWriter, r *http.Request, user
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		defer wg.Done()
 		connection.WritePump(ctx)
 	})
 
 	wg.Go(func() {
-		defer wg.Done()
 		connection.ReadPump(ctx)
 	})
 

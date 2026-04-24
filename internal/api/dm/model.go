@@ -1,4 +1,4 @@
-package dm_api
+package dm
 
 import (
 	"time"

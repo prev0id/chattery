@@ -1,4 +1,4 @@
-package user_store
+package user
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	user_adapter "chattery/internal/adapter/postgres/user"
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/sliceutil"
 )
 
@@ -25,7 +25,7 @@ func New(adapter *user_adapter.Adapter) *UserStore {
 	}
 }
 
-func (s *UserStore) Name() string {
+func (*UserStore) Name() string {
 	return "user_store"
 }
 
@@ -52,7 +52,7 @@ func (s *UserStore) GetByID(id domain.UserID) (*domain.User, error) {
 
 	user, ok := s.usersByID[id]
 	if !ok {
-		return nil, errors.E().Kind(errors.NotFound).Messagef("user id='%d' not found", id)
+		return nil, errutil.E().Kind(errutil.NotFound).Messagef("user id='%d' not found", id)
 	}
 	return user, nil
 }
@@ -63,8 +63,8 @@ func (s *UserStore) GetByUsername(username domain.Username) (*domain.User, error
 
 	user, ok := s.usersByUsername[username]
 	if !ok {
-		return nil, errors.E().
-			Kind(errors.NotFound).
+		return nil, errutil.E().
+			Kind(errutil.NotFound).
 			Messagef("user username='%s' not found", username)
 	}
 	return user, nil

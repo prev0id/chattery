@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"chattery/internal/domain"
@@ -9,10 +9,6 @@ type PostCreateUserRequest struct {
 	Username string `json:"username"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
-}
-
-type PostCreateUserResponse struct {
-	ID int64 `json:"id"`
 }
 
 type PostLoginRequest struct {
@@ -47,12 +43,6 @@ func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {
 		Username: domain.Username(req.Username),
 		Login:    login,
 		Password: domain.NewPassword(req.Password, login),
-	}
-}
-
-func convertPostCreateUserResponse(userID domain.UserID) *PostCreateUserResponse {
-	return &PostCreateUserResponse{
-		ID: userID.I64(),
 	}
 }
 

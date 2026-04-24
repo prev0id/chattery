@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"chattery/internal/client/postgres"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 )
 
@@ -37,7 +37,7 @@ func (m *Manager) InTransaction(ctx context.Context, fn func(context.Context) er
 
 	tx, err := m.pool.Begin(ctx)
 	if err != nil {
-		return errors.E(err).Debug("m.pool.Begin")
+		return errutil.E(err).Debug("m.pool.Begin")
 	}
 
 	if err = fn(txToContext(ctx, tx)); err != nil {
@@ -55,7 +55,7 @@ func rollback(ctx context.Context, tx pgx.Tx) {
 
 func commit(ctx context.Context, tx pgx.Tx) error {
 	if err := tx.Commit(ctx); err != nil {
-		return errors.E(err).Debug("tx.Commit")
+		return errutil.E(err).Debug("tx.Commit")
 	}
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) CreateServer(ctx context.Context, name string, creatorUserID domain.UserID) (domain.ServerID, error) {
@@ -16,7 +16,7 @@ func (s *Service) CreateServer(ctx context.Context, name string, creatorUserID d
 	err = s.transaction.InTransaction(ctx, func(ctx context.Context) error {
 		serverID, err = s.db.CreateServer(ctx, name)
 		if err != nil {
-			return errors.E(err).Debug("s.db.CreateServer")
+			return errutil.E(err).Debug("s.db.CreateServer")
 		}
 
 		participant := &domain.ServerParticipant{
@@ -26,7 +26,7 @@ func (s *Service) CreateServer(ctx context.Context, name string, creatorUserID d
 		}
 
 		if err = s.db.CreateServerParticipant(ctx, participant); err != nil {
-			return errors.E(err).Debug("s.db.CreateServerParticipant")
+			return errutil.E(err).Debug("s.db.CreateServerParticipant")
 		}
 
 		return nil

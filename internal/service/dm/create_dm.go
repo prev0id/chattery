@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) CreateDM(ctx context.Context, participant1, participant2 domain.UserID) (domain.DMID, error) {
@@ -28,15 +28,15 @@ func (s *Service) createDM(ctx context.Context, participant1, participant2 domai
 
 	dmID, err := s.db.CreateDM(ctx)
 	if err != nil {
-		return 0, errors.E(err).Debug("s.db.CreateDM")
+		return 0, errutil.E(err).Debug("s.db.CreateDM")
 	}
 
 	if err := s.db.CreateDMParticipant(ctx, dmID, participant1); err != nil {
-		return 0, errors.E(err).Debug("s.db.CreateDMParticipant")
+		return 0, errutil.E(err).Debug("s.db.CreateDMParticipant")
 	}
 
 	if err := s.db.CreateDMParticipant(ctx, dmID, participant2); err != nil {
-		return 0, errors.E(err).Debug("s.db.CreateDMParticipant")
+		return 0, errutil.E(err).Debug("s.db.CreateDMParticipant")
 	}
 
 	return dmID, nil
@@ -47,9 +47,5 @@ func (s *Service) validateCreateDM(ctx context.Context, participant1, participan
 		return err
 	}
 
-	if err := s.validateDMNotExistsBetweenUsers(ctx, participant1, participant2); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateDMNotExistsBetweenUsers(ctx, participant1, participant2)
 }

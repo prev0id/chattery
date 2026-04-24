@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) RemoveParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error {
@@ -19,7 +19,7 @@ func (s *Service) removeParticipant(ctx context.Context, serverID domain.ServerI
 	}
 
 	if err := s.db.DeleteServerParticipant(ctx, serverID, userID); err != nil {
-		return errors.E(err).Debug("s.db.DeleteServerParticipant")
+		return errutil.E(err).Debug("s.db.DeleteServerParticipant")
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func (s *Service) validateRemoveParticipant(ctx context.Context, serverID domain
 	}
 
 	if err := s.validateUserIsNotOwner(ctx, serverID, userID); err != nil {
-		return errors.E(err).Message("owner can't leave the server")
+		return errutil.E(err).Message("owner can't leave the server")
 	}
 
 	return nil

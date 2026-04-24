@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) FirstPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
@@ -31,7 +31,7 @@ func (s *Service) firstPageOfMessages(ctx context.Context, cursor *domain.TopicC
 
 	messages, err := s.db.FirstPageOfTopicMessages(ctx, cursor)
 	if err != nil {
-		return nil, nil, errors.E(err).Debug("s.db.FirstPageOfTopicMessages")
+		return nil, nil, errutil.E(err).Debug("s.db.FirstPageOfTopicMessages")
 	}
 
 	return messages, s.getNextCursor(cursor.ChatID, messages), nil
@@ -47,28 +47,24 @@ func (s *Service) validateFirstPageOfMessages(ctx context.Context, topicID domai
 		return err
 	}
 
-	if err := s.validateTopicIsText(topic); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateTopicIsText(topic)
 }
 
 func (s *Service) validateParticipantExists(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error {
 	_, err := s.db.GetServerParticipant(ctx, serverID, userID)
-	if errors.Is(errors.NotFound, err) {
-		return errors.E(err).Messagef("user id='%d' not a participant of the server id='%d'", userID.I64(), serverID.I64())
+	if errutil.Is(errutil.NotFound, err) {
+		return errutil.E(err).Messagef("user id='%d' not a participant of the server id='%d'", userID.I64(), serverID.I64())
 	}
 	if err != nil {
-		return errors.E(err).Debug("s.db.GetServerParticipant")
+		return errutil.E(err).Debug("s.db.GetServerParticipant")
 	}
 	return nil
 }
 
-func (s *Service) validateTopicIsText(topic *domain.Topic) error {
+func (*Service) validateTopicIsText(topic *domain.Topic) error {
 	if topic.Type != domain.TopicTypeText {
-		return errors.E().
-			Kind(errors.InvalidRequest).
+		return errutil.E().
+			Kind(errutil.InvalidRequest).
 			Messagef("the topic id='%d' type must be text", topic.ID.I64())
 	}
 	return nil

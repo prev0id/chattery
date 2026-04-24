@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 const userActivityTTL = 90 * time.Second
@@ -22,12 +22,12 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 	}
 
 	if err := s.db.CreateMessage(ctx, message); err != nil {
-		return errors.E(err).Debug("s.db.CreateMessage")
+		return errutil.E(err).Debug("s.db.CreateMessage")
 	}
 
 	participants, err := s.redis.ListUsersInTextTopic(ctx, message.TopicID, userActivityTTL)
 	if err != nil {
-		return errors.E(err).Debug("s.db.GetTopicParticipants")
+		return errutil.E(err).Debug("s.db.GetTopicParticipants")
 	}
 
 	userMsg := &domain.UserMessage{
@@ -38,7 +38,7 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 
 	for _, participantID := range participants {
 		if err := s.redis.PublishToUser(ctx, participantID, userMsg); err != nil {
-			errors.E(err).Debug("s.redis.PublishToUser")
+			return errutil.E(err).Debug("s.redis.PublishToUser")
 		}
 	}
 
@@ -55,9 +55,5 @@ func (s *Service) validateCreateMessage(ctx context.Context, message *domain.Top
 		return err
 	}
 
-	if err := s.validateTopicIsText(topic); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateTopicIsText(topic)
 }

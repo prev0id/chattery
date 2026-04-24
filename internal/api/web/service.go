@@ -1,4 +1,4 @@
-package web_api
+package web
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/render"
 	"chattery/web"
 )
@@ -19,13 +19,13 @@ func New() *Server {
 	return &Server{}
 }
 
-func (s *Server) Pattern() string {
+func (*Server) Pattern() string {
 	return "/"
 }
 
-func (s *Server) Route(router chi.Router) {
-	router.HandleFunc("/app", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(web.AppPage)
+func (*Server) Route(router chi.Router) {
+	router.HandleFunc("/app", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write(web.AppPage)
 	})
 
 	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func (s *Server) Route(router chi.Router) {
 			http.Redirect(w, r, "app", http.StatusFound)
 			return
 		}
-		w.Write(web.LoginPage)
+		_, _ = w.Write(web.LoginPage)
 	})
 
 	router.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +41,7 @@ func (s *Server) Route(router chi.Router) {
 			http.Redirect(w, r, "app", http.StatusFound)
 			return
 		}
-		w.Write(web.SignupPage)
+		_, _ = w.Write(web.SignupPage)
 	})
 
 	assetsFS := http.FileServer(http.FS(web.Assets))
@@ -49,7 +49,7 @@ func (s *Server) Route(router chi.Router) {
 	router.HandleFunc("GET /assets/*", func(w http.ResponseWriter, r *http.Request) {
 		newPath, err := url.JoinPath("/dist", r.URL.Path)
 		if err != nil {
-			render.Error(w, r, errors.E(err).Kind(errors.InvalidRequest))
+			render.Error(w, r, errutil.E(err).Kind(errutil.InvalidRequest))
 			return
 		}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) NextPagesOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error) {
@@ -31,15 +31,12 @@ func (s *Service) nextPagesOfDMMessages(ctx context.Context, userID domain.UserI
 
 	messages, err := s.db.NextPagesOfDMMessages(ctx, cursor)
 	if err != nil {
-		return nil, nil, errors.E(err).Debug("s.db.NextPagesOfDMMessages")
+		return nil, nil, errutil.E(err).Debug("s.db.NextPagesOfDMMessages")
 	}
 
 	return messages, s.getNextCursor(cursor.ChatID, messages), nil
 }
 
 func (s *Service) validateNextPagesOfDMMessages(ctx context.Context, dmID domain.DMID, userID domain.UserID) error {
-	if err := s.validateParticipantExists(ctx, dmID, userID); err != nil {
-		return err
-	}
-	return nil
+	return s.validateParticipantExists(ctx, dmID, userID)
 }

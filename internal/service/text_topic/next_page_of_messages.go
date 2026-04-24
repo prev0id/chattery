@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) NextPageOfMessages(ctx context.Context, cursor *domain.TopicCursor, userID domain.UserID) ([]*domain.TopicMessage, *domain.TopicCursor, error) {
@@ -31,7 +31,7 @@ func (s *Service) nextPageOfMessages(ctx context.Context, cursor *domain.TopicCu
 
 	messages, err := s.db.NextPageOfTopicMessages(ctx, cursor)
 	if err != nil {
-		return nil, nil, errors.E(err).Debug("s.db.FirstPageOfTopicMessages")
+		return nil, nil, errutil.E(err).Debug("s.db.FirstPageOfTopicMessages")
 	}
 
 	return messages, s.getNextCursor(cursor.ChatID, messages), nil

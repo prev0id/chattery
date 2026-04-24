@@ -1,4 +1,4 @@
-package user_adapter
+package user
 
 import (
 	"chattery/internal/client/postgres"

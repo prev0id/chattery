@@ -1,4 +1,4 @@
-package server_adapter
+package server
 
 import (
 	"chattery/internal/client/postgres"

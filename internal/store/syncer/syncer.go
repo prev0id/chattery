@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 )
 
@@ -29,7 +29,7 @@ func Start[T Store](timeout time.Duration, store T) error {
 	}
 
 	if err := s.store.Sync(context.Background()); err != nil {
-		return errors.E(err).Debug("s.store.Sync")
+		return errutil.E(err).Debug("s.store.Sync")
 	}
 
 	go s.run()

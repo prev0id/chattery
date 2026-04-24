@@ -1,4 +1,4 @@
-package dm_adapter
+package dm
 
 import (
 	"chattery/internal/client/postgres"

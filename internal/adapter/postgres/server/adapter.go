@@ -1,4 +1,4 @@
-package server_adapter
+package server
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"chattery/internal/client/postgres"
 	"chattery/internal/domain"
 	"chattery/internal/utils/database"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/sliceutil"
 )
 
@@ -27,7 +27,7 @@ func New(db queryProvider) *Adapter {
 func (a *Adapter) CreateServer(ctx context.Context, name string) (domain.ServerID, error) {
 	id, err := a.db.Query(ctx).CreateServer(ctx, name)
 	if err != nil {
-		return domain.ServerID(0), errors.E(err).Debug("Query.CreateServer")
+		return domain.ServerID(0), errutil.E(err).Debug("Query.CreateServer")
 	}
 	return domain.ServerID(id), nil
 }
@@ -40,7 +40,7 @@ func (a *Adapter) UpdateServer(ctx context.Context, server *domain.Server) error
 
 	err := a.db.Query(ctx).UpdateServer(ctx, req)
 	if err != nil {
-		return errors.E(err).Debug("Query.UpdateServer")
+		return errutil.E(err).Debug("Query.UpdateServer")
 	}
 	return nil
 }
@@ -48,7 +48,7 @@ func (a *Adapter) UpdateServer(ctx context.Context, server *domain.Server) error
 func (a *Adapter) DeleteServer(ctx context.Context, serverID domain.ServerID) error {
 	err := a.db.Query(ctx).DeleteServerByServerID(ctx, serverID.I64())
 	if err != nil {
-		return errors.E(err).Debug("Query.DeleteServerByServerID")
+		return errutil.E(err).Debug("Query.DeleteServerByServerID")
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ func (a *Adapter) CreateServerParticipant(ctx context.Context, participant *doma
 
 	err := a.db.Query(ctx).CreateServerParticipant(ctx, req)
 	if err != nil {
-		return errors.E(err).Debug("Query.CreateServerParticipant")
+		return errutil.E(err).Debug("Query.CreateServerParticipant")
 	}
 	return nil
 }
@@ -75,7 +75,7 @@ func (a *Adapter) DeleteServerParticipant(ctx context.Context, serverID domain.S
 
 	err := a.db.Query(ctx).DeleteServerParticipant(ctx, req)
 	if err != nil {
-		return errors.E(err).Debug("Query.DeleteServerParticipant")
+		return errutil.E(err).Debug("Query.DeleteServerParticipant")
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func (a *Adapter) CreateTopic(ctx context.Context, topic *domain.Topic) (domain.
 
 	id, err := a.db.Query(ctx).CreateTopic(ctx, req)
 	if err != nil {
-		return 0, errors.E(err).Debug("Query.CreateTopic")
+		return 0, errutil.E(err).Debug("Query.CreateTopic")
 	}
 	return domain.TopicID(id), nil
 }
@@ -102,7 +102,7 @@ func (a *Adapter) UpdateTopic(ctx context.Context, topic *domain.Topic) error {
 
 	err := a.db.Query(ctx).UpdateTopic(ctx, req)
 	if err != nil {
-		return errors.E(err).Debug("Query.UpdateTopic")
+		return errutil.E(err).Debug("Query.UpdateTopic")
 	}
 	return nil
 }
@@ -110,7 +110,7 @@ func (a *Adapter) UpdateTopic(ctx context.Context, topic *domain.Topic) error {
 func (a *Adapter) DeleteTopic(ctx context.Context, topicID domain.TopicID) error {
 	err := a.db.Query(ctx).DeleteTopic(ctx, topicID.I64())
 	if err != nil {
-		return errors.E(err).Debug("Query.DeleteTopic")
+		return errutil.E(err).Debug("Query.DeleteTopic")
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessag
 	}
 
 	if _, err := a.db.Query(ctx).CreateMessage(ctx, req); err != nil {
-		return errors.E(err).Debug("Query.CreateMessage")
+		return errutil.E(err).Debug("Query.CreateMessage")
 	}
 	return nil
 }
@@ -131,12 +131,12 @@ func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessag
 func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
 	req := &postgres.FirstPageOfTopicMessagesParams{
 		TopicID: cursor.ChatID.I64(),
-		Limit:   int32(cursor.Limit),
+		Limit:   int32(cursor.Limit), // #nosec G115 accepted
 	}
 
 	messages, err := a.db.Query(ctx).FirstPageOfTopicMessages(ctx, req)
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.FirstPageOfTopicMessages")
+		return nil, errutil.E(err).Debug("Query.FirstPageOfTopicMessages")
 	}
 
 	return sliceutil.Map(messages, convertServerMessageFromDB), nil
@@ -147,12 +147,12 @@ func (a *Adapter) NextPageOfTopicMessages(ctx context.Context, cursor *domain.To
 		TopicID:   cursor.ChatID.I64(),
 		CreatedAt: cursor.Timestamp,
 		ID:        cursor.MessageID.I64(),
-		Limit:     int32(cursor.Limit),
+		Limit:     int32(cursor.Limit), // #nosec G115 accepted
 	}
 
 	messages, err := a.db.Query(ctx).NextPagesOfTopicMessages(ctx, req)
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.NextPagesOfTopicMessages")
+		return nil, errutil.E(err).Debug("Query.NextPagesOfTopicMessages")
 	}
 
 	return sliceutil.Map(messages, convertServerMessageFromDB), nil
@@ -161,7 +161,7 @@ func (a *Adapter) NextPageOfTopicMessages(ctx context.Context, cursor *domain.To
 func (a *Adapter) GetUserServers(ctx context.Context, userID domain.UserID) ([]*domain.Server, error) {
 	servers, err := a.db.Query(ctx).GetUserServers(ctx, userID.I64())
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.GetUserServers")
+		return nil, errutil.E(err).Debug("Query.GetUserServers")
 	}
 
 	return convertServersFromDB(servers), nil
@@ -170,10 +170,10 @@ func (a *Adapter) GetUserServers(ctx context.Context, userID domain.UserID) ([]*
 func (a *Adapter) GetServer(ctx context.Context, serverID domain.ServerID) (*domain.Server, error) {
 	rows, err := a.db.Query(ctx).GetServer(ctx, serverID.I64())
 	if database.NotFound(err) {
-		return nil, errors.E(err).Kind(errors.NotFound)
+		return nil, errutil.E(err).Kind(errutil.NotFound)
 	}
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.GetServer")
+		return nil, errutil.E(err).Debug("Query.GetServer")
 	}
 
 	return convertServerWithTopicsFromDB(rows), nil
@@ -186,10 +186,10 @@ func (a *Adapter) GetServerParticipant(ctx context.Context, serverID domain.Serv
 	}
 	participant, err := a.db.Query(ctx).GetServerParticipant(ctx, req)
 	if database.NotFound(err) {
-		return nil, errors.E(err).Kind(errors.NotFound)
+		return nil, errutil.E(err).Kind(errutil.NotFound)
 	}
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.GetServerParticipant")
+		return nil, errutil.E(err).Debug("Query.GetServerParticipant")
 	}
 
 	return convertServerParticipantFromDB(participant), nil
@@ -198,10 +198,10 @@ func (a *Adapter) GetServerParticipant(ctx context.Context, serverID domain.Serv
 func (a *Adapter) GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error) {
 	topic, err := a.db.Query(ctx).GetTopic(ctx, topicID.I64())
 	if database.NotFound(err) {
-		return nil, errors.E(err).Kind(errors.NotFound)
+		return nil, errutil.E(err).Kind(errutil.NotFound)
 	}
 	if err != nil {
-		return nil, errors.E(err).Debug("Query.GetTopic")
+		return nil, errutil.E(err).Debug("Query.GetTopic")
 	}
 
 	return convertTopicFromDB(topic), nil

@@ -1,4 +1,4 @@
-package image_api
+package image
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	identicon "chattery/internal/utils/identicon"
+	"chattery/internal/utils/identicon"
 )
 
 func (s *Server) GetImage(w http.ResponseWriter, r *http.Request) {
@@ -31,5 +31,5 @@ func (s *Server) GetImage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "public, max-age=600")
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(imgBytes)
+	_, _ = w.Write(imgBytes) // #nosec G705 false-positive
 }

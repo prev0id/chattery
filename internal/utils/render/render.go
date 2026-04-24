@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 )
 
@@ -33,14 +33,14 @@ func Timestamp(t time.Time) string {
 func JSON[T any](w http.ResponseWriter, r *http.Request, value T) {
 	response, err := json.Marshal(value)
 	if err != nil {
-		Error(w, r, errors.E(err).Debug("json.Marshal"))
+		Error(w, r, errutil.E(err).Debug("json.Marshal"))
 		return
 	}
 
 	setContentTypeJSON(w)
 
 	if _, err := w.Write(response); err != nil {
-		Error(w, r, errors.E(err).Debug("w.Write"))
+		Error(w, r, errutil.E(err).Debug("w.Write"))
 		return
 	}
 }
@@ -52,7 +52,7 @@ type responseError struct {
 func Error(w http.ResponseWriter, r *http.Request, err error) {
 	logger.ErrorCtx(r.Context(), err, "request ended with an error")
 
-	statusCode := errors.E(err).GetKind().StatusCode()
+	statusCode := errutil.E(err).GetKind().StatusCode()
 
 	response, _ := json.Marshal(responseError{Message: err.Error()})
 
@@ -68,7 +68,7 @@ func setContentTypeJSON(w http.ResponseWriter) {
 func JSONBytes(value any) ([]byte, error) {
 	response, err := json.Marshal(value)
 	if err != nil {
-		return nil, errors.E(err).Debug("json.Marshal")
+		return nil, errutil.E(err).Debug("json.Marshal")
 	}
 	return response, nil
 }

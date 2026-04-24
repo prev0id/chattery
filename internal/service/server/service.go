@@ -5,7 +5,7 @@ import (
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 type db interface {
@@ -52,12 +52,12 @@ func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Co
 
 func (s *Service) getTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error) {
 	topic, err := s.db.GetTopic(ctx, topicID)
-	if errors.Is(errors.NotFound, err) {
-		return nil, errors.E(err).Messagef("topic id='%d' not found", topicID.I64())
+	if errutil.Is(errutil.NotFound, err) {
+		return nil, errutil.E(err).Messagef("topic id='%d' not found", topicID.I64())
 	}
 
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.GetTopic")
+		return nil, errutil.E(err).Debug("s.db.GetTopic")
 	}
 
 	return topic, nil

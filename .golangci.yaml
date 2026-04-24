@@ -87,6 +87,8 @@ linters:
           disabled: true
         - name: unexported-return
           disabled: true
+        - name: confusing-naming
+          disabled: true
         - name: var-naming
           arguments:
             - []
@@ -101,6 +103,8 @@ linters:
     rules:
       - path: (.+)\.go$
         text: don't use an underscore in package name
+      - path: (.+)\.go$
+        text: don't use package name .* that contains an underscore
       - path: (.+)\.go$
         text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print(f|ln)?|os\.(Un)?Setenv). is not checked
 issues:

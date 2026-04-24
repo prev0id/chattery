@@ -8,7 +8,7 @@ import (
 	"github.com/coder/websocket"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/render"
 )
 
@@ -67,7 +67,7 @@ func (m *WebsocketManager) NewConnection(
 	channelID int64,
 	ws *websocket.Conn,
 ) domain.Connection {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx) // #nosec G118 false positive
 	conn := &Connection{
 		manager:     m,
 		userID:      userID,
@@ -86,33 +86,33 @@ func (m *WebsocketManager) NewConnection(
 func (m *WebsocketManager) UserHasAccessToDM(ctx context.Context, userID domain.UserID, dmID domain.DMID) error {
 	participants, err := m.dmService.GetParticipants(ctx, dmID)
 	if err != nil {
-		return errors.E(err).Debug("m.dmService.GetParticipants")
+		return errutil.E(err).Debug("m.dmService.GetParticipants")
 	}
 
 	if slices.Contains(participants, userID) {
 		return nil
 	}
 
-	return errors.E().Kind(errors.InvalidRequest).Debug("user is not participant of dm")
+	return errutil.E().Kind(errutil.InvalidRequest).Debug("user is not participant of dm")
 }
 
 func (m *WebsocketManager) UserHasAccessToTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
 	if err := m.serverService.UserHasAccessToTopic(ctx, userID, topicID); err != nil {
-		return errors.E(err).Debug("m.serverService.UserHasAccessToTopic")
+		return errutil.E(err).Debug("m.serverService.UserHasAccessToTopic")
 	}
 	return nil
 }
 
 func (m *WebsocketManager) JoinToTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
 	if err := m.textTopicService.AddUserInTextTopic(ctx, userID, topicID); err != nil {
-		return errors.E(err).Debug("m.textTopicService.AddUserInTextTopic")
+		return errutil.E(err).Debug("m.textTopicService.AddUserInTextTopic")
 	}
 	return nil
 }
 
 func (m *WebsocketManager) LeaveFromTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
 	if err := m.textTopicService.RemoveUserFromTextTopic(ctx, userID, topicID); err != nil {
-		return errors.E(err).Debug("m.textTopicService.RemoveUserFromTextTopic")
+		return errutil.E(err).Debug("m.textTopicService.RemoveUserFromTextTopic")
 	}
 	return nil
 }

@@ -2,7 +2,7 @@ package identicon
 
 import (
 	"bytes"
-	"crypto/md5"
+	"crypto/md5" // #nosec G501 accepted
 	"image"
 	"image/color"
 	"image/draw"
@@ -80,7 +80,7 @@ func matrix(hash [16]byte) [5][5]bool {
 }
 
 func GenerateImage(data []byte, size int) image.Image {
-	hash := md5.Sum(data)
+	hash := md5.Sum(data) // #nosec G401 accepted
 	mat := matrix(hash)
 	fg := foreground(hash)
 	bg := color.RGBA{240, 240, 240, 255}

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
 )
@@ -43,7 +43,7 @@ func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, user
 	expiresAt := time.Now().Add(s.expiration)
 
 	if err := s.cache.WriteSession(ctx, session, userID, s.expiration); err != nil {
-		return errors.E(err).Debug("s.cache.WriteSession")
+		return errutil.E(err).Debug("s.cache.WriteSession")
 	}
 
 	s.writeSessionsCookie(w, session, expiresAt)
@@ -59,13 +59,13 @@ func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, r *ht
 	s.clearSessionCookie(w)
 }
 
-func (s *Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
+func (*Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if domain.UserIDFromContext(r.Context()) != domain.UserIsUnknown {
 			next.ServeHTTP(w, r)
 			return
 		}
-		render.Error(w, r, errors.E().Kind(errors.Unauthorized).Message("login required"))
+		render.Error(w, r, errutil.E().Kind(errutil.Unauthorized).Message("login required"))
 	})
 }
 

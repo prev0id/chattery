@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"chattery/internal/utils/render"
 )
 
-// Login аутентификация по логину и паролю, ставит сессионную куку
+// PostLogin аутентификация по логину и паролю, ставит сессионную куку
 func (s *Server) PostLogin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

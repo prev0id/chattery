@@ -10,16 +10,16 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"chattery/internal/config"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func PostgresConnection(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, cfg.Postgres.URL)
 	if err != nil {
-		return nil, errors.E(err).Debug("pgx.Connect")
+		return nil, errutil.E(err).Debug("pgx.Connect")
 	}
 	if err := pool.Ping(ctx); err != nil {
-		return nil, errors.E(err).Debug("conn.Ping")
+		return nil, errutil.E(err).Debug("conn.Ping")
 	}
 	return pool, nil
 }
@@ -33,7 +33,7 @@ func RedisConnection(ctx context.Context, cfg *config.Config) (*redis.Client, er
 		Protocol:   3,
 	})
 	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, errors.E(err).Debug("client.Ping")
+		return nil, errutil.E(err).Debug("client.Ping")
 	}
 	return client, nil
 }

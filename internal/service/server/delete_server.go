@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) DeleteServer(ctx context.Context, serverID domain.ServerID, userID domain.UserID) error {
@@ -19,7 +19,7 @@ func (s *Service) deleteServer(ctx context.Context, serverID domain.ServerID, us
 	}
 
 	if err := s.db.DeleteServer(ctx, serverID); err != nil {
-		return errors.E(err).Debug("s.db.DeleteServer")
+		return errutil.E(err).Debug("s.db.DeleteServer")
 	}
 
 	return nil
@@ -30,9 +30,5 @@ func (s *Service) validateDeleteServer(ctx context.Context, serverID domain.Serv
 		return err
 	}
 
-	if err := s.validateUserIsOwner(ctx, serverID, userID); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateUserIsOwner(ctx, serverID, userID)
 }

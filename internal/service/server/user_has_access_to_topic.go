@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
@@ -14,8 +14,8 @@ func (s *Service) UserHasAccessToTopic(ctx context.Context, userID domain.UserID
 	}
 
 	if _, err = s.db.GetServerParticipant(ctx, topic.ServerID, userID); err != nil {
-		return errors.E(err).
-			Kind(errors.Permission).
+		return errutil.E(err).
+			Kind(errutil.Permission).
 			Message("you don't have an access to the topic")
 	}
 

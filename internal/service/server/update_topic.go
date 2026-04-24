@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) UpdateTopic(ctx context.Context, topic *domain.Topic, userID domain.UserID) error {
@@ -19,7 +19,7 @@ func (s *Service) updateTopic(ctx context.Context, topic *domain.Topic, userID d
 	}
 
 	if err := s.db.UpdateTopic(ctx, topic); err != nil {
-		return errors.E(err).Debug("s.db.UpdateTopic")
+		return errutil.E(err).Debug("s.db.UpdateTopic")
 	}
 	return nil
 }
@@ -34,9 +34,5 @@ func (s *Service) validateUpdateTopic(ctx context.Context, topic *domain.Topic, 
 		return err
 	}
 
-	if err := s.validateUserIsOwner(ctx, topicFromDB.ServerID, userID); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateUserIsOwner(ctx, topicFromDB.ServerID, userID)
 }

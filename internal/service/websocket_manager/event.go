@@ -11,9 +11,9 @@ type Event struct {
 }
 
 type EventData struct {
-	Sender    UserInfo `json:"sender"`
 	Text      string   `json:"text"`
 	CreatedAt string   `json:"created_at"`
+	Sender    UserInfo `json:"sender"`
 	ID        int64    `json:"id"`
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) UpdateServer(ctx context.Context, serverID domain.ServerID, name string, userID domain.UserID) error {
@@ -24,7 +24,7 @@ func (s *Service) updateServer(ctx context.Context, serverID domain.ServerID, na
 	}
 
 	if err := s.db.UpdateServer(ctx, updatedServer); err != nil {
-		return errors.E(err).Debug("s.db.UpdateServer")
+		return errutil.E(err).Debug("s.db.UpdateServer")
 	}
 
 	return nil
@@ -35,9 +35,5 @@ func (s *Service) validateServerUpdate(ctx context.Context, serverID domain.Serv
 		return err
 	}
 
-	if err := s.validateUserIsOwner(ctx, serverID, userID); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateUserIsOwner(ctx, serverID, userID)
 }

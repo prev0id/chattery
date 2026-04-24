@@ -1,4 +1,4 @@
-package server_api
+package server
 
 import (
 	"net/http"
@@ -19,7 +19,7 @@ func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatePostUpdateTopic(request); err != nil {
+	if err = validatePostUpdateTopic(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
@@ -36,9 +36,5 @@ func (s *Server) PostTopicUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func validatePostUpdateTopic(request *PostUpdateTopicRequest) error {
-	if err := validate.TopicName(request.Name); err != nil {
-		return err
-	}
-
-	return nil
+	return validate.TopicName(request.Name)
 }

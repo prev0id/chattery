@@ -57,7 +57,8 @@ func (s *Server) Register(services ...service) *Server {
 func (s *Server) Run() error {
 	slog.Info("starting server", slog.String("address", s.address))
 
-	if err := http.ListenAndServe(s.address, s.mux); err != nil {
+	// TODO: change to normal http.Server
+	if err := http.ListenAndServe(s.address, s.mux); err != nil { // #nosec G114
 		return fmt.Errorf("http.ListenAndServe: %w", err)
 	}
 	return nil

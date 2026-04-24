@@ -6,7 +6,7 @@ import (
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 type db interface {
@@ -48,15 +48,15 @@ func New(dbAdapter db, cacheAdapter cache, transaction txManager, cfg *config.Co
 
 func (s *Service) GetByCredentials(ctx context.Context, login domain.Email, rawPassword string) (*domain.User, error) {
 	user, err := s.db.UserByLogin(ctx, login)
-	if errors.Is(errors.NotFound, err) {
-		return nil, errors.E(err).Kind(errors.Permission).Messagef("user with login %q not found", login.String())
+	if errutil.Is(errutil.NotFound, err) {
+		return nil, errutil.E(err).Kind(errutil.Permission).Messagef("user with login %q not found", login.String())
 	}
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.UserByLogin")
+		return nil, errutil.E(err).Debug("s.db.UserByLogin")
 	}
 
 	if !user.Password.Equal(rawPassword, login) {
-		return nil, errors.E(err).Kind(errors.Permission).Message("invalid password")
+		return nil, errutil.E(err).Kind(errutil.Permission).Message("invalid password")
 	}
 
 	return user, nil
@@ -64,11 +64,11 @@ func (s *Service) GetByCredentials(ctx context.Context, login domain.Email, rawP
 
 func (s *Service) GetByID(ctx context.Context, userID domain.UserID) (*domain.User, error) {
 	user, err := s.db.UserByID(ctx, userID)
-	if errors.Is(errors.NotFound, err) {
-		return nil, errors.E(err).Kind(errors.NotFound).Messagef("user with id %d not found", userID)
+	if errutil.Is(errutil.NotFound, err) {
+		return nil, errutil.E(err).Kind(errutil.NotFound).Messagef("user with id %d not found", userID)
 	}
 	if err != nil {
-		return nil, errors.E(err).Debug("s.db.UserByID")
+		return nil, errutil.E(err).Debug("s.db.UserByID")
 	}
 
 	return user, nil
@@ -79,7 +79,7 @@ func (s *Service) CreateUser(ctx context.Context, user *domain.User) (domain.Use
 	err := s.transaction.InTransaction(ctx, func(ctx context.Context) error {
 		id, err := s.db.CreateUser(ctx, user)
 		if err != nil {
-			return errors.E(err).Debug("s.db.CreateUser")
+			return errutil.E(err).Debug("s.db.CreateUser")
 		}
 		resultID = id
 		return nil
@@ -91,7 +91,7 @@ func (s *Service) CreateUser(ctx context.Context, user *domain.User) (domain.Use
 func (s *Service) UpdateUser(ctx context.Context, user *domain.User) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
 		if err := s.db.UpdateUser(ctx, user); err != nil {
-			return errors.E(err).Debug("s.db.UpdateUser")
+			return errutil.E(err).Debug("s.db.UpdateUser")
 		}
 		return nil
 	})
@@ -100,16 +100,16 @@ func (s *Service) UpdateUser(ctx context.Context, user *domain.User) error {
 func (s *Service) DeleteUser(ctx context.Context, id domain.UserID) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
 		if err := s.db.DeleteUser(ctx, id); err != nil {
-			return errors.E(err).Debug("s.db.DeleteUser")
+			return errutil.E(err).Debug("s.db.DeleteUser")
 		}
 		return nil
 	})
 }
 
-func (s *Service) Search(ctx context.Context, user domain.UserID, query string) ([]*domain.User, error) {
+func (*Service) Search(context.Context, domain.UserID, string) ([]*domain.User, error) {
 	// users, err := s.db.Users(ctx)
 	// if err != nil {
-	// 	return nil, errors.E(err).Debug("s.db.Chats")
+	// 	return nil, errutil.E(err).Debug("s.db.Chats")
 	// }
 
 	// query = strings.ToLower(query)

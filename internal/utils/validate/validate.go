@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 const (
@@ -90,8 +90,8 @@ func TopicType(topic string) error {
 
 func minLength(str string, length int, field string) error {
 	if len(str) < length {
-		return errors.E().
-			Kind(errors.InvalidRequest).
+		return errutil.E().
+			Kind(errutil.InvalidRequest).
 			Messagef("%s must be at least %d characters long", field, length)
 	}
 	return nil
@@ -99,8 +99,8 @@ func minLength(str string, length int, field string) error {
 
 func maxLength(str string, length int, field string) error {
 	if len(str) > length {
-		return errors.E().
-			Kind(errors.InvalidRequest).
+		return errutil.E().
+			Kind(errutil.InvalidRequest).
 			Messagef("%s must be at most %d characters long", field, length)
 	}
 	return nil
@@ -108,8 +108,8 @@ func maxLength(str string, length int, field string) error {
 
 func startWithLowercaseLetter(str string, field string) error {
 	if str[0] < 'a' || str[0] > 'z' {
-		return errors.E().
-			Kind(errors.InvalidRequest).
+		return errutil.E().
+			Kind(errutil.InvalidRequest).
 			Messagef("%s must start with a lowercase letter", field)
 	}
 	return nil
@@ -118,8 +118,8 @@ func startWithLowercaseLetter(str string, field string) error {
 func endWithLowercaseLetter(str, field string) error {
 	lastIdx := len(str) - 1
 	if str[lastIdx] < 'a' || str[lastIdx] > 'z' {
-		return errors.E().
-			Kind(errors.InvalidRequest).
+		return errutil.E().
+			Kind(errutil.InvalidRequest).
 			Messagef("%s must end with a lowercase letter", field)
 	}
 	return nil
@@ -131,8 +131,8 @@ func hasLowerCaseLetter(str, field string) error {
 			return nil
 		}
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s must contain at least one lowercase letter", field)
 }
 
@@ -142,8 +142,8 @@ func hasUpperCaseLetter(str, field string) error {
 			return nil
 		}
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s must contain at least one uppercase letter", field)
 }
 
@@ -153,8 +153,8 @@ func hasDigit(str, field string) error {
 			return nil
 		}
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s must contain at least one digit", field)
 }
 
@@ -163,8 +163,8 @@ func validEmail(str, field string) error {
 	if err == nil {
 		return nil
 	}
-	return errors.E(err).
-		Kind(errors.InvalidRequest).
+	return errutil.E(err).
+		Kind(errutil.InvalidRequest).
 		Messagef("%s must be a valid email address", field)
 }
 
@@ -179,8 +179,8 @@ func containsOnlyLowerCaseAndUnderscore(str, field string) error {
 	if !invalid {
 		return nil
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s can only contain lowercase letters (a-z) and underscores", field)
 }
 
@@ -188,8 +188,8 @@ func containsOnlyWords(str, field string) error {
 	if onlyWords.MatchString(str) {
 		return nil
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s can only contain letters (a-z, A-Z), digits, underscores and dashes -", field)
 }
 
@@ -198,8 +198,8 @@ func oneOf[T comparable](value T, field string, targets ...T) error {
 		return nil
 	}
 
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s can only one of values %v", field, targets)
 }
 
@@ -208,7 +208,7 @@ func NotEmpty[T comparable](value T, field string) error {
 	if value != empty {
 		return nil
 	}
-	return errors.E().
-		Kind(errors.InvalidRequest).
+	return errutil.E().
+		Kind(errutil.InvalidRequest).
 		Messagef("%s must be provided", field)
 }

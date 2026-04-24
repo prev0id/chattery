@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 )
 
 func (s *Service) FirstPageOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error) {
@@ -31,13 +31,13 @@ func (s *Service) firstPageOfDMMessages(ctx context.Context, userID domain.UserI
 
 	messages, err := s.db.FirstPageOfDMMessages(ctx, cursor)
 	if err != nil {
-		return nil, nil, errors.E(err).Debug("s.db.FirstPageOfDMMessages")
+		return nil, nil, errutil.E(err).Debug("s.db.FirstPageOfDMMessages")
 	}
 
 	if len(messages) > 0 {
 		lastSeenMessage := messages[0]
 		if err := s.db.SetDMLastReadMessage(ctx, cursor.ChatID, userID, lastSeenMessage.ID); err != nil {
-			return nil, nil, errors.E(err).Debug("s.db.SetDMLastReadMessage")
+			return nil, nil, errutil.E(err).Debug("s.db.SetDMLastReadMessage")
 		}
 	}
 
@@ -45,8 +45,5 @@ func (s *Service) firstPageOfDMMessages(ctx context.Context, userID domain.UserI
 }
 
 func (s *Service) validateFirstPageOfDMMessages(ctx context.Context, dmID domain.DMID, userID domain.UserID) error {
-	if err := s.validateParticipantExists(ctx, dmID, userID); err != nil {
-		return err
-	}
-	return nil
+	return s.validateParticipantExists(ctx, dmID, userID)
 }

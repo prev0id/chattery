@@ -1,10 +1,10 @@
-package user_api
+package user
 
 import (
 	"net/http"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/render"
 )
 
@@ -15,7 +15,7 @@ func (s *Server) DeleteMe(w http.ResponseWriter, r *http.Request) {
 	userID := domain.UserIDFromContext(ctx)
 
 	if err := s.user.DeleteUser(ctx, userID); err != nil {
-		render.Error(w, r, errors.E(err).Debug("s.user.DeleteUser"))
+		render.Error(w, r, errutil.E(err).Debug("s.user.DeleteUser"))
 		return
 	}
 

@@ -1,4 +1,4 @@
-package redis_adapter
+package redis
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 	"chattery/internal/utils/render"
 	"chattery/internal/utils/sliceutil"
@@ -34,7 +34,7 @@ func NewRedisAdapter(client client) *Adapter {
 
 func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, userID domain.UserID, expiration time.Duration) error {
 	if err := r.client.SetI64(ctx, sessionKey(session), userID.I64(), expiration); err != nil {
-		return errors.E(err).Debug("r.client.SetI64")
+		return errutil.E(err).Debug("r.client.SetI64")
 	}
 	return nil
 }
@@ -50,14 +50,14 @@ func (r *Adapter) UserIDFromSession(ctx context.Context, session domain.Session,
 
 func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) error {
 	if err := r.client.Delete(ctx, sessionKey(session)); err != nil {
-		return errors.E(err).Debug("r.client.Delete")
+		return errutil.E(err).Debug("r.client.Delete")
 	}
 	return nil
 }
 
 func (r *Adapter) AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
 	if err := r.client.ZAddI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
-		return errors.E(err).Debug("r.client.ZAddI64")
+		return errutil.E(err).Debug("r.client.ZAddI64")
 	}
 	return nil
 }
@@ -65,14 +65,14 @@ func (r *Adapter) AddUserInTextTopic(ctx context.Context, topicID domain.TopicID
 func (r *Adapter) ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error) {
 	users, err := r.client.ZMembersI64(ctx, textTopicMembersKey(topicID), threshold)
 	if err != nil {
-		return nil, errors.E(err).Debug("r.client.ZMembersI64")
+		return nil, errutil.E(err).Debug("r.client.ZMembersI64")
 	}
 	return sliceutil.Map(users, convertI64ToUserID), nil
 }
 
 func (r *Adapter) RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
 	if err := r.client.ZRemoveI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
-		return errors.E(err).Debug("r.client.ZRemoveI64")
+		return errutil.E(err).Debug("r.client.ZRemoveI64")
 	}
 	return nil
 }
@@ -104,11 +104,11 @@ func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst
 func (r *Adapter) PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error {
 	renderedMessage, err := render.JSONString(message)
 	if err != nil {
-		return errors.E(err).Debug("render.JsonString")
+		return errutil.E(err).Debug("render.JsonString")
 	}
 
 	if err := r.client.Publish(ctx, userChannelKey(userID), renderedMessage); err != nil {
-		return errors.E(err).Debug("r.client.Publish")
+		return errutil.E(err).Debug("r.client.Publish")
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package server_api
+package server
 
 import (
 	"net/http"
@@ -19,7 +19,7 @@ func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatePostCreateServer(request); err != nil {
+	if err = validatePostCreateServer(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}

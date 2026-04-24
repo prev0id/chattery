@@ -1,4 +1,4 @@
-package user_api
+package user
 
 import (
 	"net/http"

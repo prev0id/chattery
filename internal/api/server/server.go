@@ -1,4 +1,4 @@
-package server_api
+package server
 
 import (
 	"context"
@@ -55,7 +55,7 @@ func New(user userService, server serverService, textTopic textTopicService, cac
 	}
 }
 
-func (s *Server) Pattern() string {
+func (*Server) Pattern() string {
 	return "/v1/server"
 }
 

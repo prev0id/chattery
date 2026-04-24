@@ -1,4 +1,4 @@
-package websocket_api
+package websocket //nolint:dupl
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	"chattery/internal/utils/errors"
+	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/render"
 )
 
@@ -18,8 +18,8 @@ func (s *Server) DMWebsocket(w http.ResponseWriter, r *http.Request) {
 	dmIDStr := chi.URLParam(r, "dm_id")
 	dmID, err := strconv.ParseInt(dmIDStr, 10, 64)
 	if err != nil {
-		err = errors.E(err).
-			Kind(errors.InvalidRequest).
+		err = errutil.E(err).
+			Kind(errutil.InvalidRequest).
 			Message("invalid dm_id").
 			Debug("domain.ParseDMID")
 		render.Error(w, r, err)
@@ -27,8 +27,8 @@ func (s *Server) DMWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.wsManager.UserHasAccessToDM(ctx, userID, domain.DMID(dmID)); err != nil {
-		err = errors.E(err).
-			Kind(errors.InvalidRequest).
+		err = errutil.E(err).
+			Kind(errutil.InvalidRequest).
 			Message("no access to dm").
 			Debug("s.wsManager.UserHasAccessToDM")
 		render.Error(w, r, err)
