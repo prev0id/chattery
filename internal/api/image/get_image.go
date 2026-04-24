@@ -29,6 +29,7 @@ func (s *Server) GetImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "public, max-age=600")
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(imgBytes)
 }
