@@ -30,7 +30,7 @@ func Timestamp(t time.Time) string {
 	return t.Format(formatDateTime)
 }
 
-func Json[T any](w http.ResponseWriter, r *http.Request, value T) {
+func JSON[T any](w http.ResponseWriter, r *http.Request, value T) {
 	response, err := json.Marshal(value)
 	if err != nil {
 		Error(w, r, errors.E(err).Debug("json.Marshal"))
@@ -38,7 +38,11 @@ func Json[T any](w http.ResponseWriter, r *http.Request, value T) {
 	}
 
 	setContentTypeJSON(w)
-	w.Write(response)
+
+	if _, err := w.Write(response); err != nil {
+		Error(w, r, errors.E(err).Debug("w.Write"))
+		return
+	}
 }
 
 type responseError struct {
@@ -54,14 +58,14 @@ func Error(w http.ResponseWriter, r *http.Request, err error) {
 
 	setContentTypeJSON(w)
 	w.WriteHeader(statusCode)
-	w.Write(response)
+	_, _ = w.Write(response)
 }
 
 func setContentTypeJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func JsonBytes(value any) ([]byte, error) {
+func JSONBytes(value any) ([]byte, error) {
 	response, err := json.Marshal(value)
 	if err != nil {
 		return nil, errors.E(err).Debug("json.Marshal")
@@ -69,7 +73,7 @@ func JsonBytes(value any) ([]byte, error) {
 	return response, nil
 }
 
-func JsonString(value any) (string, error) {
-	bytes, err := JsonBytes(value)
+func JSONString(value any) (string, error) {
+	bytes, err := JSONBytes(value)
 	return string(bytes), err
 }

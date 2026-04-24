@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -18,8 +19,6 @@ const (
 
 func (k Kind) StatusCode() int {
 	switch k {
-	case Internal:
-		return http.StatusInternalServerError
 	case InvalidRequest:
 		return http.StatusBadRequest
 	case Unauthorized:
@@ -55,10 +54,10 @@ func (k Kind) String() string {
 }
 
 type Error struct {
-	kind    Kind
-	debug   []string
-	message string
 	err     error
+	message string
+	debug   []string
+	kind    Kind
 }
 
 func E(errs ...error) *Error {
@@ -67,7 +66,8 @@ func E(errs ...error) *Error {
 	}
 
 	err := errs[0]
-	if domainErr, ok := err.(*Error); ok {
+	domainErr := &Error{}
+	if errors.As(err, &domainErr) {
 		return domainErr
 	}
 

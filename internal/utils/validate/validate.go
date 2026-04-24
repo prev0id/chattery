@@ -34,17 +34,12 @@ func Username(username string) error {
 	if err := endWithLowercaseLetter(username, UsernameFieldName); err != nil {
 		return err
 	}
-	if err := containsOnlyLowerCaseAndUnderscore(username, UsernameFieldName); err != nil {
-		return err
-	}
-	return nil
+
+	return containsOnlyLowerCaseAndUnderscore(username, UsernameFieldName)
 }
 
 func Login(login string) error {
-	if err := validEmail(login, LoginFieldName); err != nil {
-		return err
-	}
-	return nil
+	return validEmail(login, LoginFieldName)
 }
 
 func Password(password string) error {
@@ -60,10 +55,8 @@ func Password(password string) error {
 	if err := hasUpperCaseLetter(password, PasswordFieldName); err != nil {
 		return err
 	}
-	if err := hasDigit(password, PasswordFieldName); err != nil {
-		return err
-	}
-	return nil
+
+	return hasDigit(password, PasswordFieldName)
 }
 
 func ServerName(name string) error {
@@ -73,10 +66,7 @@ func ServerName(name string) error {
 	if err := maxLength(name, 25, NameFieldName); err != nil {
 		return err
 	}
-	if err := containsOnlyWords(name, NameFieldName); err != nil {
-		return err
-	}
-	return nil
+	return containsOnlyWords(name, NameFieldName)
 }
 
 func TopicName(name string) error {
@@ -86,17 +76,16 @@ func TopicName(name string) error {
 	if err := maxLength(name, 20, NameFieldName); err != nil {
 		return err
 	}
-	if err := containsOnlyWords(name, NameFieldName); err != nil {
-		return err
-	}
-	return nil
+	return containsOnlyWords(name, NameFieldName)
 }
 
-func TopicType(type_ string) error {
-	if err := oneOf(type_, TypeFieldName, domain.TopicTypeText.String(), domain.TopicTypeVoice.String()); err != nil {
-		return err
-	}
-	return nil
+func TopicType(topic string) error {
+	return oneOf(
+		topic,
+		TypeFieldName,
+		domain.TopicTypeText.String(),
+		domain.TopicTypeVoice.String(),
+	)
 }
 
 func minLength(str string, length int, field string) error {
@@ -108,11 +97,11 @@ func minLength(str string, length int, field string) error {
 	return nil
 }
 
-func maxLength(str string, max int, field string) error {
-	if len(str) > max {
+func maxLength(str string, length int, field string) error {
+	if len(str) > length {
 		return errors.E().
 			Kind(errors.InvalidRequest).
-			Messagef("%s must be at most %d characters long", field, max)
+			Messagef("%s must be at most %d characters long", field, length)
 	}
 	return nil
 }

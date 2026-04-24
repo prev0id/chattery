@@ -18,10 +18,10 @@ import (
 	"chattery/internal/config"
 	"chattery/internal/service/dm"
 	"chattery/internal/service/server"
-	text_topic "chattery/internal/service/text_topic"
+	"chattery/internal/service/text_topic"
 	"chattery/internal/service/user"
 	ws_manager "chattery/internal/service/websocket_manager"
-	syncer "chattery/internal/store/syncer"
+	"chattery/internal/store/syncer"
 	user_store "chattery/internal/store/user"
 	"chattery/internal/utils/database"
 	"chattery/internal/utils/logger"
@@ -65,7 +65,7 @@ func main() {
 
 	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService, textTopicService, userStore)
 
-	server := api.
+	apiServer := api.
 		NewServer(cfg).
 		UseMiddleware(userService.SessionMiddleware).
 		Register(
@@ -77,7 +77,7 @@ func main() {
 			server_api.New(userService, serverService, textTopicService, userStore),
 		)
 
-	if err := server.Run(); err != nil {
+	if err := apiServer.Run(); err != nil {
 		logger.Fatal(err, "server.Run")
 	}
 }

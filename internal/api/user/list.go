@@ -22,5 +22,5 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetUsersResponse(users))
+	render.JSON(w, r, convertGetUsersResponse(users))
 }

@@ -17,8 +17,8 @@ type Store interface {
 
 type Syncer[T Store] struct {
 	store   T
-	timeout time.Duration
 	stopCh  chan struct{}
+	timeout time.Duration
 }
 
 func Start[T Store](timeout time.Duration, store T) error {

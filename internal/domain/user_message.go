@@ -8,8 +8,8 @@ const (
 )
 
 type UserMessage struct {
-	Type      UserMessageType `json:"type"`
-	ChannelID int64           `json:"channel_id"`
 	DMMessage *DMMessage      `json:"dm_message,omitempty"`
 	TopicMsg  *TopicMessage   `json:"topic_message,omitempty"`
+	Type      UserMessageType `json:"type"`
+	ChannelID int64           `json:"channel_id"`
 }

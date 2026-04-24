@@ -13,16 +13,16 @@ type GetServersResponse struct {
 }
 
 type ServerResponse struct {
-	ID     int64           `json:"id"`
 	Name   string          `json:"name"`
 	Role   string          `json:"role"`
 	Topics []TopicResponse `json:"topics"`
+	ID     int64           `json:"id"`
 }
 
 type TopicResponse struct {
-	ID   int64  `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
+	ID   int64  `json:"id"`
 }
 
 type PostCreateServerRequest struct {
@@ -42,14 +42,14 @@ type PostLeaveServerRequest struct {
 }
 
 type PostUpdateServerRequest struct {
-	ServerID int64  `json:"server_id"`
 	Name     string `json:"name"`
+	ServerID int64  `json:"server_id"`
 }
 
 type PostCreateTopicRequest struct {
-	ServerID int64  `json:"server_id"`
 	Name     string `json:"name"`
 	Type     string `json:"type"`
+	ServerID int64  `json:"server_id"`
 }
 
 type PostCreateTopicResponse struct {
@@ -57,13 +57,13 @@ type PostCreateTopicResponse struct {
 }
 
 type PostUpdateTopicRequest struct {
-	TopicID int64  `json:"topic_id"`
 	Name    string `json:"name"`
+	TopicID int64  `json:"topic_id"`
 }
 
 type PostMessageRequest struct {
-	TopicID int64  `json:"topic_id"`
 	Text    string `json:"text"`
+	TopicID int64  `json:"topic_id"`
 }
 
 type GetTopicMessagesRequest struct {
@@ -71,28 +71,28 @@ type GetTopicMessagesRequest struct {
 }
 
 type GetTopicMessagesResponse struct {
-	Messages []Message `json:"messages"`
 	Cursor   *Cursor   `json:"cursor"`
+	Messages []Message `json:"messages"`
 }
 
 type Message struct {
-	ID        int64    `json:"id"`
-	SenderID  int64    `json:"sender_id"`
 	Sender    UserInfo `json:"sender"`
 	Text      string   `json:"text"`
 	CreatedAt string   `json:"created_at"`
+	ID        int64    `json:"id"`
+	SenderID  int64    `json:"sender_id"`
 }
 
 type UserInfo struct {
-	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
+	ID       int64  `json:"id"`
 }
 
 type Cursor struct {
+	Timestamp time.Time `json:"timestamp"`
 	TopicID   int64     `json:"topic_id"`
 	MessageID int64     `json:"message_id"`
-	Timestamp time.Time `json:"timestamp"`
 }
 
 type DeleteServerRequest struct {

@@ -18,5 +18,5 @@ func (s *Server) GetDMs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetDMsResponse(dms, s.cache.List()))
+	render.JSON(w, r, convertGetDMsResponse(dms, s.cache.List()))
 }

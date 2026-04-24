@@ -17,5 +17,5 @@ func (s *Server) GetServers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetServersResponse(servers))
+	render.JSON(w, r, convertGetServersResponse(servers))
 }

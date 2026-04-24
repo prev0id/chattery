@@ -2,6 +2,7 @@ package websocket_manager
 
 import (
 	"context"
+	"slices"
 	"sync"
 
 	"github.com/coder/websocket"
@@ -88,10 +89,8 @@ func (m *WebsocketManager) UserHasAccessToDM(ctx context.Context, userID domain.
 		return errors.E(err).Debug("m.dmService.GetParticipants")
 	}
 
-	for _, p := range participants {
-		if p == userID {
-			return nil
-		}
+	if slices.Contains(participants, userID) {
+		return nil
 	}
 
 	return errors.E().Kind(errors.InvalidRequest).Debug("user is not participant of dm")
@@ -112,7 +111,10 @@ func (m *WebsocketManager) JoinToTextTopic(ctx context.Context, userID domain.Us
 }
 
 func (m *WebsocketManager) LeaveFromTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
-	return m.textTopicService.RemoveUserFromTextTopic(ctx, userID, topicID)
+	if err := m.textTopicService.RemoveUserFromTextTopic(ctx, userID, topicID); err != nil {
+		return errors.E(err).Debug("m.textTopicService.RemoveUserFromTextTopic")
+	}
+	return nil
 }
 
 func (m *WebsocketManager) registerConnection(conn *Connection) {
@@ -178,13 +180,17 @@ func (m *WebsocketManager) handleUserMessages(userID domain.UserID, src chan *do
 	}
 }
 
-func (m *WebsocketManager) userMessageToEvent(msg *domain.UserMessage, connChannelType domain.ChannelType, connChannelID int64) *Event {
+func (m *WebsocketManager) userMessageToEvent(
+	msg *domain.UserMessage,
+	connChannelType domain.ChannelType,
+	connChannelID int64,
+) *Event {
 	switch msg.Type {
 	case domain.UserMessageTypeDM:
 		if connChannelType != domain.ChannelDM {
 			return nil
 		}
-		if int64(msg.DMMessage.DMID.I64()) != connChannelID {
+		if msg.DMMessage.DMID.I64() != connChannelID {
 			return nil
 		}
 		return m.dmToEventMessage(msg.DMMessage)
@@ -192,7 +198,7 @@ func (m *WebsocketManager) userMessageToEvent(msg *domain.UserMessage, connChann
 		if connChannelType != domain.ChannelTextTopic {
 			return nil
 		}
-		if int64(msg.TopicMsg.TopicID.I64()) != connChannelID {
+		if msg.TopicMsg.TopicID.I64() != connChannelID {
 			return nil
 		}
 		return m.topicToEventMessage(msg.TopicMsg)

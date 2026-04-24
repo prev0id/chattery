@@ -1,11 +1,11 @@
 package domain
 
 type User struct {
-	ID       UserID
 	Username Username
 	AvatarID ImageID
 	Login    Email
 	Password Password
+	ID       UserID
 }
 
 type ImageID string

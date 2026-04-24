@@ -19,7 +19,7 @@ func (s *Server) PostTopicCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatePostCreateTopic(request); err != nil {
+	if err = validatePostCreateTopic(request); err != nil {
 		render.Error(w, r, err)
 		return
 	}
@@ -32,7 +32,7 @@ func (s *Server) PostTopicCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertPostCreateTopicResponse(topicID))
+	render.JSON(w, r, convertPostCreateTopicResponse(topicID))
 }
 
 func validatePostCreateTopic(request *PostCreateTopicRequest) error {
@@ -40,9 +40,5 @@ func validatePostCreateTopic(request *PostCreateTopicRequest) error {
 		return err
 	}
 
-	if err := validate.TopicType(request.Type); err != nil {
-		return err
-	}
-
-	return nil
+	return validate.TopicType(request.Type)
 }

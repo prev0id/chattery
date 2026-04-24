@@ -27,7 +27,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config) *Server {
 	server := &Server{
-		address: net.JoinHostPort(cfg.Http.Host, cfg.Http.Port),
+		address: net.JoinHostPort(cfg.HTTP.Host, cfg.HTTP.Port),
 	}
 	server.mux = chi.NewRouter()
 	server.mux.Use(

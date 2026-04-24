@@ -30,7 +30,7 @@ func hslToRGBA(h, s, l float64) color.RGBA {
 }
 
 func hueToRgb(a, b, hue float64) float64 {
-	var h float64 = hue
+	var h = hue
 	if hue < 0.0 {
 		h = hue + 1.0
 	} else if hue > 1.0 {
@@ -90,7 +90,13 @@ func GenerateImage(data []byte, size int) image.Image {
 		for i := range 5 {
 			if mat[j][i] {
 				x, y := size/2+i*size, size/2+j*size
-				draw.Draw(res, image.Rect(x, y, x+size, y+size), &image.Uniform{fg}, image.Point{0, 0}, draw.Src)
+				draw.Draw(
+					res,
+					image.Rect(x, y, x+size, y+size),
+					&image.Uniform{fg},
+					image.Point{0, 0},
+					draw.Src,
+				)
 			}
 		}
 	}

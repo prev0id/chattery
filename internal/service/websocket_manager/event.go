@@ -3,24 +3,24 @@ package websocket_manager
 import "chattery/internal/domain"
 
 type Event struct {
+	Message     *EventData         `json:"message,omitempty"`
 	Type        EventType          `json:"type"`
 	ChannelType domain.ChannelType `json:"channel_type,omitempty"`
-	ChannelID   int64              `json:"channel_id,omitempty"`
-	Message     *EventData         `json:"message,omitempty"`
 	Error       string             `json:"error,omitempty"`
+	ChannelID   int64              `json:"channel_id,omitempty"`
 }
 
 type EventData struct {
-	ID        int64    `json:"id"`
 	Sender    UserInfo `json:"sender"`
 	Text      string   `json:"text"`
 	CreatedAt string   `json:"created_at"`
+	ID        int64    `json:"id"`
 }
 
 type UserInfo struct {
-	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
+	ID       int64  `json:"id"`
 }
 
 type EventType string

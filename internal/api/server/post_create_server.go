@@ -20,7 +20,8 @@ func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validatePostCreateServer(request); err != nil {
-
+		render.Error(w, r, err)
+		return
 	}
 
 	serverID, err := s.server.CreateServer(ctx, request.Name, userID)
@@ -29,13 +30,9 @@ func (s *Server) PostCreateServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertPostCreateServerResponse(serverID))
+	render.JSON(w, r, convertPostCreateServerResponse(serverID))
 }
 
 func validatePostCreateServer(request *PostCreateServerRequest) error {
-	if err := validate.ServerName(request.Name); err != nil {
-		return err
-	}
-
-	return nil
+	return validate.ServerName(request.Name)
 }

@@ -24,5 +24,5 @@ func (s *Server) PostCreateDM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertPostCreateDMResponse(dmID))
+	render.JSON(w, r, convertPostCreateDMResponse(dmID))
 }

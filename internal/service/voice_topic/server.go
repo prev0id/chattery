@@ -24,11 +24,10 @@ type WsEvent struct {
 }
 
 type Topic struct {
-	peersMutex sync.RWMutex
-	peers      map[domain.UserID]*webrtc.PeerConnection
-
-	tracksMutex sync.RWMutex
+	peers       map[domain.UserID]*webrtc.PeerConnection
 	tracks      map[string]*webrtc.TrackLocalStaticRTP
+	peersMutex  sync.RWMutex
+	tracksMutex sync.RWMutex
 }
 
 func (t *Topic) addPeerConnection(conn *webrtc.PeerConnection, userID domain.UserID) {
@@ -42,7 +41,6 @@ func (t *Topic) onTrack(userID domain.UserID) trackCallback {
 	return func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
 		t.peersMutex.RLock()
 		defer t.peersMutex.RUnlock()
-
 	}
 }
 
@@ -80,8 +78,8 @@ func (t *Topic) signalPeers() {
 }
 
 type Service struct {
-	m      sync.RWMutex
 	topics map[domain.TopicID]*Topic
+	m      sync.RWMutex
 }
 
 func (s *Service) Register(topicID domain.TopicID, userID domain.UserID) error {

@@ -36,5 +36,5 @@ func (s *Server) GetMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetMessagesResponse(nextCursor, messages, s.cache.List()))
+	render.JSON(w, r, convertGetMessagesResponse(nextCursor, messages, s.cache.List()))
 }

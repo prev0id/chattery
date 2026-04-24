@@ -6,11 +6,11 @@ import (
 )
 
 type Server struct {
-	ID       ServerID
-	Name     string
 	JoinedAt time.Time
+	Name     string
 	Role     ServerRole
 	Topics   []*Topic
+	ID       ServerID
 }
 
 type ServerID int64
@@ -18,11 +18,11 @@ type ServerID int64
 func (id ServerID) I64() int64 { return int64(id) }
 
 type Topic struct {
-	ID        TopicID
-	ServerID  ServerID
+	CreatedAt time.Time
 	Name      string
 	Type      TopicType
-	CreatedAt time.Time
+	ID        TopicID
+	ServerID  ServerID
 }
 
 type TopicID int64
@@ -41,9 +41,9 @@ const (
 )
 
 type ServerParticipant struct {
+	Role     ServerRole
 	UserID   UserID
 	ServerID ServerID
-	Role     ServerRole
 }
 
 type ServerRole string
@@ -60,9 +60,9 @@ type TopicMessageID int64
 func (id TopicMessageID) I64() int64 { return int64(id) }
 
 type TopicMessage struct {
+	CreatedAt time.Time
+	Text      string
 	ID        TopicMessageID
 	TopicID   TopicID
 	SenderID  UserID
-	Text      string
-	CreatedAt time.Time
 }

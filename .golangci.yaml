@@ -79,8 +79,10 @@ linters:
           disabled: true
         - name: import-alias-naming
           disabled: true
-        # - name: max-public-structs
-        #   disabled: true
+        - name: max-public-structs
+          disabled: true
+        - name: line-length-limit
+          disabled: true
         - name: package-comments
           disabled: true
         - name: unexported-return
@@ -91,7 +93,7 @@ linters:
             - []
             - - skip-package-name-checks: true
     staticcheck:
-      checks: ["all"]
+      checks: ["all", "-ST1000", "-ST1003"]
     testifylint:
       enable-all: true
   exclusions:
@@ -99,12 +101,8 @@ linters:
     rules:
       - path: (.+)\.go$
         text: don't use an underscore in package name
-    paths:
-      - bin
-      - vendor
-      - third_party$
-      - builtin$
-      - examples$
+      - path: (.+)\.go$
+        text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print(f|ln)?|os\.(Un)?Setenv). is not checked
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

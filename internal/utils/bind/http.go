@@ -14,14 +14,14 @@ func JSON[T any](request *http.Request) (*T, error) {
 		return nil, errors.E(err).Kind(errors.InvalidRequest).Debug("io.ReadAll")
 	}
 
-	return JsonBytes[T](body)
+	return JSONBytes[T](body)
 }
 
-func JsonString[T any](raw string) (*T, error) {
-	return JsonBytes[T]([]byte(raw))
+func JSONString[T any](raw string) (*T, error) {
+	return JSONBytes[T]([]byte(raw))
 }
 
-func JsonBytes[T any](raw []byte) (*T, error) {
+func JSONBytes[T any](raw []byte) (*T, error) {
 	result := new(T)
 	if err := json.Unmarshal(raw, result); err != nil {
 		return nil, errors.E(err).

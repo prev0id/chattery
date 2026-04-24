@@ -16,14 +16,14 @@ import (
 const pingInterval = 15 * time.Second
 
 type Connection struct {
+	ctx         context.Context
 	manager     *WebsocketManager
-	userID      domain.UserID
-	channelType domain.ChannelType
-	channelID   int64
 	ws          *websocket.Conn
 	send        chan *Event
-	ctx         context.Context
 	cancel      context.CancelFunc
+	channelType domain.ChannelType
+	userID      domain.UserID
+	channelID   int64
 }
 
 func (c *Connection) ReadPump(ctx context.Context) {
@@ -88,7 +88,7 @@ func (c *Connection) WritePump(ctx context.Context) {
 				return
 			}
 
-			bytes, err := render.JsonBytes(message)
+			bytes, err := render.JSONBytes(message)
 			if err != nil {
 				logger.Error(err, "[connection] render.JsonBytes")
 				continue
@@ -106,7 +106,7 @@ func (c *Connection) sendPing() {
 	event := Event{
 		Type: EventPing,
 	}
-	bytes, err := render.JsonBytes(event)
+	bytes, err := render.JSONBytes(event)
 	if err != nil {
 		logger.Error(err, "[connection] render.JsonBytes ping")
 		return
@@ -146,7 +146,7 @@ func (c *Connection) sendError(msg string) {
 		Type:  EventError,
 		Error: msg,
 	}
-	bytes, err := render.JsonBytes(event)
+	bytes, err := render.JSONBytes(event)
 	if err != nil {
 		logger.Error(err, "[connection] render.JsonBytes error")
 		return

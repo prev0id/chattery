@@ -40,7 +40,7 @@ func New(user userService, dm dmService, cache userCache) *Server {
 	}
 }
 
-func (s *Server) Pattern() string {
+func (_ *Server) Pattern() string {
 	return "/v1/dm"
 }
 

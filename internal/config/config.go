@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	App      App
 	Redis    Redis
+	HTTP     HTTP
 	Session  Session
-	Http     Http
-	Chat     Chat
 	Postgres Postgres
+	App      App
+	Chat     Chat
 	Cache    Cache
 }
 
@@ -22,7 +22,7 @@ type App struct {
 	Debug   bool
 }
 
-type Http struct {
+type HTTP struct {
 	Host string
 	Port string
 }
@@ -38,8 +38,8 @@ type Postgres struct {
 }
 
 type Session struct {
-	Expiration time.Duration
 	SecretKey  string
+	Expiration time.Duration
 }
 
 type Chat struct {
@@ -57,7 +57,7 @@ func Init() *Config {
 			Version: bind.EnvString("APP_VERSION", "local"),
 			Debug:   bind.EnvBool("APP_DEBUG", false),
 		},
-		Http: Http{
+		HTTP: HTTP{
 			Host: bind.EnvString("HTTP_HOST", "localhost"),
 			Port: bind.EnvString("HTTP_PORT", "8080"),
 		},

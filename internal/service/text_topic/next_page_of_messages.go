@@ -47,9 +47,5 @@ func (s *Service) validateNextPageOfMessages(ctx context.Context, topicID domain
 		return err
 	}
 
-	if err := s.validateTopicIsText(topic); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateTopicIsText(topic)
 }

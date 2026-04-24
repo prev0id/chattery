@@ -35,10 +35,10 @@ type GetMeResponse struct {
 }
 
 type User struct {
-	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
+	ID       int64  `json:"id"`
 }
 
 func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {

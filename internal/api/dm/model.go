@@ -12,10 +12,10 @@ type GetDMsResponse struct {
 }
 
 type DM struct {
+	Message *LastMessageInfo `json:"message,omitempty"`
+	User    UserInfo         `json:"user"`
 	ID      int64            `json:"id"`
 	Unread  bool             `json:"unread"`
-	User    UserInfo         `json:"user"`
-	Message *LastMessageInfo `json:"message,omitempty"`
 }
 
 type LastMessageInfo struct {
@@ -32,8 +32,8 @@ type PostCreateDMResponse struct {
 }
 
 type PostMessageRequest struct {
-	DMID int64  `json:"dm_id"`
 	Text string `json:"text"`
+	DMID int64  `json:"dm_id"`
 }
 
 type GetMessagesRequest struct {
@@ -41,27 +41,27 @@ type GetMessagesRequest struct {
 }
 
 type GetMessagesResponse struct {
-	Messages []*Message `json:"messages"`
 	Cursor   *Cursor    `json:"cursor"`
+	Messages []*Message `json:"messages"`
 }
 
 type Message struct {
-	ID        int64    `json:"id"`
-	Sender    UserInfo `json:"sender"`
 	Text      string   `json:"text"`
 	CreatedAt string   `json:"created_at"`
+	Sender    UserInfo `json:"sender"`
+	ID        int64    `json:"id"`
 }
 
 type UserInfo struct {
-	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
+	ID       int64  `json:"id"`
 }
 
 type Cursor struct {
+	Timestamp time.Time `json:"timestamp"`
 	DMID      int64     `json:"dm_id"`
 	MessageID int64     `json:"message_id"`
-	Timestamp time.Time `json:"timestamp"`
 }
 
 func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {

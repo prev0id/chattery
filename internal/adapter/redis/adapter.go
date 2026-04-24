@@ -13,8 +13,6 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
-const userActivityTTL = 90 * time.Second
-
 type client interface {
 	GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error)
 	SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error
@@ -55,7 +53,6 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 		return errors.E(err).Debug("r.client.Delete")
 	}
 	return nil
-
 }
 
 func (r *Adapter) AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
@@ -94,7 +91,7 @@ func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst
 			close(done)
 			return
 		case rawMessage := <-sink:
-			message, err := bind.JsonString[domain.UserMessage](rawMessage)
+			message, err := bind.JSONString[domain.UserMessage](rawMessage)
 			if err != nil {
 				logger.Error(err, "[redis_adapter] bind.JsonString UserMessage")
 				continue
@@ -105,7 +102,7 @@ func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst
 }
 
 func (r *Adapter) PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error {
-	renderedMessage, err := render.JsonString(message)
+	renderedMessage, err := render.JSONString(message)
 	if err != nil {
 		return errors.E(err).Debug("render.JsonString")
 	}
@@ -127,10 +124,6 @@ func sessionKey(session domain.Session) string {
 
 func userChannelKey(userID domain.UserID) string {
 	return "user:" + strconv.FormatInt(userID.I64(), 10)
-}
-
-func userActivityKey(userID domain.UserID) string {
-	return "user:activity:" + strconv.FormatInt(userID.I64(), 10)
 }
 
 func convertI64ToUserID(userID int64) domain.UserID {

@@ -47,13 +47,16 @@ func ErrorCtx(ctx context.Context, err error, message string, attr ...slog.Attr)
 	userID := domain.UserIDFromContext(ctx)
 
 	Error(err,
-		"request ended with an error",
-		slog.String("request_id", requestID),
-		slog.Int64("user_id", userID.I64()),
+		message,
+		append(
+			attr,
+			slog.String("request_id", requestID),
+			slog.Int64("user_id", userID.I64()),
+		)...,
 	)
 }
 
 func Fatal(err error, message string, attr ...slog.Attr) {
 	Error(err, message, attr...)
-	os.Exit(1)
+	os.Exit(1) //revive:disable-line:deep-exit
 }

@@ -12,9 +12,9 @@ import (
 
 type UserStore struct {
 	adapter         *user_adapter.Adapter
-	mu              sync.RWMutex
 	usersByID       map[domain.UserID]*domain.User
 	usersByUsername map[domain.Username]*domain.User
+	mu              sync.RWMutex
 }
 
 func New(adapter *user_adapter.Adapter) *UserStore {
@@ -35,12 +35,8 @@ func (s *UserStore) Sync(ctx context.Context) error {
 		return err
 	}
 
-	groupedByID := sliceutil.SliceToMap(users, func(user *domain.User) (domain.UserID, *domain.User) {
-		return user.ID, user
-	})
-	groupedByUsername := sliceutil.SliceToMap(users, func(user *domain.User) (domain.Username, *domain.User) {
-		return user.Username, user
-	})
+	groupedByID := sliceutil.SliceToMap(users, groupUserByID)
+	groupedByUsername := sliceutil.SliceToMap(users, groupUserByUsername)
 
 	s.mu.Lock()
 	s.usersByID = groupedByID
@@ -67,7 +63,9 @@ func (s *UserStore) GetByUsername(username domain.Username) (*domain.User, error
 
 	user, ok := s.usersByUsername[username]
 	if !ok {
-		return nil, errors.E().Kind(errors.NotFound).Messagef("user username='%s' not found", username)
+		return nil, errors.E().
+			Kind(errors.NotFound).
+			Messagef("user username='%s' not found", username)
 	}
 	return user, nil
 }
@@ -77,4 +75,12 @@ func (s *UserStore) List() map[domain.UserID]*domain.User {
 	defer s.mu.RUnlock()
 
 	return s.usersByID
+}
+
+func groupUserByID(user *domain.User) (domain.UserID, *domain.User) {
+	return user.ID, user
+}
+
+func groupUserByUsername(user *domain.User) (domain.Username, *domain.User) {
+	return user.Username, user
 }

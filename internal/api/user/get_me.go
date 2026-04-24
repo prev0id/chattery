@@ -17,5 +17,5 @@ func (s *Server) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Json(w, r, convertGetMeResponse(user))
+	render.JSON(w, r, convertGetMeResponse(user))
 }
