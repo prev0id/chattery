@@ -70,32 +70,44 @@ func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 
 	servers := make([]*domain.Server, 0, len(grouped))
 	for serverID, serverRows := range grouped {
-		if len(serverRows) == 0 {
-			continue
+		if server := convertServerFromRows(serverID, serverRows); server != nil {
+			servers = append(servers, server)
 		}
-
-		server := &domain.Server{
-			ID:       domain.ServerID(serverID),
-			Name:     serverRows[0].Name,
-			JoinedAt: serverRows[0].JoinedAt,
-			Role:     domain.ServerRole(serverRows[0].Role),
-		}
-
-		for _, row := range serverRows {
-			if row.TopicID.Valid {
-				topic := &domain.Topic{
-					ID:        domain.TopicID(row.TopicID.Int64),
-					ServerID:  domain.ServerID(serverID),
-					Name:      row.TopicName.String,
-					Type:      domain.TopicType(row.TopicType.String),
-					CreatedAt: row.TopicCreatedAt.Time,
-				}
-				server.Topics = append(server.Topics, topic)
-			}
-		}
-
-		servers = append(servers, server)
 	}
 
 	return servers
+}
+
+func convertServerFromRows(serverID int64, serverRows []*postgres.GetUserServersRow) *domain.Server {
+	if len(serverRows) == 0 {
+		return nil
+	}
+
+	server := &domain.Server{
+		ID:       domain.ServerID(serverID),
+		Name:     serverRows[0].Name,
+		JoinedAt: serverRows[0].JoinedAt,
+		Role:     domain.ServerRole(serverRows[0].Role),
+	}
+
+	for _, row := range serverRows {
+		if topic := convertTopicFromRow(serverID, row); topic != nil {
+			server.Topics = append(server.Topics, topic)
+		}
+	}
+
+	return server
+}
+
+func convertTopicFromRow(serverID int64, row *postgres.GetUserServersRow) *domain.Topic {
+	if !row.TopicID.Valid {
+		return nil
+	}
+	return &domain.Topic{
+		ID:        domain.TopicID(row.TopicID.Int64),
+		ServerID:  domain.ServerID(serverID),
+		Name:      row.TopicName.String,
+		Type:      domain.TopicType(row.TopicType.String),
+		CreatedAt: row.TopicCreatedAt.Time,
+	}
 }

@@ -36,26 +36,37 @@ func (s *Server) PostUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func validatePostUpdateUserRequest(req *PostUpdateUserRequest) error {
-	if req.Username != "" {
-		if err := validate.Username(req.Username); err != nil {
-			return err
-		}
+	if err := validateUsername(req.Username); err != nil {
+		return err
 	}
 
-	if req.Password != "" {
-		if err := validate.NotEmpty(req.Login, validate.LoginFieldName); err != nil {
-			return err
-		}
-
-		if err := validate.Password(req.Password); err != nil {
-			return err
-		}
+	if err := validatePassword(req.Password, req.Login); err != nil {
+		return err
 	}
 
-	if req.Login != "" {
-		if err := validate.Login(req.Login); err != nil {
-			return err
-		}
+	return validateLogin(req.Login)
+}
+
+func validateUsername(username string) error {
+	if username == "" {
+		return nil
 	}
-	return nil
+	return validate.Username(username)
+}
+
+func validatePassword(password, login string) error {
+	if password == "" {
+		return nil
+	}
+	if err := validate.NotEmpty(login, validate.LoginFieldName); err != nil {
+		return err
+	}
+	return validate.Password(password)
+}
+
+func validateLogin(login string) error {
+	if login == "" {
+		return nil
+	}
+	return validate.Login(login)
 }

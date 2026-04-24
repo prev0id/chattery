@@ -27,22 +27,20 @@ type Connection struct {
 }
 
 func (c *Connection) ReadPump(ctx context.Context) {
-	defer func() {
-		c.cancel()
-		c.manager.unregisterConnection(c)
-		if c.channelType == domain.ChannelTextTopic {
-			c.manager.LeaveFromTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID))
-		}
-		close(c.send)
-		c.ws.Close(websocket.StatusNormalClosure, "")
-	}()
+	defer c.cleanup()
 
 	c.manager.subscribeUser(c.ctx, c.userID)
 
 	if c.channelType == domain.ChannelTextTopic {
-		c.manager.JoinToTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID))
+		if err := c.manager.JoinToTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID)); err != nil {
+			logger.Error(err, "[connection] ReadPump: JoinToTextTopic")
+		}
 	}
 
+	c.runReadLoop(ctx)
+}
+
+func (c *Connection) runReadLoop(ctx context.Context) {
 	for {
 		_, rawEvent, err := c.ws.Read(ctx)
 		if err != nil {
@@ -52,53 +50,80 @@ func (c *Connection) ReadPump(ctx context.Context) {
 			return
 		}
 
-		var event Event
-		if err := json.Unmarshal(rawEvent, &event); err != nil {
-			c.sendError("invalid json format")
-			continue
-		}
+		c.handleEvent(rawEvent)
+	}
+}
 
-		switch event.Type {
-		case EventPong:
-			c.handlePong(event)
-		case EventJoin:
-			c.handleJoin(event)
-		case EventLeave:
-			c.handleLeave(event)
-		default:
-			c.sendError("unknown event type")
+func (c *Connection) cleanup() {
+	c.cancel()
+	c.manager.unregisterConnection(c)
+	if c.channelType == domain.ChannelTextTopic {
+		if err := c.manager.LeaveFromTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID)); err != nil {
+			logger.Error(err, "[connection] cleanup: LeaveFromTextTopic")
 		}
+	}
+	close(c.send)
+	if err := c.ws.Close(websocket.StatusNormalClosure, ""); err != nil {
+		logger.Error(err, "[connection] cleanup: ws.Close")
+	}
+}
+
+func (c *Connection) handleEvent(rawEvent []byte) {
+	var event Event
+	if err := json.Unmarshal(rawEvent, &event); err != nil {
+		c.sendError("invalid json format")
+		return
+	}
+
+	switch event.Type {
+	case EventPong:
+		c.handlePong(event)
+	case EventJoin:
+		c.handleJoin(event)
+	case EventLeave:
+		c.handleLeave(event)
+	default:
+		c.sendError("unknown event type")
 	}
 }
 
 func (c *Connection) WritePump(ctx context.Context) {
-	defer c.ws.Close(websocket.StatusNormalClosure, "")
+	defer func() {
+		if err := c.ws.Close(websocket.StatusNormalClosure, ""); err != nil {
+			logger.Error(err, "[connection] WritePump: ws.Close")
+		}
+	}()
 
 	pingTicker := time.NewTicker(pingInterval)
 	defer pingTicker.Stop()
 
+	c.runWriteLoop(ctx, pingTicker.C)
+}
+
+func (c *Connection) runWriteLoop(ctx context.Context, pingCh <-chan time.Time) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-pingTicker.C:
+		case <-pingCh:
 			c.sendPing()
 		case message, ok := <-c.send:
 			if !ok {
 				return
 			}
-
-			bytes, err := render.JSONBytes(message)
-			if err != nil {
-				logger.Error(err, "[connection] render.JsonBytes")
-				continue
-			}
-
-			if err := c.ws.Write(ctx, websocket.MessageText, bytes); err != nil {
-				logger.Error(err, "[connection] ws.Write")
-				return
-			}
+			c.writeMessage(ctx, message)
 		}
+	}
+}
+
+func (c *Connection) writeMessage(ctx context.Context, message *Event) {
+	bytes, err := render.JSONBytes(message)
+	if err != nil {
+		logger.Error(err, "[connection] render.JsonBytes")
+		return
+	}
+	if err := c.ws.Write(ctx, websocket.MessageText, bytes); err != nil {
+		logger.Error(err, "[connection] ws.Write")
 	}
 }
 
@@ -111,7 +136,9 @@ func (c *Connection) sendPing() {
 		logger.Error(err, "[connection] render.JsonBytes ping")
 		return
 	}
-	c.ws.Write(context.Background(), websocket.MessageText, bytes)
+	if err := c.ws.Write(context.Background(), websocket.MessageText, bytes); err != nil {
+		logger.Error(err, "[connection] sendPing: ws.Write")
+	}
 }
 
 func (c *Connection) handlePong(event Event) {
@@ -151,5 +178,7 @@ func (c *Connection) sendError(msg string) {
 		logger.Error(err, "[connection] render.JsonBytes error")
 		return
 	}
-	c.ws.Write(context.Background(), websocket.MessageText, bytes)
+	if err := c.ws.Write(context.Background(), websocket.MessageText, bytes); err != nil {
+		logger.Error(err, "[connection] sendError: ws.Write")
+	}
 }

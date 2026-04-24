@@ -164,17 +164,21 @@ func (m *WebsocketManager) stopUserSubscriber(userID domain.UserID) {
 
 func (m *WebsocketManager) handleUserMessages(userID domain.UserID, src chan *domain.UserMessage) {
 	for msg := range src {
-		m.m.RLock()
-		conns := m.connections[userID]
-		m.m.RUnlock()
+		m.sendToUserConnections(userID, msg)
+	}
+}
 
-		for conn := range conns {
-			event := m.userMessageToEvent(msg, conn.channelType, conn.channelID)
-			if event != nil {
-				select {
-				case conn.send <- event:
-				default:
-				}
+func (m *WebsocketManager) sendToUserConnections(userID domain.UserID, msg *domain.UserMessage) {
+	m.m.RLock()
+	conns := m.connections[userID]
+	m.m.RUnlock()
+
+	for conn := range conns {
+		event := m.userMessageToEvent(msg, conn.channelType, conn.channelID)
+		if event != nil {
+			select {
+			case conn.send <- event:
+			default:
 			}
 		}
 	}
@@ -187,24 +191,32 @@ func (m *WebsocketManager) userMessageToEvent(
 ) *Event {
 	switch msg.Type {
 	case domain.UserMessageTypeDM:
-		if connChannelType != domain.ChannelDM {
-			return nil
-		}
-		if msg.DMMessage.DMID.I64() != connChannelID {
-			return nil
-		}
-		return m.dmToEventMessage(msg.DMMessage)
+		return m.handleDMMessages(msg, connChannelType, connChannelID)
 	case domain.UserMessageTypeTopic:
-		if connChannelType != domain.ChannelTextTopic {
-			return nil
-		}
-		if msg.TopicMsg.TopicID.I64() != connChannelID {
-			return nil
-		}
-		return m.topicToEventMessage(msg.TopicMsg)
+		return m.handleTopicMessages(msg, connChannelType, connChannelID)
 	default:
 		return nil
 	}
+}
+
+func (m *WebsocketManager) handleDMMessages(msg *domain.UserMessage, connChannelType domain.ChannelType, connChannelID int64) *Event {
+	if connChannelType != domain.ChannelDM {
+		return nil
+	}
+	if msg.DMMessage.DMID.I64() != connChannelID {
+		return nil
+	}
+	return m.dmToEventMessage(msg.DMMessage)
+}
+
+func (m *WebsocketManager) handleTopicMessages(msg *domain.UserMessage, connChannelType domain.ChannelType, connChannelID int64) *Event {
+	if connChannelType != domain.ChannelTextTopic {
+		return nil
+	}
+	if msg.TopicMsg.TopicID.I64() != connChannelID {
+		return nil
+	}
+	return m.topicToEventMessage(msg.TopicMsg)
 }
 
 func (m *WebsocketManager) dmToEventMessage(msg *domain.DMMessage) *Event {
