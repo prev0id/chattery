@@ -99,11 +99,11 @@ func TopicType(type_ string) error {
 	return nil
 }
 
-func minLength(str string, min int, field string) error {
-	if len(str) < min {
+func minLength(str string, length int, field string) error {
+	if len(str) < length {
 		return errors.E().
 			Kind(errors.InvalidRequest).
-			Messagef("%s must be at least %d characters long", field, min)
+			Messagef("%s must be at least %d characters long", field, length)
 	}
 	return nil
 }

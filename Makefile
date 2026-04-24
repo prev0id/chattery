@@ -41,3 +41,15 @@ up-e2e:
 .PHONY: generate-sqlc
 generate-sqlc:
 	go tool sqlc generate
+
+.PHONY: lint
+lint: install-golangci
+	./bin/golangci-lint run ./...
+
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: install-golangci
+install-golangci:
+	GOBIN=$(PWD)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
