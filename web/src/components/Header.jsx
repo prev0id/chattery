@@ -1,11 +1,5 @@
 import { children, Match, Show, Switch } from "solid-js";
-import {
-  ChevronRight,
-  MessagesSquare,
-  Mic,
-  Settings,
-  Sparkles,
-} from "lucide-solid";
+import { ChevronRight, Mic, Settings, Sparkles } from "lucide-solid";
 
 const iconClasses = "size-8 mr-4";
 
@@ -16,7 +10,7 @@ export default function Header(props) {
     <header class="border-b-3 px-4 py-2 flex items-center bg-emerald-50">
       <Switch fallback={<Sparkles class={iconClasses} />}>
         <Match when={props.icon === "text"}>
-          <MessagesSquare class={iconClasses} />
+          <img class={iconClasses} src="/src/assets/icon.svg" />
         </Match>
         <Match when={props.icon === "voice"}>
           <Mic class={iconClasses} />
