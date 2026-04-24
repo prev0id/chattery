@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	"chattery/internal/service/websocket_manager"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/render"
 )
@@ -36,5 +35,5 @@ func (s *Server) DMWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.establishWebsocket(w, r, userID, websocket_manager.ChannelDM, int64(dmID))
+	s.establishWebsocket(w, r, userID, domain.ChannelDM, dmID)
 }

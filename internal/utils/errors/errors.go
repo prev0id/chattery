@@ -76,11 +76,11 @@ func E(errs ...error) *Error {
 	}
 }
 
-func (err *Error) Error() string {
-	if err.message == "" {
-		return err.kind.String()
+func (e *Error) Error() string {
+	if e.message == "" {
+		return e.kind.String()
 	}
-	return err.kind.String() + ": " + err.message
+	return e.kind.String() + ": " + e.message
 }
 
 func (e *Error) Kind(kind Kind) *Error {

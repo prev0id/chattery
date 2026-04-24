@@ -18,48 +18,28 @@ const pingInterval = 15 * time.Second
 type Connection struct {
 	manager     *WebsocketManager
 	userID      domain.UserID
-	channelType ChannelType
+	channelType domain.ChannelType
 	channelID   int64
 	ws          *websocket.Conn
 	send        chan *Event
-	active      bool
 	ctx         context.Context
 	cancel      context.CancelFunc
-}
-
-func NewConnection(manager *WebsocketManager, userID domain.UserID, channelType ChannelType, channelID int64, ws *websocket.Conn, ctx context.Context) *Connection {
-	ctx, cancel := context.WithCancel(ctx)
-	return &Connection{
-		manager:     manager,
-		userID:      userID,
-		channelType: channelType,
-		channelID:   channelID,
-		ws:          ws,
-		send:        make(chan *Event, 256),
-		active:      true,
-		ctx:         ctx,
-		cancel:      cancel,
-	}
-}
-
-func (c *Connection) GetUserID() domain.UserID {
-	return c.userID
 }
 
 func (c *Connection) ReadPump(ctx context.Context) {
 	defer func() {
 		c.cancel()
-		c.manager.UnregisterConnection(c)
-		if c.channelType == ChannelTextTopic {
+		c.manager.unregisterConnection(c)
+		if c.channelType == domain.ChannelTextTopic {
 			c.manager.LeaveFromTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID))
 		}
 		close(c.send)
 		c.ws.Close(websocket.StatusNormalClosure, "")
 	}()
 
-	c.manager.SubscribeUser(c.ctx, c.userID)
+	c.manager.subscribeUser(c.ctx, c.userID)
 
-	if c.channelType == ChannelTextTopic {
+	if c.channelType == domain.ChannelTextTopic {
 		c.manager.JoinToTextTopic(c.ctx, c.userID, domain.TopicID(c.channelID))
 	}
 
@@ -135,7 +115,7 @@ func (c *Connection) sendPing() {
 }
 
 func (c *Connection) handlePong(event Event) {
-	if c.channelType == ChannelTextTopic {
+	if c.channelType == domain.ChannelTextTopic {
 		topicID := domain.TopicID(event.ChannelID)
 		if err := c.manager.JoinToTextTopic(c.ctx, c.userID, topicID); err != nil {
 			logger.Error(err, "[connection] handlePong: JoinToTextTopic")
@@ -144,7 +124,7 @@ func (c *Connection) handlePong(event Event) {
 }
 
 func (c *Connection) handleJoin(event Event) {
-	if c.channelType == ChannelTextTopic {
+	if c.channelType == domain.ChannelTextTopic {
 		topicID := domain.TopicID(event.ChannelID)
 		if err := c.manager.JoinToTextTopic(c.ctx, c.userID, topicID); err != nil {
 			logger.Error(err, "[connection] handleJoin: JoinToTextTopic")
@@ -153,7 +133,7 @@ func (c *Connection) handleJoin(event Event) {
 }
 
 func (c *Connection) handleLeave(event Event) {
-	if c.channelType == ChannelTextTopic {
+	if c.channelType == domain.ChannelTextTopic {
 		topicID := domain.TopicID(event.ChannelID)
 		if err := c.manager.LeaveFromTextTopic(c.ctx, c.userID, topicID); err != nil {
 			logger.Error(err, "[connection] handleLeave: LeaveFromTextTopic")
@@ -172,8 +152,4 @@ func (c *Connection) sendError(msg string) {
 		return
 	}
 	c.ws.Write(context.Background(), websocket.MessageText, bytes)
-}
-
-func (c *Connection) IsActive() bool {
-	return c.active
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/coder/websocket"
+
 	"chattery/internal/domain"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/render"
@@ -57,8 +59,27 @@ func New(redisAdapter redis, dmSvc dmService, serverSvc serverService, textTopic
 	}
 }
 
-func (m *WebsocketManager) Redis() redis {
-	return m.redis
+func (m *WebsocketManager) NewConnection(
+	ctx context.Context,
+	userID domain.UserID,
+	channelType domain.ChannelType,
+	channelID int64,
+	ws *websocket.Conn,
+) domain.Connection {
+	ctx, cancel := context.WithCancel(ctx)
+	conn := &Connection{
+		manager:     m,
+		userID:      userID,
+		channelType: channelType,
+		channelID:   channelID,
+		ws:          ws,
+		send:        make(chan *Event, 256),
+		ctx:         ctx,
+		cancel:      cancel,
+	}
+
+	m.registerConnection(conn)
+	return conn
 }
 
 func (m *WebsocketManager) UserHasAccessToDM(ctx context.Context, userID domain.UserID, dmID domain.DMID) error {
@@ -94,7 +115,7 @@ func (m *WebsocketManager) LeaveFromTextTopic(ctx context.Context, userID domain
 	return m.textTopicService.RemoveUserFromTextTopic(ctx, userID, topicID)
 }
 
-func (m *WebsocketManager) RegisterConnection(conn *Connection) {
+func (m *WebsocketManager) registerConnection(conn *Connection) {
 	m.m.Lock()
 	defer m.m.Unlock()
 
@@ -104,7 +125,7 @@ func (m *WebsocketManager) RegisterConnection(conn *Connection) {
 	m.connections[conn.userID][conn] = true
 }
 
-func (m *WebsocketManager) UnregisterConnection(conn *Connection) {
+func (m *WebsocketManager) unregisterConnection(conn *Connection) {
 	m.m.Lock()
 	defer m.m.Unlock()
 
@@ -117,7 +138,7 @@ func (m *WebsocketManager) UnregisterConnection(conn *Connection) {
 	}
 }
 
-func (m *WebsocketManager) SubscribeUser(ctx context.Context, userID domain.UserID) {
+func (m *WebsocketManager) subscribeUser(ctx context.Context, userID domain.UserID) {
 	m.m.Lock()
 	defer m.m.Unlock()
 
@@ -157,10 +178,10 @@ func (m *WebsocketManager) handleUserMessages(userID domain.UserID, src chan *do
 	}
 }
 
-func (m *WebsocketManager) userMessageToEvent(msg *domain.UserMessage, connChannelType ChannelType, connChannelID int64) *Event {
+func (m *WebsocketManager) userMessageToEvent(msg *domain.UserMessage, connChannelType domain.ChannelType, connChannelID int64) *Event {
 	switch msg.Type {
 	case domain.UserMessageTypeDM:
-		if connChannelType != ChannelDM {
+		if connChannelType != domain.ChannelDM {
 			return nil
 		}
 		if int64(msg.DMMessage.DMID.I64()) != connChannelID {
@@ -168,7 +189,7 @@ func (m *WebsocketManager) userMessageToEvent(msg *domain.UserMessage, connChann
 		}
 		return m.dmToEventMessage(msg.DMMessage)
 	case domain.UserMessageTypeTopic:
-		if connChannelType != ChannelTextTopic {
+		if connChannelType != domain.ChannelTextTopic {
 			return nil
 		}
 		if int64(msg.TopicMsg.TopicID.I64()) != connChannelID {
@@ -192,7 +213,7 @@ func (m *WebsocketManager) dmToEventMessage(msg *domain.DMMessage) *Event {
 
 	return &Event{
 		Type:        EventMessage,
-		ChannelType: ChannelDM,
+		ChannelType: domain.ChannelDM,
 		ChannelID:   msg.DMID.I64(),
 		Message: &EventData{
 			ID:        msg.ID.I64(),
@@ -215,7 +236,7 @@ func (m *WebsocketManager) topicToEventMessage(msg *domain.TopicMessage) *Event 
 
 	return &Event{
 		Type:        EventMessage,
-		ChannelType: ChannelTextTopic,
+		ChannelType: domain.ChannelTextTopic,
 		ChannelID:   msg.TopicID.I64(),
 		Message: &EventData{
 			ID:        msg.ID.I64(),

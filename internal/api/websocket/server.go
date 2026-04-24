@@ -1,6 +1,7 @@
 package websocket_api
 
 import (
+	"context"
 	"net/http"
 	"sync"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"chattery/internal/domain"
-	"chattery/internal/service/websocket_manager"
 	"chattery/internal/utils/errors"
 	"chattery/internal/utils/render"
 )
@@ -17,12 +17,18 @@ type userService interface {
 	AuthRequiredMiddleware(next http.Handler) http.Handler
 }
 
-type Server struct {
-	userService userService
-	wsManager   *websocket_manager.WebsocketManager
+type websocketManager interface {
+	UserHasAccessToDM(ctx context.Context, userID domain.UserID, dmID domain.DMID) error
+	UserHasAccessToTextTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
+	NewConnection(ctx context.Context, userID domain.UserID, channelType domain.ChannelType, channelID int64, ws *websocket.Conn) domain.Connection
 }
 
-func New(user userService, wsManager *websocket_manager.WebsocketManager) *Server {
+type Server struct {
+	userService userService
+	wsManager   websocketManager
+}
+
+func New(user userService, wsManager websocketManager) *Server {
 	return &Server{
 		userService: user,
 		wsManager:   wsManager,
@@ -42,7 +48,7 @@ func (s *Server) Route(router chi.Router) {
 	})
 }
 
-func (s *Server) establishWebsocket(w http.ResponseWriter, r *http.Request, userID domain.UserID, channelType websocket_manager.ChannelType, channelID int64) {
+func (s *Server) establishWebsocket(w http.ResponseWriter, r *http.Request, userID domain.UserID, channelType domain.ChannelType, channelID int64) {
 	ctx := r.Context()
 
 	options := &websocket.AcceptOptions{
@@ -59,21 +65,19 @@ func (s *Server) establishWebsocket(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
-	connection := websocket_manager.NewConnection(s.wsManager, userID, channelType, channelID, conn, ctx)
-	s.wsManager.RegisterConnection(connection)
+	connection := s.wsManager.NewConnection(ctx, userID, channelType, channelID, conn)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
 
-	go func() {
+	wg.Go(func() {
 		defer wg.Done()
 		connection.WritePump(ctx)
-	}()
+	})
 
-	go func() {
+	wg.Go(func() {
 		defer wg.Done()
 		connection.ReadPump(ctx)
-	}()
+	})
 
 	wg.Wait()
 }

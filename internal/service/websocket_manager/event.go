@@ -3,11 +3,11 @@ package websocket_manager
 import "chattery/internal/domain"
 
 type Event struct {
-	Type        EventType   `json:"type"`
-	ChannelType ChannelType `json:"channel_type,omitempty"`
-	ChannelID   int64       `json:"channel_id,omitempty"`
-	Message     *EventData  `json:"message,omitempty"`
-	Error       string      `json:"error,omitempty"`
+	Type        EventType          `json:"type"`
+	ChannelType domain.ChannelType `json:"channel_type,omitempty"`
+	ChannelID   int64              `json:"channel_id,omitempty"`
+	Message     *EventData         `json:"message,omitempty"`
+	Error       string             `json:"error,omitempty"`
 }
 
 type EventData struct {
@@ -34,16 +34,8 @@ const (
 	EventPong    EventType = "pong"
 )
 
-type ChannelType string
-
-const (
-	ChannelDM        ChannelType = "dm"
-	ChannelTextTopic ChannelType = "text_topic"
-	ChannelVoice     ChannelType = "voice"
-)
-
 type ChannelKey struct {
-	Type ChannelType
+	Type domain.ChannelType
 	ID   int64
 }
 
