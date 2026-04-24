@@ -11,16 +11,16 @@ import (
 	dm_api "chattery/internal/api/dm"
 	image_api "chattery/internal/api/image"
 	server_api "chattery/internal/api/server"
-	signaling_api "chattery/internal/api/signaling"
 	user_api "chattery/internal/api/user"
 	web_api "chattery/internal/api/web"
+	websocket_api "chattery/internal/api/websocket"
 	"chattery/internal/client/redis"
 	"chattery/internal/config"
-	hub_pkg "chattery/internal/hub"
 	"chattery/internal/service/dm"
 	"chattery/internal/service/server"
 	text_topic "chattery/internal/service/text_topic"
 	"chattery/internal/service/user"
+	ws_manager "chattery/internal/service/websocket_manager"
 	syncer "chattery/internal/store/syncer"
 	user_store "chattery/internal/store/user"
 	"chattery/internal/utils/database"
@@ -63,13 +63,13 @@ func main() {
 		logger.Fatal(err, "syncer.New")
 	}
 
-	hubInstance := hub_pkg.New(redisAdapter, dmService, serverService, textTopicService, userStore)
+	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService, textTopicService, userStore)
 
 	server := api.
 		NewServer(cfg).
 		UseMiddleware(userService.SessionMiddleware).
 		Register(
-			signaling_api.New(userService, hubInstance),
+			websocket_api.New(userService, wsManagerInstance),
 			user_api.New(userService),
 			image_api.New(userStore),
 			dm_api.New(userService, dmService, userStore),

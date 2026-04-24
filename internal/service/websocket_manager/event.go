@@ -1,4 +1,4 @@
-package hub
+package websocket_manager
 
 import "chattery/internal/domain"
 
