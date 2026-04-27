@@ -10,7 +10,8 @@ async function handleResponse(res, errorMsg = "Request failed") {
     toast.error(data.message ?? errorMsg);
     return null;
   }
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : {};
 }
 
 export async function fetchDMs() {

@@ -3,6 +3,7 @@ package text_topic
 import (
 	"context"
 	"sync"
+	"time"
 
 	"chattery/internal/api/websocket/event_desc"
 	"chattery/internal/domain"
@@ -33,6 +34,7 @@ func (s *Service) createMessage(ctx context.Context, message *domain.TopicMessag
 	}
 
 	message.ID = messageID
+	message.CreatedAt = time.Now()
 
 	return s.broadcastMessage(ctx, message, topic.ServerID)
 }

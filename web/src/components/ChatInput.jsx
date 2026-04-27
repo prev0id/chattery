@@ -5,10 +5,12 @@ export default function ChatInput(props) {
   const { onSend } = props;
   const [message, setMessage] = createSignal("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (message().trim()) {
-      onSend?.(message());
+    const text = message().trim();
+    if (!text || props.disabled) return;
+
+    if ((await onSend?.(text)) !== false) {
       setMessage("");
     }
   };
@@ -21,11 +23,12 @@ export default function ChatInput(props) {
       <textarea
         value={message()}
         onInput={(e) => setMessage(e.currentTarget.value)}
+        disabled={props.disabled}
         class="max-w-2xl min-w-sm w-full p-2 neo-shadow border-2 rounded-lg field-sizing-content focus:outline-none focus:border-sky-500 resize-none"
         placeholder="Write your message"
         rows="1"
       />
-      <Button type="submit" variant="emerald">
+      <Button type="submit" variant="emerald" disabled={props.disabled}>
         Send
       </Button>
     </form>

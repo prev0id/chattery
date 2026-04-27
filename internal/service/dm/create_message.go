@@ -3,6 +3,7 @@ package dm
 import (
 	"context"
 	"sync"
+	"time"
 
 	"chattery/internal/api/websocket/event_desc"
 	"chattery/internal/domain"
@@ -32,6 +33,7 @@ func (s *Service) createDMMessage(ctx context.Context, message *domain.DMMessage
 	}
 
 	message.ID = messageID
+	message.CreatedAt = time.Now()
 
 	return s.broadcastMessage(ctx, message)
 }
@@ -78,7 +80,7 @@ func (s *Service) convertMessageToDesc(message *domain.DMMessage) (event_desc.Ch
 		Sender:    s.getUserInfo(message.SenderID),
 	}
 	channel := event_desc.Channel{
-		Type: event_desc.ChannelTextTopic,
+		Type: event_desc.ChannelDM,
 		ID:   message.DMID.I64(),
 	}
 	return channel, payload

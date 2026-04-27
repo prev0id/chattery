@@ -1,13 +1,15 @@
-import { createEffect, For, Show, createSignal } from "solid-js";
+import { createEffect, For, onCleanup, Show, createSignal } from "solid-js";
 import {
   fetchTopicMessages,
   sendTopicMessage,
   fetchDMMessages,
   sendDMMessage,
 } from "../lib/api";
+import { createChatWebSocketClient } from "../lib/ws";
+import { toast } from "../stores/toast";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
-import { ArrowLeftToLine, Loader } from "lucide-solid";
+import { ArrowLeftToLine } from "lucide-solid";
 
 const DMsType = "dms";
 const ServersType = "servers";
@@ -21,6 +23,7 @@ export function Chat(props) {
   const [messagesCursor, setMessagesCursor] = createSignal(null);
   const [currentChat, setCurrentChat] = createSignal(null);
   const [loading, setLoading] = createSignal(false);
+  const [sending, setSending] = createSignal(false);
 
   let containerRef;
   let bottomRef;
@@ -34,6 +37,15 @@ export function Chat(props) {
     });
   };
 
+  const isScrolledToBottom = () => {
+    const el = containerRef;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  };
+
+  const normalizeMessages = (response) =>
+    response?.messages?.slice().reverse() ?? [];
+
   const loadChatMessages = async (chatId, chatType) => {
     setCurrentChat({ id: chatId, type: chatType });
     setLoading(true);
@@ -44,7 +56,7 @@ export function Chat(props) {
           ? await fetchTopicMessages(chatId)
           : await fetchDMMessages(chatId);
 
-      setMessages(response?.messages.reverse() ?? []);
+      setMessages(normalizeMessages(response));
       setMessagesCursor(response?.cursor ?? null);
 
       scrollToBottom(false);
@@ -71,7 +83,7 @@ export function Chat(props) {
           ? await fetchTopicMessages(chat.id, cursor)
           : await fetchDMMessages(chat.id, cursor);
 
-      const olderMessages = response?.messages.reverse() ?? [];
+      const olderMessages = normalizeMessages(response);
       if (olderMessages.length > 0) {
         setMessages((prev) => [...olderMessages, ...prev]);
         setMessagesCursor(response?.cursor ?? null);
@@ -88,6 +100,23 @@ export function Chat(props) {
     }
   };
 
+  const addMessage = (message) => {
+    if (!message) return;
+
+    const shouldScroll = isScrolledToBottom();
+
+    setMessages((prev) => {
+      if (prev.some((item) => item.id === message.id)) {
+        return prev;
+      }
+      return [...prev, message];
+    });
+
+    if (shouldScroll) {
+      scrollToBottom(true);
+    }
+  };
+
   const handleScroll = () => {
     const el = containerRef;
     if (!el) return;
@@ -99,24 +128,49 @@ export function Chat(props) {
 
   createEffect(() => {
     const chatId = props.chatID;
-    if (!chatId) return;
+    const channelType = props.channelType;
+    if (!chatId || !channelType) return;
 
     const chatType = props.type === DMsType ? "dm" : "topic";
     loadChatMessages(chatId, chatType);
+
+    const channel = { type: channelType, id: Number(chatId) };
+    const ws = createChatWebSocketClient({
+      channel,
+      onMessage: ({ channel: eventChannel, payload }) => {
+        if (
+          eventChannel?.type !== channel.type ||
+          eventChannel?.id !== channel.id
+        ) {
+          return;
+        }
+        addMessage(payload);
+      },
+      onError: (payload) => {
+        toast.error(payload?.message ?? "WebSocket error");
+      },
+    });
+
+    ws.connect();
+
+    onCleanup(() => {
+      ws.disconnect(1000, "leave chat");
+    });
   });
 
   const handleSend = async (text) => {
     const chat = currentChat();
-    if (!chat) return;
+    if (!chat || sending()) return;
 
-    if (chat.type === "topic") {
-      await sendTopicMessage(chat.id, text);
-    } else {
-      await sendDMMessage(chat.id, text);
+    setSending(true);
+    try {
+      if (chat.type === "topic") {
+        return Boolean(await sendTopicMessage(chat.id, text));
+      }
+      return Boolean(await sendDMMessage(chat.id, text));
+    } finally {
+      setSending(false);
     }
-
-    await loadChatMessages(chat.id, chat.type);
-    scrollToBottom(true);
   };
 
   return (
@@ -148,7 +202,7 @@ export function Chat(props) {
           <div ref={bottomRef} />
         </div>
 
-        <ChatInput onSend={handleSend} />
+        <ChatInput onSend={handleSend} disabled={sending()} />
       </div>
     </Show>
   );

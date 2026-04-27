@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/v1": "http://localhost:8080",
+      "/ws": {
+        target: "http://localhost:8080",
+        ws: true,
+      },
     },
   },
 

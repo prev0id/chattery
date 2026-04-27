@@ -1,7 +1,26 @@
 import { createSignal, onCleanup } from "solid-js";
 
+export const WSEventType = {
+  Ping: "ping",
+  Pong: "pong",
+  Join: "join",
+  Leave: "leave",
+  Message: "message",
+  Error: "error",
+};
+
+export const WSChannelType = {
+  DM: "dm",
+  TextTopic: "text_topic",
+};
+
+export function websocketURL(path = "/ws/") {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}${path}`;
+}
+
 export function createWebSocketClient(getUrl, options = {}) {
-  const [status, setStatus] = createSignal("idle"); // idle | connecting | open | closed | error
+  const [status, setStatus] = createSignal("idle");
   const [error, setError] = createSignal(null);
   const [lastMessage, setLastMessage] = createSignal(null);
 
@@ -73,7 +92,7 @@ export function createWebSocketClient(getUrl, options = {}) {
           try {
             payload = JSON.parse(payload);
           } catch {
-            // keep as string
+            // keep raw payload
           }
         }
 
@@ -108,6 +127,11 @@ export function createWebSocketClient(getUrl, options = {}) {
     clearReconnect();
 
     const ws = socket;
+
+    if (ws?.readyState === WebSocket.OPEN) {
+      options.onBeforeDisconnect?.(ws);
+    }
+
     socket = null;
 
     if (
@@ -134,4 +158,51 @@ export function createWebSocketClient(getUrl, options = {}) {
     lastMessage,
     socket: () => socket,
   };
+}
+
+function parsePayload(payload) {
+  if (typeof payload !== "string") return payload;
+
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return payload;
+  }
+}
+
+export function createChatWebSocketClient({ channel, onMessage, onError }) {
+  const client = createWebSocketClient(websocketURL, {
+    reconnect: true,
+    onOpen: () => {
+      client.sendJson({
+        type: WSEventType.Join,
+        payload: channel,
+      });
+    },
+    onBeforeDisconnect: () => {
+      client.sendJson({ type: WSEventType.Leave });
+    },
+    onMessage: (event) => {
+      if (!event || typeof event !== "object") return;
+
+      if (event.type === WSEventType.Ping) {
+        client.sendJson({ type: WSEventType.Pong });
+        return;
+      }
+
+      if (event.type === WSEventType.Error) {
+        onError?.(parsePayload(event.payload));
+        return;
+      }
+
+      if (event.type === WSEventType.Message) {
+        onMessage?.({
+          channel: event.channel,
+          payload: parsePayload(event.payload),
+        });
+      }
+    },
+  });
+
+  return client;
 }
