@@ -57,6 +57,7 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, events chan<- *event_desc.Event) {
 	sink := make(chan string)
 	done := make(chan struct{})
+	defer close(events)
 
 	go func() {
 		r.client.Subscribe(ctx, userChannelKey(userID), sink, done)
@@ -67,13 +68,24 @@ func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, eve
 		case <-ctx.Done():
 			close(done)
 			return
-		case rawMessage := <-sink:
+
+		case rawMessage, ok := <-sink:
+			if !ok {
+				return
+			}
+
 			event, err := bind.JSONString[event_desc.Event](rawMessage)
 			if err != nil {
 				logger.Error(err, "[redis_adapter] bind.JSONString event_desc.Event")
 				continue
 			}
-			events <- event
+
+			select {
+			case <-ctx.Done():
+				close(done)
+				return
+			case events <- event:
+			}
 		}
 	}
 }

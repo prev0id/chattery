@@ -13,17 +13,16 @@ import (
 	"chattery/internal/utils/logger"
 )
 
-func (c *Connection) ReadPump(ctx context.Context) {
+func (c *Connection) ReadPump() {
 	defer c.cleanup()
 
-	for c.readEvent(ctx) {
+	for c.readEvent(c.ctx) {
 	}
 }
 
 func (c *Connection) cleanup() {
 	c.cancel()
 	c.manager.unregisterConnection(c)
-	close(c.toSend)
 	if err := c.ws.Close(websocket.StatusNormalClosure, ""); err != nil {
 		logger.Error(err, "[connection] cleanup: ws.Close")
 	}
@@ -51,17 +50,17 @@ func (c *Connection) readEvent(ctx context.Context) bool {
 func (c *Connection) handleEvent(ctx context.Context, event *event_desc.Event) {
 	switch event.Type {
 	case event_desc.TypePong:
-		c.handlePong(ctx, event)
+		c.handlePong()
 	case event_desc.TypeJoin:
 		c.handleJoin(ctx, event)
 	case event_desc.TypeLeave:
-		c.handleLeave(ctx, event)
+		c.handleLeave()
 	default:
 		c.sendError("unknown event type")
 	}
 }
 
-func (c *Connection) handlePong(_ context.Context, _ *event_desc.Event) {
+func (c *Connection) handlePong() {
 	c.channelMutex.Lock()
 	defer c.channelMutex.Unlock()
 	c.lastPong = time.Now()
@@ -97,7 +96,7 @@ func (c *Connection) handleJoin(ctx context.Context, event *event_desc.Event) {
 	c.channelMutex.Unlock()
 }
 
-func (c *Connection) handleLeave(_ context.Context, _ *event_desc.Event) {
+func (c *Connection) handleLeave() {
 	c.channelMutex.Lock()
 	defer c.channelMutex.Unlock()
 	c.channel = event_desc.Channel{}

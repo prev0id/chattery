@@ -11,21 +11,34 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (c *Connection) WritePump(ctx context.Context) {
+func (c *Connection) WritePump() {
 	pingTicker := time.NewTicker(pingInterval)
 
 	defer func() {
 		pingTicker.Stop()
+		c.cancel()
 		if err := c.ws.Close(websocket.StatusNormalClosure, ""); err != nil {
 			logger.Error(err, "[connection] WritePump: ws.Close")
 		}
 	}()
 
-	for c.writeEvent(ctx, pingTicker) {
+	for c.writeEvent(pingTicker) {
 	}
 }
 
 func (c *Connection) SendEvent(ctx context.Context, event *event_desc.Event) {
+	if event == nil {
+		return
+	}
+
+	select {
+	case <-ctx.Done():
+	case <-c.ctx.Done():
+	case c.toSend <- event:
+	}
+}
+
+func (c *Connection) writeToWebsocket(ctx context.Context, event *event_desc.Event) {
 	bytes, err := render.JSONBytes(event)
 	if err != nil {
 		logger.Error(err, "[connection] render.JSONBytes")
@@ -37,9 +50,9 @@ func (c *Connection) SendEvent(ctx context.Context, event *event_desc.Event) {
 	}
 }
 
-func (c *Connection) writeEvent(ctx context.Context, ping *time.Ticker) bool {
+func (c *Connection) writeEvent(ping *time.Ticker) bool {
 	select {
-	case <-ctx.Done():
+	case <-c.ctx.Done():
 		return false
 	case <-ping.C:
 		c.channelMutex.RLock()
@@ -49,31 +62,33 @@ func (c *Connection) writeEvent(ctx context.Context, ping *time.Ticker) bool {
 		if sinceLastPong > pongTimeout {
 			return false
 		}
-		c.sendPing(ctx)
+		c.sendPing(c.ctx)
 	case event, ok := <-c.toSend:
 		if !ok {
 			return false
 		}
-		c.SendEvent(ctx, event)
+		c.writeToWebsocket(c.ctx, event)
 	}
 	return true
 }
 
 func (c *Connection) sendPing(ctx context.Context) {
 	ping := &event_desc.Event{Type: event_desc.TypePing}
-	c.SendEvent(ctx, ping)
+	c.writeToWebsocket(ctx, ping)
 }
 
 func (c *Connection) sendError(message string) {
 	payload := event_desc.ErrorPayload{Message: message}
 
-	event, err := render.Event(event_desc.TypeError, event_desc.Channel{}, payload)
+	renderedPayload, err := render.JSONBytes(payload)
 	if err != nil {
-		logger.Error(err, "[connection] render.JSONBytes error")
+		logger.Error(err, "[connection] render.JSONBytes error payload")
 		return
 	}
 
-	if err := c.ws.Write(context.Background(), websocket.MessageText, event); err != nil {
-		logger.Error(err, "[connection] sendError: ws.Write")
+	event := &event_desc.Event{
+		Type:    event_desc.TypeError,
+		Payload: renderedPayload,
 	}
+	c.SendEvent(c.ctx, event)
 }

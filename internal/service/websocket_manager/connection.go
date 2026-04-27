@@ -17,6 +17,7 @@ const (
 )
 
 type Connection struct {
+	ctx          context.Context
 	lastPong     time.Time
 	ws           *websocket.Conn
 	toSend       chan *event_desc.Event
@@ -25,4 +26,15 @@ type Connection struct {
 	channel      event_desc.Channel
 	userID       domain.UserID
 	channelMutex sync.RWMutex
+}
+
+func (c *Connection) shouldReceive(event *event_desc.Event) bool {
+	if event == nil || event.Type != event_desc.TypeMessage {
+		return true
+	}
+
+	c.channelMutex.RLock()
+	defer c.channelMutex.RUnlock()
+
+	return c.channel == event.Channel
 }

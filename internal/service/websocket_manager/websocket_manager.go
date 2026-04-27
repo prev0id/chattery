@@ -3,6 +3,7 @@ package websocket_manager
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/coder/websocket"
 
@@ -41,13 +42,16 @@ func New(redisAdapter redis, dm dmService, server serverService) *WebsocketManag
 	}
 }
 
-func (m *WebsocketManager) NewConnection(userID domain.UserID, ws *websocket.Conn) *Connection {
+func (m *WebsocketManager) NewConnection(ctx context.Context, userID domain.UserID, ws *websocket.Conn) *Connection {
+	connCtx, cancel := context.WithCancel(ctx)
 	conn := &Connection{
-		manager: m,
-		userID:  userID,
-		ws:      ws,
-		toSend:  make(chan *event_desc.Event, 256),
-		cancel:  func() {},
+		ctx:      connCtx,
+		lastPong: time.Now(),
+		manager:  m,
+		userID:   userID,
+		ws:       ws,
+		toSend:   make(chan *event_desc.Event, 256),
+		cancel:   cancel,
 	}
 
 	m.registerConnection(conn)
@@ -59,7 +63,7 @@ func (m *WebsocketManager) registerConnection(conn *Connection) {
 	defer m.sessionsMutex.Unlock()
 
 	if _, ok := m.sessions[conn.userID]; !ok {
-		m.sessions[conn.userID] = newSession(conn, conn.userID)
+		m.sessions[conn.userID] = newSession(m.redis, conn, conn.userID)
 		return
 	}
 	m.sessions[conn.userID].addConnection(conn)
@@ -70,8 +74,7 @@ func (m *WebsocketManager) unregisterConnection(conn *Connection) {
 	defer m.sessionsMutex.Unlock()
 
 	if session, ok := m.sessions[conn.userID]; ok {
-		session.removeConnection(conn)
-		if session.connections.Empty() {
+		if session.removeConnection(conn) {
 			delete(m.sessions, conn.userID)
 		}
 	}

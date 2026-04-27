@@ -18,10 +18,10 @@ func (s *Server) Websocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	connection := s.ws.NewConnection(userID, conn)
+	connection := s.ws.NewConnection(ctx, userID, conn)
 
 	var wg sync.WaitGroup
-	wg.Go(func() { connection.WritePump(ctx) })
-	wg.Go(func() { connection.ReadPump(ctx) })
+	wg.Go(func() { connection.WritePump() })
+	wg.Go(func() { connection.ReadPump() })
 	wg.Wait()
 }

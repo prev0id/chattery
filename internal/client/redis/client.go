@@ -100,17 +100,21 @@ func (c *Client) Publish(ctx context.Context, channel string, message string) er
 func (c *Client) Subscribe(ctx context.Context, channel string, sink chan<- string, done <-chan struct{}) {
 	pubsub := c.conn.Subscribe(ctx, channel)
 	defer pubsub.Close()
+	defer close(sink)
 
 	for {
 		select {
 		case <-done:
-			close(sink)
 			return
 		case message, ok := <-pubsub.Channel():
 			if !ok {
 				return
 			}
-			sink <- message.Payload
+			select {
+			case <-done:
+				return
+			case sink <- message.Payload:
+			}
 		}
 	}
 }
