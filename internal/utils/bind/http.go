@@ -1,7 +1,6 @@
 package bind
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 
@@ -15,19 +14,4 @@ func JSON[T any](request *http.Request) (*T, error) {
 	}
 
 	return JSONBytes[T](body)
-}
-
-func JSONString[T any](raw string) (*T, error) {
-	return JSONBytes[T]([]byte(raw))
-}
-
-func JSONBytes[T any](raw []byte) (*T, error) {
-	result := new(T)
-	if err := json.Unmarshal(raw, result); err != nil {
-		return nil, errutil.E(err).
-			Kind(errutil.InvalidRequest).
-			Message("invalid json provided").
-			Debug("json.Unmarshal")
-	}
-	return result, nil
 }

@@ -320,6 +320,41 @@ func (q *Queries) GetServerParticipant(ctx context.Context, arg *GetServerPartic
 	return &i, err
 }
 
+const getServerParticipants = `-- name: GetServerParticipants :many
+SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+WHERE server_id = $1
+`
+
+// GetServerParticipants
+//
+//	SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+//	WHERE server_id = $1
+func (q *Queries) GetServerParticipants(ctx context.Context, serverID int64) ([]*ServerParticipant, error) {
+	rows, err := q.db.Query(ctx, getServerParticipants, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ServerParticipant
+	for rows.Next() {
+		var i ServerParticipant
+		if err := rows.Scan(
+			&i.ServerID,
+			&i.UserID,
+			&i.Role,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTopic = `-- name: GetTopic :one
 SELECT id, server_id, name, type, created_at, updated_at FROM topics
 WHERE id=$1

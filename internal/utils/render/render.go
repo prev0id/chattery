@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"chattery/internal/api/websocket/event_desc"
 	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 )
@@ -76,4 +77,23 @@ func JSONBytes(value any) ([]byte, error) {
 func JSONString(value any) (string, error) {
 	bytes, err := JSONBytes(value)
 	return string(bytes), err
+}
+
+func Event(eventType event_desc.Type, channel event_desc.Channel, payload any) ([]byte, error) {
+	renderedPayload, err := JSONBytes(payload)
+	if err != nil {
+		return nil, errutil.E(err).Debug("JSONBytes", "payload")
+	}
+
+	event := &event_desc.Event{
+		Type:    eventType,
+		Channel: channel,
+		Payload: renderedPayload,
+	}
+
+	renderedEvent, err := JSONBytes(event)
+	if err != nil {
+		return nil, errutil.E(err).Debug("JSONBytes", "event")
+	}
+	return renderedEvent, nil
 }

@@ -48,6 +48,10 @@ WHERE server_id = $1 AND user_id = $2;
 SELECT * FROM server_participants
 WHERE server_id = $1 AND user_id = $2;
 
+-- name: GetServerParticipants :many
+SELECT * FROM server_participants
+WHERE server_id = $1;
+
 -- name: CreateTopic :one
 INSERT INTO topics (server_id, name, type)
 VALUES ($1, $2, $3)

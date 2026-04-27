@@ -115,17 +115,18 @@ func (a *Adapter) DeleteTopic(ctx context.Context, topicID domain.TopicID) error
 	return nil
 }
 
-func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessage) error {
+func (a *Adapter) CreateMessage(ctx context.Context, message *domain.TopicMessage) (domain.TopicMessageID, error) {
 	req := &postgres.CreateMessageParams{
 		TopicID: message.TopicID.I64(),
 		UserID:  message.SenderID.I64(),
 		Text:    message.Text,
 	}
 
-	if _, err := a.db.Query(ctx).CreateMessage(ctx, req); err != nil {
-		return errutil.E(err).Debug("Query.CreateMessage")
+	id, err := a.db.Query(ctx).CreateMessage(ctx, req)
+	if err != nil {
+		return 0, errutil.E(err).Debug("Query.CreateMessage")
 	}
-	return nil
+	return domain.TopicMessageID(id), nil
 }
 
 func (a *Adapter) FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error) {
@@ -193,6 +194,18 @@ func (a *Adapter) GetServerParticipant(ctx context.Context, serverID domain.Serv
 	}
 
 	return convertServerParticipantFromDB(participant), nil
+}
+
+func (a *Adapter) GetServerParticipants(ctx context.Context, serverID domain.ServerID) ([]*domain.ServerParticipant, error) {
+	participants, err := a.db.Query(ctx).GetServerParticipants(ctx, serverID.I64())
+	if database.NotFound(err) {
+		return nil, errutil.E(err).Kind(errutil.NotFound)
+	}
+	if err != nil {
+		return nil, errutil.E(err).Debug("Query.GetServerParticipants")
+	}
+
+	return sliceutil.Map(participants, convertServerParticipantFromDB), nil
 }
 
 func (a *Adapter) GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error) {

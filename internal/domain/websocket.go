@@ -1,16 +1,13 @@
 package domain
 
-import "context"
+import (
+	"context"
 
-type ChannelType string
-
-const (
-	ChannelDM        ChannelType = "dm"
-	ChannelTextTopic ChannelType = "text_topic"
-	ChannelVoice     ChannelType = "voice"
+	"chattery/internal/api/websocket/event_desc"
 )
 
 type Connection interface {
 	ReadPump(ctx context.Context)
 	WritePump(ctx context.Context)
+	WriteEvent(ctx context.Context, event *event_desc.Event)
 }

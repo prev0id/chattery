@@ -5,12 +5,11 @@ import (
 	"strconv"
 	"time"
 
+	"chattery/internal/api/websocket/event_desc"
 	"chattery/internal/domain"
 	"chattery/internal/utils/bind"
 	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
-	"chattery/internal/utils/render"
-	"chattery/internal/utils/sliceutil"
 )
 
 type client interface {
@@ -55,29 +54,7 @@ func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) erro
 	return nil
 }
 
-func (r *Adapter) AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
-	if err := r.client.ZAddI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
-		return errutil.E(err).Debug("r.client.ZAddI64")
-	}
-	return nil
-}
-
-func (r *Adapter) ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error) {
-	users, err := r.client.ZMembersI64(ctx, textTopicMembersKey(topicID), threshold)
-	if err != nil {
-		return nil, errutil.E(err).Debug("r.client.ZMembersI64")
-	}
-	return sliceutil.Map(users, convertI64ToUserID), nil
-}
-
-func (r *Adapter) RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error {
-	if err := r.client.ZRemoveI64(ctx, textTopicMembersKey(topicID), userID.I64()); err != nil {
-		return errutil.E(err).Debug("r.client.ZRemoveI64")
-	}
-	return nil
-}
-
-func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst chan<- *domain.UserMessage) {
+func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, events chan<- *event_desc.Event) {
 	sink := make(chan string)
 	done := make(chan struct{})
 
@@ -91,31 +68,22 @@ func (r *Adapter) SubscribeToUser(ctx context.Context, userID domain.UserID, dst
 			close(done)
 			return
 		case rawMessage := <-sink:
-			message, err := bind.JSONString[domain.UserMessage](rawMessage)
+			event, err := bind.JSONString[event_desc.Event](rawMessage)
 			if err != nil {
-				logger.Error(err, "[redis_adapter] bind.JsonString UserMessage")
+				logger.Error(err, "[redis_adapter] bind.JSONString event_desc.Event")
 				continue
 			}
-			dst <- message
+			events <- event
 		}
 	}
 }
 
-func (r *Adapter) PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error {
-	renderedMessage, err := render.JSONString(message)
-	if err != nil {
-		return errutil.E(err).Debug("render.JsonString")
-	}
-
-	if err := r.client.Publish(ctx, userChannelKey(userID), renderedMessage); err != nil {
+func (r *Adapter) PublishToUser(ctx context.Context, userID domain.UserID, event []byte) error {
+	if err := r.client.Publish(ctx, userChannelKey(userID), string(event)); err != nil {
 		return errutil.E(err).Debug("r.client.Publish")
 	}
 
 	return nil
-}
-
-func textTopicMembersKey(topicID domain.TopicID) string {
-	return "topic:text:" + topicID.String() + ":members"
 }
 
 func sessionKey(session domain.Session) string {
@@ -124,8 +92,4 @@ func sessionKey(session domain.Session) string {
 
 func userChannelKey(userID domain.UserID) string {
 	return "user:" + strconv.FormatInt(userID.I64(), 10)
-}
-
-func convertI64ToUserID(userID int64) domain.UserID {
-	return domain.UserID(userID)
 }

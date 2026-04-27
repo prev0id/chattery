@@ -49,21 +49,21 @@ func main() {
 	serverDB := server_adapter.New(transactionManager)
 	userDB := user_adapter.New(transactionManager)
 
+	userStore := user_store.New(userDB)
+
 	redisClient := redis.New(redisConn)
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
-	dmService := dm.New(dmDB, transactionManager, redisAdapter, cfg)
-	serverService := server.New(serverDB, transactionManager, redisAdapter, cfg)
-	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, cfg)
+	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, cfg)
+	serverService := server.New(serverDB, transactionManager, cfg)
+	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, userStore, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
-
-	userStore := user_store.New(userDB)
 
 	if err := syncer.Start(cfg.Cache.UserStoreSyncTimeout, userStore); err != nil {
 		logger.Fatal(err, "syncer.New")
 	}
 
-	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService, textTopicService, userStore)
+	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService)
 
 	apiServer := api.
 		NewServer(cfg).

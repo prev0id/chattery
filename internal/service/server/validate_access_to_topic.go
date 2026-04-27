@@ -7,10 +7,16 @@ import (
 	"chattery/internal/utils/errutil"
 )
 
-func (s *Service) UserHasAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error {
+func (s *Service) ValidateAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID, targetType domain.TopicType) error {
 	topic, err := s.getTopic(ctx, topicID)
 	if err != nil {
 		return err
+	}
+
+	if topic.Type != targetType {
+		return errutil.E(err).
+			Kind(errutil.InvalidRequest).
+			Messagef("topic's type must be %s", targetType.String())
 	}
 
 	if _, err = s.db.GetServerParticipant(ctx, topic.ServerID, userID); err != nil {

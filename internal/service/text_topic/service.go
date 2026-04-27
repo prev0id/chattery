@@ -2,7 +2,6 @@ package text_topic
 
 import (
 	"context"
-	"time"
 
 	"chattery/internal/config"
 	"chattery/internal/domain"
@@ -12,35 +11,39 @@ import (
 type db interface {
 	GetTopic(ctx context.Context, topicID domain.TopicID) (*domain.Topic, error)
 	GetServerParticipant(ctx context.Context, serverID domain.ServerID, userID domain.UserID) (*domain.ServerParticipant, error)
-	CreateMessage(ctx context.Context, message *domain.TopicMessage) error
+	GetServerParticipants(ctx context.Context, serverID domain.ServerID) ([]*domain.ServerParticipant, error)
+	CreateMessage(ctx context.Context, message *domain.TopicMessage) (domain.TopicMessageID, error)
 	FirstPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
 	NextPageOfTopicMessages(ctx context.Context, cursor *domain.TopicCursor) ([]*domain.TopicMessage, error)
 }
 
 type redis interface {
-	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
-	AddUserInTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
-	ListUsersInTextTopic(ctx context.Context, topicID domain.TopicID, threshold time.Duration) ([]domain.UserID, error)
-	RemoveUserFromTextTopic(ctx context.Context, topicID domain.TopicID, userID domain.UserID) error
+	PublishToUser(ctx context.Context, userID domain.UserID, event []byte) error
 }
 
 type txManager interface {
 	InTransaction(ctx context.Context, fn func(context.Context) error) error
 }
 
+type userCache interface {
+	GetByID(userID domain.UserID) (*domain.User, error)
+}
+
 type Service struct {
 	db          db
 	transaction txManager
 	redis       redis
+	user        userCache
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, redisAdapter redis, user userCache, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
 		redis:       redisAdapter,
 		limit:       cfg.Chat.MessagesLimit,
+		user:        user,
 	}
 }
 

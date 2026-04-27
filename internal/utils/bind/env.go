@@ -1,9 +1,12 @@
 package bind
 
 import (
+	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func EnvString(envName string, defaultValue string) string {
@@ -54,4 +57,10 @@ func EnvBool(envName string, defaultValue bool) bool {
 	}
 
 	return value
+}
+
+func PathParamI64[T ~int64](r *http.Request, paramName string) (T, error) {
+	rawParam := chi.URLParam(r, paramName)
+	param, err := strconv.ParseInt(rawParam, 10, 64)
+	return T(param), err
 }

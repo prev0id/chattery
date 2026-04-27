@@ -22,7 +22,11 @@ type db interface {
 }
 
 type redis interface {
-	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
+	PublishToUser(ctx context.Context, userID domain.UserID, event []byte) error
+}
+
+type userCache interface {
+	GetByID(userID domain.UserID) (*domain.User, error)
 }
 
 type txManager interface {
@@ -33,15 +37,17 @@ type Service struct {
 	db          db
 	transaction txManager
 	redis       redis
+	user        userCache
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, redisAdapter redis, user userCache, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
 		redis:       redisAdapter,
 		limit:       cfg.Chat.MessagesLimit,
+		user:        user,
 	}
 }
 
@@ -56,16 +62,4 @@ func (s *Service) getNextCursor(dmID domain.DMID, messages []*domain.DMMessage) 
 		MessageID: lastMessage.ID,
 		Timestamp: lastMessage.CreatedAt,
 	}
-}
-
-func (s *Service) UserHasAccessToDM(ctx context.Context, userID domain.UserID, dmID domain.DMID) error {
-	_, err := s.db.GetDMParticipant(ctx, dmID, userID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) GetParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error) {
-	return s.db.GetDMParticipants(ctx, dmID)
 }

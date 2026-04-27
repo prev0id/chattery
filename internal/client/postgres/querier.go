@@ -140,6 +140,11 @@ type Querier interface {
 	//  SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
 	//  WHERE server_id = $1 AND user_id = $2
 	GetServerParticipant(ctx context.Context, arg *GetServerParticipantParams) (*ServerParticipant, error)
+	//GetServerParticipants
+	//
+	//  SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
+	//  WHERE server_id = $1
+	GetServerParticipants(ctx context.Context, serverID int64) ([]*ServerParticipant, error)
 	//GetTopic
 	//
 	//  SELECT id, server_id, name, type, created_at, updated_at FROM topics

@@ -139,6 +139,7 @@ To fix:
 - [ ] Unit tests
 - [ ] E2E tests
 - [ ] Push notifications
+- [ ] Desc package
 
 ## работа очередей
 

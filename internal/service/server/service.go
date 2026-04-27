@@ -30,22 +30,16 @@ type txManager interface {
 	InTransaction(ctx context.Context, fn func(context.Context) error) error
 }
 
-type redis interface {
-	PublishToUser(ctx context.Context, userID domain.UserID, message *domain.UserMessage) error
-}
-
 type Service struct {
 	db          db
 	transaction txManager
-	redis       redis
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, redisAdapter redis, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
-		redis:       redisAdapter,
 		limit:       cfg.Chat.MessagesLimit,
 	}
 }
