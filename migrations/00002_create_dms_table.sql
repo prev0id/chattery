@@ -10,7 +10,7 @@ CREATE TABLE dms (
 CREATE TABLE dm_participants (
     dm_id                BIGINT    NOT NULL,
     user_id              BIGINT    NOT NULL,
-    last_read_message_id BIGINT    NOT NULL,
+    last_read_message_id BIGINT    NOT NULL DEFAULT 0,
     created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMP NOT NULL DEFAULT NOW()
 );
