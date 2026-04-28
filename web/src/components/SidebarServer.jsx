@@ -1,6 +1,6 @@
-import { Index, Show, createMemo } from "solid-js";
+import { Index, createMemo } from "solid-js";
 import { A } from "@solidjs/router";
-import { Mic, MessagesSquare, Settings2 } from "lucide-solid";
+import { Mic, MessagesSquare } from "lucide-solid";
 import { TopicTypeText, TopicTypeVoice } from "./Chat";
 
 export default function SidebarServer(props) {
@@ -48,13 +48,6 @@ export default function SidebarServer(props) {
           </SidebarTopic>
         )}
       </Index>
-      <Show when={props.server().role === "owner"}>
-        <hr class="my-1" />
-        <SidebarTopic href={`/server/${props.server().id}/edit`}>
-          <Settings2 class="size-5" />
-          <p>Edit</p>
-        </SidebarTopic>
-      </Show>
     </details>
   );
 }

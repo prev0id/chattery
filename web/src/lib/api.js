@@ -73,6 +73,50 @@ export async function fetchServers() {
   }
 }
 
+export async function searchServers(query) {
+  try {
+    const params = new URLSearchParams({ query });
+    const res = await fetch(`/v1/server/search?${params.toString()}`);
+    const data = await handleResponse(res, "Failed to search servers");
+    return data?.servers || [];
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return [];
+  }
+}
+
+export async function joinServer(serverID) {
+  try {
+    const res = await fetch("/v1/server/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ server_id: serverID }),
+    });
+    const data = await handleResponse(res, "Failed to join server");
+    if (data) toast.success("Joined server!");
+    return data;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
+export async function leaveServer(serverID) {
+  try {
+    const res = await fetch("/v1/server/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ server_id: serverID }),
+    });
+    const data = await handleResponse(res, "Failed to leave server");
+    if (data) toast.success("Left server");
+    return data;
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
 export async function createServer(name) {
   try {
     const res = await fetch("/v1/server/create", {
