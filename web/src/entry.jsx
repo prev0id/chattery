@@ -33,7 +33,10 @@ function GlobalDMNotifications() {
       const currentUser = userData();
       if (!currentUser || payload?.sender?.id === currentUser.id) return;
 
-      toast.info(`${payload?.sender?.username ?? "DM"}: ${payload?.text ?? ""}`);
+      const currentDMPath = `/app/dm/${channel.id}`;
+      if (window.location.pathname === currentDMPath) return;
+
+      toast.dmMessage(payload);
     });
 
     onCleanup(unsubscribe);

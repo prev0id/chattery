@@ -238,8 +238,7 @@ type Querier interface {
 	//  UPDATE dm_participants
 	//  SET last_read_message_id=GREATEST(last_read_message_id, $3),
 	//      updated_at=now()
-	//  WHERE dm_participants.dm_id=$1
-	//      AND dm_participants.user_id=$2
+	//  WHERE dm_id=$1 AND user_id=$2
 	SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error
 	//SetLastMessageInDM
 	//

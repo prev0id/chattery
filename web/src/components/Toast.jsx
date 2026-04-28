@@ -1,6 +1,7 @@
-import { Match, Switch } from "solid-js";
+import { For, Match, Switch } from "solid-js";
 import { removeToast, toasts } from "../stores/toast";
 import { X } from "lucide-solid";
+import ProfilePicture from "./ProfilePicture";
 
 export default function Toasts() {
   return (
@@ -11,6 +12,7 @@ export default function Toasts() {
             id={toast.id}
             variant={toast.variant}
             message={toast.message}
+            data={toast.data}
           />
         )}
       </For>
@@ -19,36 +21,59 @@ export default function Toasts() {
 }
 
 function Toast(props) {
-  const { id, variant = "error", message } = props;
+  const { id, variant = "error", message, data } = props;
 
   return (
     <div class="pointer-events-auto border-2 neo-shadow rounded-xl px-4 py-2 bg-white max-w-xs">
       <div class="flex items-start gap-3">
-        <div class="flex-1">
-          <Switch>
-            <Match when={variant === "error"}>
-              <div class={`font-bold text-red-600 mb-0.5 tracking-widest`}>
-                ERROR
+        <Switch
+          fallback={
+            <div class="flex-1">
+              <Switch>
+                <Match when={variant === "error"}>
+                  <div class={`font-bold text-red-600 mb-0.5 tracking-widest`}>
+                    ERROR
+                  </div>
+                </Match>
+                <Match when={variant === "warning"}>
+                  <div
+                    class={`font-bold text-amber-600 mb-0.5 tracking-widest`}
+                  >
+                    WARN
+                  </div>
+                </Match>
+                <Match when={variant === "info"}>
+                  <div class={`font-bold text-sky-600 mb-0.5 tracking-widest`}>
+                    INFO
+                  </div>
+                </Match>
+                <Match when={variant === "success"}>
+                  <div
+                    class={`font-bold text-green-600 mb-0.5 tracking-widest`}
+                  >
+                    SUCCESS
+                  </div>
+                </Match>
+              </Switch>
+              <p>{message || "An error occurred"}</p>
+            </div>
+          }
+        >
+          <Match when={variant === "dm-message"}>
+            <ProfilePicture
+              src={data?.sender?.avatar}
+              class="size-10 mt-0.5 shrink-0"
+            />
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold leading-tight truncate">
+                {data?.sender?.username ?? "Direct message"}
               </div>
-            </Match>
-            <Match when={variant === "warning"}>
-              <div class={`font-bold text-amber-600 mb-0.5 tracking-widest`}>
-                WARN
-              </div>
-            </Match>
-            <Match when={variant === "info"}>
-              <div class={`font-bold text-sky-600 mb-0.5 tracking-widest`}>
-                INFO
-              </div>
-            </Match>
-            <Match when={variant === "success"}>
-              <div class={`font-bold text-green-600 mb-0.5 tracking-widest`}>
-                SUCCESS
-              </div>
-            </Match>
-          </Switch>
-          <p>{message || "An error occurred"}</p>
-        </div>
+              <p class="text-sm leading-snug break-words">
+                {message || "New message"}
+              </p>
+            </div>
+          </Match>
+        </Switch>
 
         <button
           type="button"

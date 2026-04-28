@@ -51,9 +51,13 @@ export default function DMs(props) {
   };
 
   createEffect(() => {
+    const dmID = currentDMID();
+    const current = dms()?.find((dm) => dm.id === dmID);
+    if (!current?.unread) return;
+
     mutateDMs((prev) =>
       prev?.map((dm) =>
-        dm.id === currentDMID() ? { ...dm, unread: false } : dm,
+        dm.id === dmID ? { ...dm, unread: false } : dm,
       ),
     );
   });

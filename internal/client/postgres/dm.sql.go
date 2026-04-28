@@ -422,8 +422,7 @@ const setDMLastReadMessage = `-- name: SetDMLastReadMessage :exec
 UPDATE dm_participants
 SET last_read_message_id=GREATEST(last_read_message_id, $3),
     updated_at=now()
-WHERE dm_participants.dm_id=$1
-    AND dm_participants.user_id=$2
+WHERE dm_id=$1 AND user_id=$2
 `
 
 type SetDMLastReadMessageParams struct {
@@ -437,8 +436,7 @@ type SetDMLastReadMessageParams struct {
 //	UPDATE dm_participants
 //	SET last_read_message_id=GREATEST(last_read_message_id, $3),
 //	    updated_at=now()
-//	WHERE dm_participants.dm_id=$1
-//	    AND dm_participants.user_id=$2
+//	WHERE dm_id=$1 AND user_id=$2
 func (q *Queries) SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error {
 	_, err := q.db.Exec(ctx, setDMLastReadMessage, arg.DmID, arg.UserID, arg.LastReadMessageID)
 	return err

@@ -7,9 +7,9 @@ const removeToast = (id) => {
   setToasts((prev) => prev.filter((t) => t.id !== id));
 };
 
-const addToast = (variant, message) => {
+const addToast = (variant, message, data = null) => {
   const id = createUniqueId();
-  const newToast = { id, variant, message };
+  const newToast = { id, variant, message, data };
 
   setToasts((prev) => [newToast, ...prev]);
 
@@ -23,6 +23,7 @@ export const toast = {
   warning: (message) => addToast("warning", message),
   error: (message) => addToast("error", message),
   success: (message) => addToast("success", message),
+  dmMessage: (message) => addToast("dm-message", message?.text, message),
 };
 
 export { toasts, removeToast };

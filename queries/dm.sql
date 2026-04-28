@@ -54,8 +54,7 @@ VALUES ($1, $2);
 UPDATE dm_participants
 SET last_read_message_id=GREATEST(last_read_message_id, $3),
     updated_at=now()
-WHERE dm_participants.dm_id=$1
-    AND dm_participants.user_id=$2;
+WHERE dm_id=$1 AND user_id=$2;
 
 -- name: CreateDMMessage :one
 INSERT INTO dm_messages(dm_id, user_id, text)
