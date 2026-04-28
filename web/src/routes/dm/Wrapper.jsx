@@ -1,14 +1,15 @@
-import { useParams, createAsync } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, createResource } from "solid-js";
 import SidebarDM from "~/components/SidebarDM";
 
 import Toasts from "~/components/Toast";
 import Sidebar from "~/components/Sidebar";
 import Button from "~/components/Button";
-import { DMContext, GetDMs } from "~/stores/dm";
+import { DMContext } from "~/stores/dm";
 import { fetchDMs } from "~/lib/api";
 
 export default function DMs(props) {
+  const navigate = useNavigate();
   const params = useParams();
   const [dms, { mutate: mutateDMs, refetch: refetchDMs }] =
     createResource(fetchDMs);
@@ -30,7 +31,11 @@ export default function DMs(props) {
   return (
     <>
       <Sidebar fallback="Loading DMs...">
-        <Button variant="amber" class="mx-4">
+        <Button
+          variant="amber"
+          class="mx-4"
+          onClick={() => navigate("/dm/search")}
+        >
           Search users
         </Button>
         <For each={dms()}>{(dm) => <SidebarDM dm={dm} />}</For>
@@ -40,6 +45,7 @@ export default function DMs(props) {
           value={{
             currentDM,
             currentDMID,
+            refetchDMs,
           }}
         >
           {props.children}

@@ -13,6 +13,7 @@ import CreateServer from "./routes/server/Create";
 import DMWrapper from "./routes/dm/Wrapper";
 import SelectDM from "./routes/dm/Select";
 import DM from "./routes/dm/DM";
+import SearchDM from "./routes/dm/Search";
 
 const filters = {
   dmID: /^\d+$/,
@@ -25,6 +26,7 @@ render(
     <Router base="/app">
       <Route path="/dm" component={DMWrapper}>
         <Route path="/" component={SelectDM} />
+        <Route path="/search" component={SearchDM} />
         <Route path="/:dmID" component={DM} matchFilters={filters} />
       </Route>
       <Route path="/server" component={ServerWrapper}>

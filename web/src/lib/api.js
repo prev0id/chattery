@@ -25,6 +25,37 @@ export async function fetchDMs() {
     return [];
   }
 }
+
+export async function searchUsers(query) {
+  try {
+    const params = new URLSearchParams({ query });
+    const res = await fetch(`/v1/dm/search?${params.toString()}`);
+    const data = await handleResponse(res, "Failed to search users");
+    return data?.users || [];
+  } catch (err) {
+    console.log(err);
+    toast.error("Network error – please check your connection");
+    return [];
+  }
+}
+
+export async function createDM(participantID) {
+  try {
+    const res = await fetch("/v1/dm/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participant_id: participantID }),
+    });
+    const data = await handleResponse(res, "Failed to create DM");
+    if (data) toast.success("DM created!");
+    return data;
+  } catch (err) {
+    console.log(err);
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
 export async function fetchDMMessages(dmID, cursor = null) {
   try {
     const body = {
