@@ -13,6 +13,20 @@ func Servers(lhs, rhs *domain.Server) int {
 	)
 }
 
+func ServersByName(lhs, rhs *domain.Server) int {
+	return cmp.Or(
+		cmp.Compare(lhs.Name, rhs.Name),
+		cmp.Compare(lhs.ID, rhs.ID),
+	)
+}
+
+func UsersByUsername(lhs, rhs *domain.User) int {
+	return cmp.Or(
+		cmp.Compare(lhs.Username, rhs.Username),
+		cmp.Compare(lhs.ID, rhs.ID),
+	)
+}
+
 func Topics(lhs, rhs *domain.Topic) int {
 	return cmp.Or(
 		lhs.CreatedAt.Compare(rhs.CreatedAt),

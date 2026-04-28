@@ -70,7 +70,7 @@ func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 
 	servers := make([]*domain.Server, 0, len(grouped))
 	for serverID, serverRows := range grouped {
-		if server := convertServerFromRows(serverID, serverRows); server != nil {
+		if server := convertUserServerFromRows(serverID, serverRows); server != nil {
 			servers = append(servers, server)
 		}
 	}
@@ -78,7 +78,7 @@ func convertServersFromDB(rows []*postgres.GetUserServersRow) []*domain.Server {
 	return servers
 }
 
-func convertServerFromRows(serverID int64, serverRows []*postgres.GetUserServersRow) *domain.Server {
+func convertUserServerFromRows(serverID int64, serverRows []*postgres.GetUserServersRow) *domain.Server {
 	if len(serverRows) == 0 {
 		return nil
 	}
@@ -91,6 +91,44 @@ func convertServerFromRows(serverID int64, serverRows []*postgres.GetUserServers
 	}
 
 	for _, row := range serverRows {
+		if topic := convertTopicFromUserServerRow(serverID, row); topic != nil {
+			server.Topics = append(server.Topics, topic)
+		}
+	}
+
+	return server
+}
+
+func convertServersFromListDB(rows []*postgres.ListServersRow) []*domain.Server {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	grouped := sliceutil.GroupBy(rows, func(row *postgres.ListServersRow) int64 {
+		return row.ID
+	})
+
+	servers := make([]*domain.Server, 0, len(grouped))
+	for serverID, serverRows := range grouped {
+		if server := convertServerFromListRows(serverID, serverRows); server != nil {
+			servers = append(servers, server)
+		}
+	}
+
+	return servers
+}
+
+func convertServerFromListRows(serverID int64, serverRows []*postgres.ListServersRow) *domain.Server {
+	if len(serverRows) == 0 {
+		return nil
+	}
+
+	server := &domain.Server{
+		ID:   domain.ServerID(serverID),
+		Name: serverRows[0].Name,
+	}
+
+	for _, row := range serverRows {
 		if topic := convertTopicFromRow(serverID, row); topic != nil {
 			server.Topics = append(server.Topics, topic)
 		}
@@ -99,7 +137,20 @@ func convertServerFromRows(serverID int64, serverRows []*postgres.GetUserServers
 	return server
 }
 
-func convertTopicFromRow(serverID int64, row *postgres.GetUserServersRow) *domain.Topic {
+func convertTopicFromRow(serverID int64, row *postgres.ListServersRow) *domain.Topic {
+	if !row.TopicID.Valid {
+		return nil
+	}
+	return &domain.Topic{
+		ID:        domain.TopicID(row.TopicID.Int64),
+		ServerID:  domain.ServerID(serverID),
+		Name:      row.TopicName.String,
+		Type:      domain.TopicType(row.TopicType.String),
+		CreatedAt: row.TopicCreatedAt.Time,
+	}
+}
+
+func convertTopicFromUserServerRow(serverID int64, row *postgres.GetUserServersRow) *domain.Topic {
 	if !row.TopicID.Valid {
 		return nil
 	}

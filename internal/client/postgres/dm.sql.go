@@ -201,6 +201,143 @@ func (q *Queries) GetDMParticipants(ctx context.Context, dmID int64) ([]int64, e
 	return items, nil
 }
 
+const getUserDMParticipantIDs = `-- name: GetUserDMParticipantIDs :many
+SELECT p2.user_id
+FROM dm_participants p1
+JOIN dm_participants p2 ON p2.dm_id = p1.dm_id AND p2.user_id != p1.user_id
+WHERE p1.user_id = $1
+`
+
+// GetUserDMParticipantIDs
+//
+//	SELECT p2.user_id
+//	FROM dm_participants p1
+//	JOIN dm_participants p2 ON p2.dm_id = p1.dm_id AND p2.user_id != p1.user_id
+//	WHERE p1.user_id = $1
+func (q *Queries) GetUserDMParticipantIDs(ctx context.Context, userID int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getUserDMParticipantIDs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var user_id int64
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDMs = `-- name: ListDMs :many
+SELECT
+    d.id AS dm_id,
+    d.updated_at AS last_activity_at,
+    lm.id AS last_message_id,
+    lm.user_id AS last_message_sender_id,
+    lm.text AS last_message_text,
+    lm.created_at AS last_message_created_at
+FROM dms d
+LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+`
+
+type ListDMsRow struct {
+	DmID                 int64
+	LastActivityAt       time.Time
+	LastMessageID        pgtype.Int8
+	LastMessageSenderID  pgtype.Int8
+	LastMessageText      pgtype.Text
+	LastMessageCreatedAt pgtype.Timestamp
+}
+
+// ListDMs
+//
+//	SELECT
+//	    d.id AS dm_id,
+//	    d.updated_at AS last_activity_at,
+//	    lm.id AS last_message_id,
+//	    lm.user_id AS last_message_sender_id,
+//	    lm.text AS last_message_text,
+//	    lm.created_at AS last_message_created_at
+//	FROM dms d
+//	LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+func (q *Queries) ListDMs(ctx context.Context) ([]*ListDMsRow, error) {
+	rows, err := q.db.Query(ctx, listDMs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ListDMsRow
+	for rows.Next() {
+		var i ListDMsRow
+		if err := rows.Scan(
+			&i.DmID,
+			&i.LastActivityAt,
+			&i.LastMessageID,
+			&i.LastMessageSenderID,
+			&i.LastMessageText,
+			&i.LastMessageCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserDMIDs = `-- name: ListUserDMIDs :many
+SELECT
+    p.dm_id,
+    p.last_read_message_id,
+    p2.user_id AS other_participant_id
+FROM dm_participants p
+JOIN dm_participants p2 ON p2.dm_id = p.dm_id AND p2.user_id != $1
+WHERE p.user_id = $1
+`
+
+type ListUserDMIDsRow struct {
+	DmID               int64
+	LastReadMessageID  int64
+	OtherParticipantID int64
+}
+
+// ListUserDMIDs
+//
+//	SELECT
+//	    p.dm_id,
+//	    p.last_read_message_id,
+//	    p2.user_id AS other_participant_id
+//	FROM dm_participants p
+//	JOIN dm_participants p2 ON p2.dm_id = p.dm_id AND p2.user_id != $1
+//	WHERE p.user_id = $1
+func (q *Queries) ListUserDMIDs(ctx context.Context, userID int64) ([]*ListUserDMIDsRow, error) {
+	rows, err := q.db.Query(ctx, listUserDMIDs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ListUserDMIDsRow
+	for rows.Next() {
+		var i ListUserDMIDsRow
+		if err := rows.Scan(&i.DmID, &i.LastReadMessageID, &i.OtherParticipantID); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const nextPagesOfDMMessages = `-- name: NextPagesOfDMMessages :many
 SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))

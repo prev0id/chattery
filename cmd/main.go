@@ -21,6 +21,8 @@ import (
 	"chattery/internal/service/text_topic"
 	"chattery/internal/service/user"
 	ws_manager "chattery/internal/service/websocket_manager"
+	dm_store "chattery/internal/store/dm"
+	server_store "chattery/internal/store/server"
 	"chattery/internal/store/syncer"
 	user_store "chattery/internal/store/user"
 	"chattery/internal/utils/database"
@@ -50,16 +52,24 @@ func main() {
 	userDB := user_adapter.New(transactionManager)
 
 	userStore := user_store.New(userDB)
+	dmStore := dm_store.New(dmDB)
+	serverStore := server_store.New(serverDB)
 
 	redisClient := redis.New(redisConn)
 	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
 
-	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, cfg)
-	serverService := server.New(serverDB, transactionManager, cfg)
+	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, dmStore, cfg)
+	serverService := server.New(serverDB, transactionManager, serverStore, cfg)
 	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, userStore, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	if err := syncer.Start(cfg.Cache.UserStoreSyncTimeout, userStore); err != nil {
+		logger.Fatal(err, "syncer.New")
+	}
+	if err := syncer.Start(cfg.Cache.DMStoreSyncTimeout, dmStore); err != nil {
+		logger.Fatal(err, "syncer.New")
+	}
+	if err := syncer.Start(cfg.Cache.ServerStoreSyncTimeout, serverStore); err != nil {
 		logger.Fatal(err, "syncer.New")
 	}
 

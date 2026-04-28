@@ -134,6 +134,7 @@ type Querier interface {
 	//  FROM servers s
 	//  LEFT JOIN topics t ON t.server_id = s.id
 	//  WHERE s.id=$1
+	//  ORDER BY t.created_at, t.id
 	GetServer(ctx context.Context, id int64) ([]*GetServerRow, error)
 	//GetServerParticipant
 	//
@@ -150,6 +151,13 @@ type Querier interface {
 	//  SELECT id, server_id, name, type, created_at, updated_at FROM topics
 	//  WHERE id=$1
 	GetTopic(ctx context.Context, id int64) (*Topic, error)
+	//GetUserDMParticipantIDs
+	//
+	//  SELECT p2.user_id
+	//  FROM dm_participants p1
+	//  JOIN dm_participants p2 ON p2.dm_id = p1.dm_id AND p2.user_id != p1.user_id
+	//  WHERE p1.user_id = $1
+	GetUserDMParticipantIDs(ctx context.Context, userID int64) ([]int64, error)
 	//GetUserServers
 	//
 	//  SELECT
@@ -165,7 +173,43 @@ type Querier interface {
 	//  JOIN server_participants sp ON sp.server_id = s.id
 	//  LEFT JOIN topics t ON t.server_id = s.id
 	//  WHERE sp.user_id = $1
+	//  ORDER BY sp.created_at, s.id, t.created_at, t.id
 	GetUserServers(ctx context.Context, userID int64) ([]*GetUserServersRow, error)
+	//ListDMs
+	//
+	//  SELECT
+	//      d.id AS dm_id,
+	//      d.updated_at AS last_activity_at,
+	//      lm.id AS last_message_id,
+	//      lm.user_id AS last_message_sender_id,
+	//      lm.text AS last_message_text,
+	//      lm.created_at AS last_message_created_at
+	//  FROM dms d
+	//  LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
+	ListDMs(ctx context.Context) ([]*ListDMsRow, error)
+	//ListServers
+	//
+	//  SELECT
+	//      s.id AS id,
+	//      s.name AS name,
+	//      t.id AS topic_id,
+	//      t.name AS topic_name,
+	//      t.type AS topic_type,
+	//      t.created_at AS topic_created_at
+	//  FROM servers s
+	//  LEFT JOIN topics t ON t.server_id = s.id
+	//  ORDER BY s.id, t.created_at, t.id
+	ListServers(ctx context.Context) ([]*ListServersRow, error)
+	//ListUserDMIDs
+	//
+	//  SELECT
+	//      p.dm_id,
+	//      p.last_read_message_id,
+	//      p2.user_id AS other_participant_id
+	//  FROM dm_participants p
+	//  JOIN dm_participants p2 ON p2.dm_id = p.dm_id AND p2.user_id != $1
+	//  WHERE p.user_id = $1
+	ListUserDMIDs(ctx context.Context, userID int64) ([]*ListUserDMIDsRow, error)
 	//ListUsers
 	//
 	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users

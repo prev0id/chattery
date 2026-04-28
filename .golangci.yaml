@@ -89,6 +89,8 @@ linters:
           disabled: true
         - name: confusing-naming
           disabled: true
+        - name: cognitive-complexity
+          arguments: [15]
         - name: var-naming
           arguments:
             - []

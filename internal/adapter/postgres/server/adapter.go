@@ -219,3 +219,12 @@ func (a *Adapter) GetTopic(ctx context.Context, topicID domain.TopicID) (*domain
 
 	return convertTopicFromDB(topic), nil
 }
+
+func (a *Adapter) ListServers(ctx context.Context) ([]*domain.Server, error) {
+	servers, err := a.db.Query(ctx).ListServers(ctx)
+	if err != nil {
+		return nil, errutil.E(err).Debug("Query.ListServers")
+	}
+
+	return convertServersFromListDB(servers), nil
+}

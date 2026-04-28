@@ -11,6 +11,7 @@ import (
 
 type dmService interface {
 	UserDMs(ctx context.Context, userID domain.UserID) ([]*domain.DM, error)
+	SearchUsersWithoutDM(ctx context.Context, userID domain.UserID, query string) ([]*domain.User, error)
 	CreateDM(ctx context.Context, participant1, participant2 domain.UserID) (domain.DMID, error)
 	CreateDMMessage(ctx context.Context, message *domain.DMMessage) error
 	FirstPageOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error)
@@ -23,7 +24,7 @@ type userService interface {
 
 type userCache interface {
 	GetByID(id domain.UserID) (*domain.User, error)
-	List() map[domain.UserID]*domain.User
+	ListByID() map[domain.UserID]*domain.User
 }
 
 type Server struct {
@@ -49,6 +50,7 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 
 		withAuthRouter.Get("/list", s.GetDMs)
+		withAuthRouter.Get("/search", s.SearchUsers)
 		withAuthRouter.Post("/create", s.PostCreateDM)
 		withAuthRouter.Post("/message", s.PostMessage)
 		withAuthRouter.Post("/messages", s.GetMessages)

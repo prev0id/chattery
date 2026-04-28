@@ -25,6 +25,27 @@ LEFT JOIN dm_messages lm ON lm.id = d.last_message_id
 JOIN dm_participants p2 ON p2.dm_id = d.id AND p2.user_id != $1
 WHERE p.user_id = $1;
 
+
+-- name: ListDMs :many
+SELECT
+    d.id AS dm_id,
+    d.updated_at AS last_activity_at,
+    lm.id AS last_message_id,
+    lm.user_id AS last_message_sender_id,
+    lm.text AS last_message_text,
+    lm.created_at AS last_message_created_at
+FROM dms d
+LEFT JOIN dm_messages lm ON lm.id = d.last_message_id;
+
+-- name: ListUserDMIDs :many
+SELECT
+    p.dm_id,
+    p.last_read_message_id,
+    p2.user_id AS other_participant_id
+FROM dm_participants p
+JOIN dm_participants p2 ON p2.dm_id = p.dm_id AND p2.user_id != $1
+WHERE p.user_id = $1;
+
 -- name: CreateDMParticipant :exec
 INSERT INTO dm_participants(dm_id, user_id)
 VALUES ($1, $2);
@@ -66,3 +87,9 @@ LIMIT 1;
 -- name: GetDMParticipants :many
 SELECT user_id FROM dm_participants
 WHERE dm_id = $1;
+
+-- name: GetUserDMParticipantIDs :many
+SELECT p2.user_id
+FROM dm_participants p1
+JOIN dm_participants p2 ON p2.dm_id = p1.dm_id AND p2.user_id != p1.user_id
+WHERE p1.user_id = $1;

@@ -5,10 +5,15 @@ import (
 
 	"chattery/internal/domain"
 	"chattery/internal/utils/render"
+	"chattery/internal/utils/sliceutil"
 )
 
 type GetDMsResponse struct {
 	DMs []DM `json:"dms"`
+}
+
+type SearchUsersResponse struct {
+	Users []UserInfo `json:"users"`
 }
 
 type DM struct {
@@ -67,11 +72,7 @@ type Cursor struct {
 func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {
 	user := UserInfo{}
 	if u, ok := users[dm.OtherParticipantID]; ok {
-		user = UserInfo{
-			ID:       u.ID.I64(),
-			Username: u.Username.String(),
-			Avatar:   "/v1/image/" + u.Username.String() + ".png",
-		}
+		user = convertUserInfo(u)
 	}
 
 	return DM{
@@ -79,6 +80,20 @@ func convertDMResponse(dm *domain.DM, users map[domain.UserID]*domain.User) DM {
 		Unread:  dm.LastMessage.ID > dm.LastReadMessageID,
 		User:    user,
 		Message: convertLastMessageResponse(dm.LastMessage),
+	}
+}
+
+func convertSearchUsersResponse(users []*domain.User) *SearchUsersResponse {
+	return &SearchUsersResponse{
+		Users: sliceutil.Map(users, convertUserInfo),
+	}
+}
+
+func convertUserInfo(user *domain.User) UserInfo {
+	return UserInfo{
+		ID:       user.ID.I64(),
+		Username: user.Username.String(),
+		Avatar:   "/v1/image/" + user.Username.String() + ".png",
 	}
 }
 
@@ -95,12 +110,7 @@ func convertGetDMsResponse(dms []*domain.DM, users map[domain.UserID]*domain.Use
 func convertMessageResponse(msg *domain.DMMessage, users map[domain.UserID]*domain.User) *Message {
 	sender := UserInfo{}
 	if user, ok := users[msg.SenderID]; ok {
-		sender = UserInfo{
-			ID:       user.ID.I64(),
-			Username: user.Username.String(),
-			// Avatar:   user.AvatarID.String(),
-			Avatar: "/v1/image/" + user.Username.String() + ".png",
-		}
+		sender = convertUserInfo(user)
 	}
 	return &Message{
 		ID:        msg.ID.I64(),

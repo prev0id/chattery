@@ -33,6 +33,15 @@ func (a *Adapter) UserDMs(ctx context.Context, userID domain.UserID) ([]*domain.
 	return sliceutil.Map(dms, convertDMFromDB), nil
 }
 
+func (a *Adapter) ListDMs(ctx context.Context) ([]*domain.DM, error) {
+	dms, err := a.db.Query(ctx).ListDMs(ctx)
+	if err != nil {
+		return nil, errutil.E(err).Debug("Query.ListDMs")
+	}
+
+	return sliceutil.Map(dms, convertDMFromListDB), nil
+}
+
 func (a *Adapter) CreateDM(ctx context.Context) (domain.DMID, error) {
 	id, err := a.db.Query(ctx).CreateDM(ctx)
 	if err != nil {
@@ -166,5 +175,14 @@ func (a *Adapter) GetDMParticipants(ctx context.Context, dmID domain.DMID) ([]do
 	if err != nil {
 		return nil, errutil.E(err).Debug("Query.GetDMParticipants")
 	}
+	return sliceutil.Map(ids, func(id int64) domain.UserID { return domain.UserID(id) }), nil
+}
+
+func (a *Adapter) GetUserDMParticipantIDs(ctx context.Context, userID domain.UserID) ([]domain.UserID, error) {
+	ids, err := a.db.Query(ctx).GetUserDMParticipantIDs(ctx, userID.I64())
+	if err != nil {
+		return nil, errutil.E(err).Debug("Query.GetUserDMParticipantIDs")
+	}
+
 	return sliceutil.Map(ids, func(id int64) domain.UserID { return domain.UserID(id) }), nil
 }

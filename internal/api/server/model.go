@@ -12,11 +12,20 @@ type GetServersResponse struct {
 	Servers []ServerResponse `json:"servers"`
 }
 
+type SearchServersResponse struct {
+	Servers []SearchServerResponse `json:"servers"`
+}
+
 type ServerResponse struct {
 	Name   string          `json:"name"`
 	Role   string          `json:"role"`
 	Topics []TopicResponse `json:"topics"`
 	ID     int64           `json:"id"`
+}
+
+type SearchServerResponse struct {
+	Name string `json:"name"`
+	ID   int64  `json:"id"`
 }
 
 type TopicResponse struct {
@@ -112,6 +121,13 @@ func convertServerResponse(server *domain.Server) ServerResponse {
 	}
 }
 
+func convertSearchServerResponse(server *domain.Server) SearchServerResponse {
+	return SearchServerResponse{
+		ID:   server.ID.I64(),
+		Name: server.Name,
+	}
+}
+
 func convertTopicResponse(topic *domain.Topic) TopicResponse {
 	return TopicResponse{
 		ID:   topic.ID.I64(),
@@ -123,6 +139,12 @@ func convertTopicResponse(topic *domain.Topic) TopicResponse {
 func convertGetServersResponse(servers []*domain.Server) *GetServersResponse {
 	return &GetServersResponse{
 		Servers: sliceutil.Map(servers, convertServerResponse),
+	}
+}
+
+func convertSearchServersResponse(servers []*domain.Server) *SearchServersResponse {
+	return &SearchServersResponse{
+		Servers: sliceutil.Map(servers, convertSearchServerResponse),
 	}
 }
 
@@ -213,6 +235,7 @@ func convertPostCreateTopicRequest(request *PostCreateTopicRequest) *domain.Topi
 		Type:     domain.TopicType(request.Type),
 	}
 }
+
 func convertPostUpdateTopicRequest(request *PostUpdateTopicRequest) *domain.Topic {
 	return &domain.Topic{
 		ID:   domain.TopicID(request.TopicID),

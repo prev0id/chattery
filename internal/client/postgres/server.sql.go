@@ -243,6 +243,7 @@ SELECT
 FROM servers s
 LEFT JOIN topics t ON t.server_id = s.id
 WHERE s.id=$1
+ORDER BY t.created_at, t.id
 `
 
 type GetServerRow struct {
@@ -266,6 +267,7 @@ type GetServerRow struct {
 //	FROM servers s
 //	LEFT JOIN topics t ON t.server_id = s.id
 //	WHERE s.id=$1
+//	ORDER BY t.created_at, t.id
 func (q *Queries) GetServer(ctx context.Context, id int64) ([]*GetServerRow, error) {
 	rows, err := q.db.Query(ctx, getServer, id)
 	if err != nil {
@@ -392,6 +394,7 @@ FROM servers s
 JOIN server_participants sp ON sp.server_id = s.id
 LEFT JOIN topics t ON t.server_id = s.id
 WHERE sp.user_id = $1
+ORDER BY sp.created_at, s.id, t.created_at, t.id
 `
 
 type GetUserServersRow struct {
@@ -420,6 +423,7 @@ type GetUserServersRow struct {
 //	JOIN server_participants sp ON sp.server_id = s.id
 //	LEFT JOIN topics t ON t.server_id = s.id
 //	WHERE sp.user_id = $1
+//	ORDER BY sp.created_at, s.id, t.created_at, t.id
 func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserServersRow, error) {
 	rows, err := q.db.Query(ctx, getUserServers, userID)
 	if err != nil {
@@ -434,6 +438,67 @@ func (q *Queries) GetUserServers(ctx context.Context, userID int64) ([]*GetUserS
 			&i.Name,
 			&i.JoinedAt,
 			&i.Role,
+			&i.TopicID,
+			&i.TopicName,
+			&i.TopicType,
+			&i.TopicCreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listServers = `-- name: ListServers :many
+SELECT
+    s.id AS id,
+    s.name AS name,
+    t.id AS topic_id,
+    t.name AS topic_name,
+    t.type AS topic_type,
+    t.created_at AS topic_created_at
+FROM servers s
+LEFT JOIN topics t ON t.server_id = s.id
+ORDER BY s.id, t.created_at, t.id
+`
+
+type ListServersRow struct {
+	ID             int64
+	Name           string
+	TopicID        pgtype.Int8
+	TopicName      pgtype.Text
+	TopicType      pgtype.Text
+	TopicCreatedAt pgtype.Timestamp
+}
+
+// ListServers
+//
+//	SELECT
+//	    s.id AS id,
+//	    s.name AS name,
+//	    t.id AS topic_id,
+//	    t.name AS topic_name,
+//	    t.type AS topic_type,
+//	    t.created_at AS topic_created_at
+//	FROM servers s
+//	LEFT JOIN topics t ON t.server_id = s.id
+//	ORDER BY s.id, t.created_at, t.id
+func (q *Queries) ListServers(ctx context.Context) ([]*ListServersRow, error) {
+	rows, err := q.db.Query(ctx, listServers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*ListServersRow
+	for rows.Next() {
+		var i ListServersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
 			&i.TopicID,
 			&i.TopicName,
 			&i.TopicType,

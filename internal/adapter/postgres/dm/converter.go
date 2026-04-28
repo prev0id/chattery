@@ -3,6 +3,8 @@ package dm
 import (
 	"chattery/internal/client/postgres"
 	"chattery/internal/domain"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func convertDMMessageFromDB(msg *postgres.DmMessage) *domain.DMMessage {
@@ -16,23 +18,40 @@ func convertDMMessageFromDB(msg *postgres.DmMessage) *domain.DMMessage {
 }
 
 func convertDMFromDB(dm *postgres.UserDMsRow) *domain.DM {
-	var lastMessage domain.DMMessage
-	if dm.LastMessageID.Valid {
-		lastMessage = domain.DMMessage{
-			ID:        domain.DMMessageID(dm.LastMessageID.Int64),
-			DMID:      domain.DMID(dm.DmID),
-			SenderID:  domain.UserID(dm.LastMessageSenderID.Int64),
-			Text:      dm.LastMessageText.String,
-			CreatedAt: dm.LastMessageCreatedAt.Time,
-		}
-	}
-
 	return &domain.DM{
 		ID:                 domain.DMID(dm.DmID),
-		LastActivityAt:     dm.LastActivityAt,
-		LastMessage:        lastMessage,
 		OtherParticipantID: domain.UserID(dm.OtherParticipantID),
 		LastReadMessageID:  domain.DMMessageID(dm.LastReadMessageID),
+		LastActivityAt:     dm.LastActivityAt,
+		LastMessage:        convertLastDMMessageFromDB(dm.DmID, dm.LastMessageID, dm.LastMessageSenderID, dm.LastMessageText, dm.LastMessageCreatedAt),
+	}
+}
+
+func convertDMFromListDB(dm *postgres.ListDMsRow) *domain.DM {
+	return &domain.DM{
+		ID:             domain.DMID(dm.DmID),
+		LastActivityAt: dm.LastActivityAt,
+		LastMessage:    convertLastDMMessageFromDB(dm.DmID, dm.LastMessageID, dm.LastMessageSenderID, dm.LastMessageText, dm.LastMessageCreatedAt),
+	}
+}
+
+func convertLastDMMessageFromDB(
+	dmID int64,
+	messageID pgtype.Int8,
+	senderID pgtype.Int8,
+	text pgtype.Text,
+	createdAt pgtype.Timestamp,
+) domain.DMMessage {
+	if !messageID.Valid {
+		return domain.DMMessage{}
+	}
+
+	return domain.DMMessage{
+		ID:        domain.DMMessageID(messageID.Int64),
+		DMID:      domain.DMID(dmID),
+		SenderID:  domain.UserID(senderID.Int64),
+		Text:      text.String,
+		CreatedAt: createdAt.Time,
 	}
 }
 

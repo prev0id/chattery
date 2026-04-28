@@ -30,16 +30,23 @@ type txManager interface {
 	InTransaction(ctx context.Context, fn func(context.Context) error) error
 }
 
+type serverCache interface {
+	GetByID(serverID domain.ServerID) (*domain.Server, error)
+	List() []*domain.Server
+}
+
 type Service struct {
 	db          db
 	transaction txManager
+	cache       serverCache
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, cache serverCache, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
+		cache:       cache,
 		limit:       cfg.Chat.MessagesLimit,
 	}
 }

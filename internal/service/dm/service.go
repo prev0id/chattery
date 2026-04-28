@@ -19,6 +19,7 @@ type db interface {
 	GetDMParticipant(ctx context.Context, dmID domain.DMID, userID domain.UserID) (*domain.DMParticipant, error)
 	GetDMBetweenUsers(ctx context.Context, userID1, userID2 domain.UserID) (*domain.DM, error)
 	GetDMParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error)
+	GetUserDMParticipantIDs(ctx context.Context, userID domain.UserID) ([]domain.UserID, error)
 }
 
 type redis interface {
@@ -27,6 +28,12 @@ type redis interface {
 
 type userCache interface {
 	GetByID(userID domain.UserID) (*domain.User, error)
+	List() []*domain.User
+}
+
+type dmCache interface {
+	GetByID(dmID domain.DMID) (*domain.DM, error)
+	List() []*domain.DM
 }
 
 type txManager interface {
@@ -38,16 +45,18 @@ type Service struct {
 	transaction txManager
 	redis       redis
 	user        userCache
+	cache       dmCache
 	limit       int
 }
 
-func New(dbAdapter db, transaction txManager, redisAdapter redis, user userCache, cfg *config.Config) *Service {
+func New(dbAdapter db, transaction txManager, redisAdapter redis, user userCache, cache dmCache, cfg *config.Config) *Service {
 	return &Service{
 		db:          dbAdapter,
 		transaction: transaction,
 		redis:       redisAdapter,
 		limit:       cfg.Chat.MessagesLimit,
 		user:        user,
+		cache:       cache,
 	}
 }
 

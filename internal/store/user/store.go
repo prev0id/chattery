@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	user_adapter "chattery/internal/adapter/postgres/user"
@@ -14,6 +15,7 @@ type UserStore struct {
 	adapter         *user_adapter.Adapter
 	usersByID       map[domain.UserID]*domain.User
 	usersByUsername map[domain.Username]*domain.User
+	users           []*domain.User
 	mu              sync.RWMutex
 }
 
@@ -22,6 +24,7 @@ func New(adapter *user_adapter.Adapter) *UserStore {
 		adapter:         adapter,
 		usersByID:       make(map[domain.UserID]*domain.User),
 		usersByUsername: make(map[domain.Username]*domain.User),
+		users:           make([]*domain.User, 0),
 	}
 }
 
@@ -35,12 +38,15 @@ func (s *UserStore) Sync(ctx context.Context) error {
 		return err
 	}
 
+	slog.Info("[user_store] update", slog.Int("len", len(users)))
+
 	groupedByID := sliceutil.SliceToMap(users, groupUserByID)
 	groupedByUsername := sliceutil.SliceToMap(users, groupUserByUsername)
 
 	s.mu.Lock()
 	s.usersByID = groupedByID
 	s.usersByUsername = groupedByUsername
+	s.users = users
 	s.mu.Unlock()
 
 	return nil
@@ -70,11 +76,18 @@ func (s *UserStore) GetByUsername(username domain.Username) (*domain.User, error
 	return user, nil
 }
 
-func (s *UserStore) List() map[domain.UserID]*domain.User {
+func (s *UserStore) ListByID() map[domain.UserID]*domain.User {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	return s.usersByID
+}
+
+func (s *UserStore) List() []*domain.User {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.users
 }
 
 func groupUserByID(user *domain.User) (domain.UserID, *domain.User) {

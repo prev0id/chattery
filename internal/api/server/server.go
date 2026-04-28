@@ -11,6 +11,7 @@ import (
 
 type serverService interface {
 	GetUserServers(ctx context.Context, userID domain.UserID) ([]*domain.Server, error)
+	SearchServersNotJoined(ctx context.Context, userID domain.UserID, query string) ([]*domain.Server, error)
 
 	CreateServer(ctx context.Context, name string, creatorUserID domain.UserID) (domain.ServerID, error)
 	UpdateServer(ctx context.Context, serverID domain.ServerID, name string, userID domain.UserID) error
@@ -36,7 +37,7 @@ type userService interface {
 
 type userCache interface {
 	GetByID(id domain.UserID) (*domain.User, error)
-	List() map[domain.UserID]*domain.User
+	ListByID() map[domain.UserID]*domain.User
 }
 
 type Server struct {
@@ -64,6 +65,7 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 
 		withAuthRouter.Get("/list", s.GetServers)
+		withAuthRouter.Get("/search", s.SearchServers)
 		withAuthRouter.Post("/create", s.PostCreateServer)
 		withAuthRouter.Post("/join", s.PostJoinServer)
 		withAuthRouter.Post("/leave", s.PostLeaveServer)

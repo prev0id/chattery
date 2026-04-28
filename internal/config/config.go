@@ -47,7 +47,9 @@ type Chat struct {
 }
 
 type Cache struct {
-	UserStoreSyncTimeout time.Duration
+	UserStoreSyncTimeout   time.Duration
+	DMStoreSyncTimeout     time.Duration
+	ServerStoreSyncTimeout time.Duration
 }
 
 func Init() *Config {
@@ -74,7 +76,9 @@ func Init() *Config {
 			MessagesLimit: bind.EnvInt("MESSAGES_LIMIT", 20),
 		},
 		Cache: Cache{
-			UserStoreSyncTimeout: bind.EnvDuration("CACHE_USER_SYNC_TIMEOUT", 30*time.Second),
+			UserStoreSyncTimeout:   bind.EnvDuration("CACHE_USER_SYNC_TIMEOUT", 30*time.Second),
+			ServerStoreSyncTimeout: bind.EnvDuration("CACHE_SERVER_SYNC_TIMEOUT", 30*time.Second),
+			DMStoreSyncTimeout:     bind.EnvDuration("CACHE_DM_SYNC_TIMEOUT", 30*time.Second),
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),
