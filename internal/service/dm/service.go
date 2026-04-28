@@ -16,6 +16,7 @@ type db interface {
 	SetLastMessageInDM(ctx context.Context, dmID domain.DMID, messageID domain.DMMessageID) error
 	FirstPageOfDMMessages(ctx context.Context, cursor *domain.DMCursor) ([]*domain.DMMessage, error)
 	NextPagesOfDMMessages(ctx context.Context, cursor *domain.DMCursor) ([]*domain.DMMessage, error)
+	GetDMMessage(ctx context.Context, dmID domain.DMID, messageID domain.DMMessageID) (*domain.DMMessage, error)
 	GetDMParticipant(ctx context.Context, dmID domain.DMID, userID domain.UserID) (*domain.DMParticipant, error)
 	GetDMBetweenUsers(ctx context.Context, userID1, userID2 domain.UserID) (*domain.DM, error)
 	GetDMParticipants(ctx context.Context, dmID domain.DMID) ([]domain.UserID, error)

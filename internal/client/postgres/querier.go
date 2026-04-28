@@ -112,6 +112,11 @@ type Querier interface {
 	//  WHERE p1.user_id = $1 AND p2.user_id = $2
 	//  LIMIT 1
 	GetDMBetweenUsers(ctx context.Context, arg *GetDMBetweenUsersParams) (int64, error)
+	//GetDMMessage
+	//
+	//  SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
+	//  WHERE dm_id = $1 AND id = $2
+	GetDMMessage(ctx context.Context, arg *GetDMMessageParams) (*DmMessage, error)
 	//GetDMParticipant
 	//
 	//  SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
@@ -231,9 +236,10 @@ type Querier interface {
 	//SetDMLastReadMessage
 	//
 	//  UPDATE dm_participants
-	//  SET last_read_message_id=$3,
+	//  SET last_read_message_id=GREATEST(last_read_message_id, $3),
 	//      updated_at=now()
-	//  WHERE dm_id=$1 AND user_id=$2
+	//  WHERE dm_participants.dm_id=$1
+	//      AND dm_participants.user_id=$2
 	SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error
 	//SetLastMessageInDM
 	//

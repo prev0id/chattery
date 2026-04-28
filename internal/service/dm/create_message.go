@@ -32,6 +32,10 @@ func (s *Service) createDMMessage(ctx context.Context, message *domain.DMMessage
 		return errutil.E(err).Debug("s.db.SetLastMessageInDM")
 	}
 
+	if err = s.db.SetDMLastReadMessage(ctx, message.DMID, message.SenderID, messageID); err != nil {
+		return errutil.E(err).Debug("s.db.SetDMLastReadMessage")
+	}
+
 	message.ID = messageID
 	message.CreatedAt = time.Now()
 

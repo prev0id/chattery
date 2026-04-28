@@ -33,6 +33,10 @@ func (c *Connection) shouldReceive(event *event_desc.Event) bool {
 		return true
 	}
 
+	if event.Channel.Type == event_desc.ChannelDM {
+		return true
+	}
+
 	c.channelMutex.RLock()
 	defer c.channelMutex.RUnlock()
 

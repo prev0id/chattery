@@ -41,6 +41,11 @@ type PostMessageRequest struct {
 	DMID int64  `json:"dm_id"`
 }
 
+type PostReadRequest struct {
+	DMID      int64 `json:"dm_id"`
+	MessageID int64 `json:"message_id"`
+}
+
 type GetMessagesRequest struct {
 	Cursor *Cursor `json:"cursor"`
 }

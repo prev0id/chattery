@@ -5,14 +5,14 @@ import { WSChannelType } from "~/lib/ws";
 import { UseDMContext } from "~/stores/dm";
 
 export default function DM() {
-  const { currentDM } = UseDMContext();
+  const { currentDM, currentDMID } = UseDMContext();
 
   return (
     <>
       <Header icon="text">
         <HeaderItem>{currentDM()?.user?.username}</HeaderItem>
       </Header>
-      <Chat chatID={currentDM()?.id} type="dms" channelType={WSChannelType.DM} />
+      <Chat chatID={currentDMID()} type="dms" channelType={WSChannelType.DM} />
     </>
   );
 }

@@ -134,6 +134,23 @@ func (a *Adapter) NextPagesOfDMMessages(ctx context.Context, cursor *domain.DMCu
 	return sliceutil.Map(messages, convertDMMessageFromDB), nil
 }
 
+func (a *Adapter) GetDMMessage(ctx context.Context, dmID domain.DMID, messageID domain.DMMessageID) (*domain.DMMessage, error) {
+	req := &postgres.GetDMMessageParams{
+		DmID: dmID.I64(),
+		ID:   messageID.I64(),
+	}
+
+	message, err := a.db.Query(ctx).GetDMMessage(ctx, req)
+	if database.NotFound(err) {
+		return nil, errutil.E(err).Kind(errutil.NotFound)
+	}
+	if err != nil {
+		return nil, errutil.E(err).Debug("Query.GetDMMessage")
+	}
+
+	return convertDMMessageFromDB(message), nil
+}
+
 func (a *Adapter) GetDMParticipant(ctx context.Context, dmID domain.DMID, userID domain.UserID) (*domain.DMParticipant, error) {
 	req := &postgres.GetDMParticipantParams{
 		DmID:   dmID.I64(),

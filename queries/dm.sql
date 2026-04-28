@@ -52,9 +52,10 @@ VALUES ($1, $2);
 
 -- name: SetDMLastReadMessage :exec
 UPDATE dm_participants
-SET last_read_message_id=$3,
+SET last_read_message_id=GREATEST(last_read_message_id, $3),
     updated_at=now()
-WHERE dm_id=$1 AND user_id=$2;
+WHERE dm_participants.dm_id=$1
+    AND dm_participants.user_id=$2;
 
 -- name: CreateDMMessage :one
 INSERT INTO dm_messages(dm_id, user_id, text)
@@ -66,6 +67,10 @@ SELECT * FROM dm_messages
 WHERE dm_id = $1
 ORDER BY created_at DESC, id DESC
 LIMIT $2;
+
+-- name: GetDMMessage :one
+SELECT * FROM dm_messages
+WHERE dm_id = $1 AND id = $2;
 
 -- name: NextPagesOfDMMessages :many
 SELECT * FROM dm_messages

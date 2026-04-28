@@ -20,6 +20,19 @@ func (s *Service) validateParticipantExists(ctx context.Context, dmID domain.DMI
 	return nil
 }
 
+func (s *Service) validateDMMessageExists(ctx context.Context, dmID domain.DMID, messageID domain.DMMessageID) error {
+	_, err := s.db.GetDMMessage(ctx, dmID, messageID)
+	if errutil.Is(errutil.NotFound, err) {
+		return errutil.E(err).
+			Kind(errutil.InvalidRequest).
+			Messagef("message id='%d' not found in dm id='%d'", messageID.I64(), dmID.I64())
+	}
+	if err != nil {
+		return errutil.E(err).Debug("s.db.GetDMMessage")
+	}
+	return nil
+}
+
 func (s *Service) validateDMNotExistsBetweenUsers(ctx context.Context, userID1, userID2 domain.UserID) error {
 	_, err := s.db.GetDMBetweenUsers(ctx, userID1, userID2)
 	if errutil.Is(errutil.NotFound, err) {

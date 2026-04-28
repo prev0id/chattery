@@ -1,11 +1,20 @@
-import { createEffect, For, onCleanup, Show, createSignal } from "solid-js";
+import {
+  createEffect,
+  For,
+  on,
+  onCleanup,
+  Show,
+  createSignal,
+  untrack,
+} from "solid-js";
 import {
   fetchTopicMessages,
   sendTopicMessage,
   fetchDMMessages,
   sendDMMessage,
+  markDMRead,
 } from "../lib/api";
-import { createChatWebSocketClient } from "../lib/ws";
+import { appWebSocket } from "~/stores/websocket";
 import { toast } from "../stores/toast";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
@@ -126,37 +135,55 @@ export function Chat(props) {
     }
   };
 
-  createEffect(() => {
-    const chatId = props.chatID;
-    const channelType = props.channelType;
-    if (!chatId || !channelType) return;
-
-    const chatType = props.type === DMsType ? "dm" : "topic";
-    loadChatMessages(chatId, chatType);
-
-    const channel = { type: channelType, id: Number(chatId) };
-    const ws = createChatWebSocketClient({
-      channel,
-      onMessage: ({ channel: eventChannel, payload }) => {
-        if (
-          eventChannel?.type !== channel.type ||
-          eventChannel?.id !== channel.id
-        ) {
-          return;
-        }
-        addMessage(payload);
+  createEffect(
+    on(
+      () => {
+        const chatId = props.chatID;
+        const channelType = props.channelType;
+        const chatType = props.type === DMsType ? "dm" : "topic";
+        return chatId && channelType
+          ? `${chatType}:${channelType}:${Number(chatId)}`
+          : "";
       },
-      onError: (payload) => {
-        toast.error(payload?.message ?? "WebSocket error");
+      () => {
+        const chatId = untrack(() => props.chatID);
+        const channelType = untrack(() => props.channelType);
+        if (!chatId || !channelType) return;
+
+        const chatType = untrack(() => props.type === DMsType ? "dm" : "topic");
+        loadChatMessages(chatId, chatType);
+
+        const channel = { type: channelType, id: Number(chatId) };
+        appWebSocket.join(channel);
+
+        const unsubscribeMessage = appWebSocket.subscribeMessage(
+          ({ channel: eventChannel, payload }) => {
+            if (
+              eventChannel?.type !== channel.type ||
+              eventChannel?.id !== channel.id
+            ) {
+              return;
+            }
+            addMessage(payload);
+            props.onMessage?.(payload);
+
+            if (chatType === "dm" && payload?.id) {
+              markDMRead(chatId, payload.id);
+            }
+          },
+        );
+        const unsubscribeError = appWebSocket.subscribeError((payload) => {
+          toast.error(payload?.message ?? "WebSocket error");
+        });
+
+        onCleanup(() => {
+          unsubscribeMessage();
+          unsubscribeError();
+          appWebSocket.leave(channel);
+        });
       },
-    });
-
-    ws.connect();
-
-    onCleanup(() => {
-      ws.disconnect(1000, "leave chat");
-    });
-  });
+    ),
+  );
 
   const handleSend = async (text) => {
     const chat = currentChat();

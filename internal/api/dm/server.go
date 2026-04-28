@@ -14,6 +14,7 @@ type dmService interface {
 	SearchUsersWithoutDM(ctx context.Context, userID domain.UserID, query string) ([]*domain.User, error)
 	CreateDM(ctx context.Context, participant1, participant2 domain.UserID) (domain.DMID, error)
 	CreateDMMessage(ctx context.Context, message *domain.DMMessage) error
+	MarkDMMessageRead(ctx context.Context, userID domain.UserID, dmID domain.DMID, messageID domain.DMMessageID) error
 	FirstPageOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error)
 	NextPagesOfDMMessages(ctx context.Context, userID domain.UserID, cursor *domain.DMCursor) ([]*domain.DMMessage, *domain.DMCursor, error)
 }
@@ -54,5 +55,6 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Post("/create", s.PostCreateDM)
 		withAuthRouter.Post("/message", s.PostMessage)
 		withAuthRouter.Post("/messages", s.GetMessages)
+		withAuthRouter.Post("/read", s.PostRead)
 	})
 }

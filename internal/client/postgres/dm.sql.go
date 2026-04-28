@@ -145,6 +145,34 @@ func (q *Queries) GetDMBetweenUsers(ctx context.Context, arg *GetDMBetweenUsersP
 	return id, err
 }
 
+const getDMMessage = `-- name: GetDMMessage :one
+SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
+WHERE dm_id = $1 AND id = $2
+`
+
+type GetDMMessageParams struct {
+	DmID int64
+	ID   int64
+}
+
+// GetDMMessage
+//
+//	SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
+//	WHERE dm_id = $1 AND id = $2
+func (q *Queries) GetDMMessage(ctx context.Context, arg *GetDMMessageParams) (*DmMessage, error) {
+	row := q.db.QueryRow(ctx, getDMMessage, arg.DmID, arg.ID)
+	var i DmMessage
+	err := row.Scan(
+		&i.ID,
+		&i.DmID,
+		&i.UserID,
+		&i.Text,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const getDMParticipant = `-- name: GetDMParticipant :one
 SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
 WHERE dm_id = $1 AND user_id = $2
@@ -392,9 +420,10 @@ func (q *Queries) NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMM
 
 const setDMLastReadMessage = `-- name: SetDMLastReadMessage :exec
 UPDATE dm_participants
-SET last_read_message_id=$3,
+SET last_read_message_id=GREATEST(last_read_message_id, $3),
     updated_at=now()
-WHERE dm_id=$1 AND user_id=$2
+WHERE dm_participants.dm_id=$1
+    AND dm_participants.user_id=$2
 `
 
 type SetDMLastReadMessageParams struct {
@@ -406,9 +435,10 @@ type SetDMLastReadMessageParams struct {
 // SetDMLastReadMessage
 //
 //	UPDATE dm_participants
-//	SET last_read_message_id=$3,
+//	SET last_read_message_id=GREATEST(last_read_message_id, $3),
 //	    updated_at=now()
-//	WHERE dm_id=$1 AND user_id=$2
+//	WHERE dm_participants.dm_id=$1
+//	    AND dm_participants.user_id=$2
 func (q *Queries) SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error {
 	_, err := q.db.Exec(ctx, setDMLastReadMessage, arg.DmID, arg.UserID, arg.LastReadMessageID)
 	return err

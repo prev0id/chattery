@@ -93,6 +93,20 @@ export async function sendDMMessage(dmID, text) {
   }
 }
 
+export async function markDMRead(dmID, messageID) {
+  try {
+    const res = await fetch("/v1/dm/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dm_id: dmID, message_id: messageID }),
+    });
+    return handleResponse(res, "Failed to mark DM as read");
+  } catch (err) {
+    toast.error("Network error – please check your connection");
+    return null;
+  }
+}
+
 export async function fetchServers() {
   try {
     const res = await fetch("/v1/server/list");
