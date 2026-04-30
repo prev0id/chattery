@@ -49,7 +49,7 @@ export default function VoiceTopicStreamPreview(props) {
         class={`absolute inset-x-0 bottom-0 px-2 pb-2 mx-auto flex gap-3 bg-linear-to-t from-black to-transparent ${isFullscreen() ? "justify-center gap-16" : "justify-between"}`}
       >
         <p
-          class="text-sky-500 font-semibold tracking-wider text-neo-shadow"
+          class="text-white font-semibold tracking-wider text-neo-shadow"
           classList={{
             "text-3xl": isFullscreen(),
           }}
@@ -59,7 +59,7 @@ export default function VoiceTopicStreamPreview(props) {
 
         <div class="flex items-center gap-1">
           <Volume2
-            class={`text-amber-500 ${isFullscreen() ? "size-10" : "size-5"}`}
+            class={`text-white ${isFullscreen() ? "size-10" : "size-5"}`}
           />
           <input
             type="range"
@@ -68,7 +68,7 @@ export default function VoiceTopicStreamPreview(props) {
             step="0.01"
             // value={volume()}
             // onInput={handleVolume}
-            class={`accent-amber-500 ${isFullscreen() ? "w-32" : "w-20"}`}
+            class={`accent-sky-500 ${isFullscreen() ? "w-32" : "w-20"}`}
           />
         </div>
 
@@ -79,9 +79,9 @@ export default function VoiceTopicStreamPreview(props) {
         >
           <Show
             when={isFullscreen()}
-            fallback={<Maximize class="size-5 text-sky-500" />}
+            fallback={<Maximize class="size-5 text-white" />}
           >
-            <Minimize class="size-10 text-sky-500" />
+            <Minimize class="size-10 text-white" />
           </Show>
         </button>
       </div>

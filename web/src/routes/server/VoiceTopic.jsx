@@ -75,12 +75,6 @@ export default function VoiceTopic() {
     videoEl.volume = volumes()[id] ?? 0.8;
   }
 
-  function fullscreenNode(node) {
-    if (node?.requestFullscreen) {
-      node.requestFullscreen();
-    }
-  }
-
   return (
     <>
       <Header icon={currentTopic()?.type}>
