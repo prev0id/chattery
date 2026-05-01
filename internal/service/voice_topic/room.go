@@ -7,7 +7,9 @@ import (
 	"io"
 	"strconv"
 	"sync"
+	"time"
 
+	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v4"
 
 	"chattery/internal/api/websocket/event_desc"
@@ -18,7 +20,7 @@ import (
 	"chattery/internal/utils/render"
 )
 
-const rtcpBufferSize = 1500
+const iceBatchDelay = 50 * time.Millisecond
 
 type topic struct {
 	participants map[domain.UserID]*participant
@@ -31,19 +33,23 @@ type topic struct {
 type participant struct {
 	senders       map[string]*webrtc.RTPSender
 	pc            *webrtc.PeerConnection
+	iceBatchTimer *time.Timer
 	pendingICE    []webrtc.ICECandidateInit
-	userID        domain.UserID
+	iceBatch      []event_desc.VoiceICECandidatePayload
 	m             sync.Mutex
+	userID        domain.UserID
 	remoteReady   bool
 	renegotiating bool
 }
 
 type localTrack struct {
-	track  *webrtc.TrackLocalStaticRTP
-	cancel context.CancelFunc
-	id     string
-	owner  domain.UserID
-	kind   webrtc.RTPCodecType
+	publisher *participant
+	track     *webrtc.TrackLocalStaticRTP
+	cancel    context.CancelFunc
+	id        string
+	owner     domain.UserID
+	ssrc      uint32
+	kind      webrtc.RTPCodecType
 }
 
 func newTopic(topicID domain.TopicID, service *Service) *topic {
@@ -89,7 +95,7 @@ func (r *topic) removeParticipant(userID domain.UserID) bool {
 
 	for _, track := range ownedTracks {
 		track.cancel()
-		r.removeTrackFromParticipants(track.id, userID)
+		r.removeTrackFromParticipants(track.id, userID, true)
 	}
 	if participant.pc != nil {
 		if err := participant.pc.Close(); err != nil {
@@ -168,7 +174,11 @@ func (r *topic) handleOffer(ctx context.Context, userID domain.UserID, payload j
 		return errutil.E(setLocalErr).Debug("participant.pc.SetLocalDescription")
 	}
 
-	return r.sendSessionDescription(ctx, userID, event_desc.TypeVoiceAnswer, answer)
+	if err := r.sendSessionDescription(ctx, userID, event_desc.TypeVoiceAnswer, answer); err != nil {
+		return err
+	}
+	r.requestParticipantKeyFrames(participant)
+	return nil
 }
 
 func (r *topic) handleAnswer(_ context.Context, userID domain.UserID, payload json.RawMessage) error {
@@ -194,10 +204,12 @@ func (r *topic) handleAnswer(_ context.Context, userID domain.UserID, payload js
 	participant.renegotiating = false
 	participant.m.Unlock()
 
+	r.requestParticipantKeyFrames(participant)
+
 	return nil
 }
 
-func (r *topic) removeOwnedTracksByKind(owner domain.UserID, kind webrtc.RTPCodecType) {
+func (r *topic) removeOwnedTracksByKind(owner domain.UserID, kind webrtc.RTPCodecType, shouldRenegotiate bool) {
 	r.m.Lock()
 	ownedTracks := make([]*localTrack, 0)
 	for key, track := range r.tracks {
@@ -210,7 +222,7 @@ func (r *topic) removeOwnedTracksByKind(owner domain.UserID, kind webrtc.RTPCode
 
 	for _, track := range ownedTracks {
 		track.cancel()
-		r.removeTrackFromParticipants(track.id, owner)
+		r.removeTrackFromParticipants(track.id, owner, shouldRenegotiate)
 	}
 }
 
@@ -247,6 +259,28 @@ func (r *topic) handleICECandidate(ctx context.Context, userID domain.UserID, pa
 	return nil
 }
 
+func (r *topic) handleICECandidates(ctx context.Context, userID domain.UserID, payload json.RawMessage) error {
+	candidates, err := bind.JSONBytes[event_desc.VoiceICECandidatesPayload](payload)
+	if err != nil {
+		return err
+	}
+
+	for _, candidate := range candidates.Candidates {
+		if candidate.Candidate == "" {
+			continue
+		}
+
+		raw, err := render.JSONBytes(candidate)
+		if err != nil {
+			return errutil.E(err).Debug("render.JSONBytes")
+		}
+		if err := r.handleICECandidate(ctx, userID, raw); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (r *topic) ensurePeerConnection(ctx context.Context, userID domain.UserID) (*participant, error) {
 	participant := r.getParticipant(userID)
 	if participant == nil {
@@ -263,7 +297,7 @@ func (r *topic) ensurePeerConnection(ctx context.Context, userID domain.UserID) 
 	}
 
 	participant.pc = pc
-	pc.OnICECandidate(r.onICECandidate(ctx, userID))
+	pc.OnICECandidate(r.onICECandidate(userID))
 	pc.OnTrack(r.onTrack(ctx, userID))
 	pc.OnConnectionStateChange(r.onConnectionStateChange(ctx, userID))
 
@@ -296,25 +330,29 @@ func (r *topic) addExistingTracks(participant *participant) error {
 
 func addTrackToParticipant(participant *participant, track *localTrack) error {
 	participant.m.Lock()
-	defer participant.m.Unlock()
-
 	if participant.pc == nil || !participant.remoteReady {
+		participant.m.Unlock()
 		return nil
 	}
 	if _, ok := participant.senders[track.id]; ok {
+		participant.m.Unlock()
 		return nil
 	}
 
 	sender, err := participant.pc.AddTrack(track.track)
 	if err != nil {
+		participant.m.Unlock()
 		return errutil.E(err).Debug("participant.pc.AddTrack")
 	}
 	participant.senders[track.id] = sender
-	go readRTCP(sender)
+	participant.m.Unlock()
+
+	go readRTCP(sender, track)
+	requestKeyFrameBurst(track)
 	return nil
 }
 
-func (r *topic) removeTrackFromParticipants(trackID string, owner domain.UserID) {
+func (r *topic) removeTrackFromParticipants(trackID string, owner domain.UserID, shouldRenegotiate bool) {
 	r.m.RLock()
 	participants := make([]*participant, 0, len(r.participants))
 	for _, participant := range r.participants {
@@ -326,7 +364,9 @@ func (r *topic) removeTrackFromParticipants(trackID string, owner domain.UserID)
 
 	for _, participant := range participants {
 		removeTrackFromParticipant(participant, trackID)
-		r.renegotiate(context.Background(), participant)
+		if shouldRenegotiate {
+			r.renegotiate(context.Background(), participant)
+		}
 	}
 }
 
@@ -347,7 +387,7 @@ func removeTrackFromParticipant(participant *participant, trackID string) {
 func (r *topic) onTrack(ctx context.Context, userID domain.UserID) func(*webrtc.TrackRemote, *webrtc.RTPReceiver) {
 	return func(remote *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
 		if remote.Kind() == webrtc.RTPCodecTypeVideo {
-			r.removeOwnedTracksByKind(userID, webrtc.RTPCodecTypeVideo)
+			r.removeOwnedTracksByKind(userID, webrtc.RTPCodecTypeVideo, false)
 		}
 
 		track, err := webrtc.NewTrackLocalStaticRTP(
@@ -363,12 +403,15 @@ func (r *topic) onTrack(ctx context.Context, userID domain.UserID) func(*webrtc.
 		trackID := trackID(userID, remote)
 		trackCtx, cancel := context.WithCancel(context.Background())
 		defer cancel()
+		publisher := r.getParticipant(userID)
 		local := &localTrack{
-			id:     trackID,
-			owner:  userID,
-			track:  track,
-			cancel: cancel,
-			kind:   remote.Kind(),
+			id:        trackID,
+			owner:     userID,
+			publisher: publisher,
+			track:     track,
+			cancel:    cancel,
+			ssrc:      uint32(remote.SSRC()),
+			kind:      remote.Kind(),
 		}
 
 		r.m.Lock()
@@ -431,10 +474,10 @@ func (r *topic) removeLocalTrack(trackID string) {
 		return
 	}
 	track.cancel()
-	r.removeTrackFromParticipants(trackID, track.owner)
+	r.removeTrackFromParticipants(trackID, track.owner, true)
 }
 
-func (r *topic) onICECandidate(ctx context.Context, userID domain.UserID) func(*webrtc.ICECandidate) {
+func (r *topic) onICECandidate(userID domain.UserID) func(*webrtc.ICECandidate) {
 	return func(candidate *webrtc.ICECandidate) {
 		if candidate == nil {
 			return
@@ -447,9 +490,47 @@ func (r *topic) onICECandidate(ctx context.Context, userID domain.UserID) func(*
 			SDPMLineIndex:    init.SDPMLineIndex,
 			UsernameFragment: init.UsernameFragment,
 		}
-		if err := r.sendEvent(ctx, userID, event_desc.TypeVoiceICECandidate, payload); err != nil {
-			logger.ErrorCtx(ctx, err, "[voice_topic] send ICE candidate")
-		}
+		r.enqueueICECandidate(userID, payload)
+	}
+}
+
+func (r *topic) enqueueICECandidate(userID domain.UserID, candidate event_desc.VoiceICECandidatePayload) {
+	participant := r.getParticipant(userID)
+	if participant == nil {
+		return
+	}
+
+	participant.m.Lock()
+	participant.iceBatch = append(participant.iceBatch, candidate)
+	if participant.iceBatchTimer == nil {
+		participant.iceBatchTimer = time.AfterFunc(iceBatchDelay, func() {
+			r.flushICECandidates(context.Background(), userID)
+		})
+	}
+	participant.m.Unlock()
+}
+
+func (r *topic) flushICECandidates(ctx context.Context, userID domain.UserID) {
+	participant := r.getParticipant(userID)
+	if participant == nil {
+		return
+	}
+
+	participant.m.Lock()
+	candidates := participant.iceBatch
+	participant.iceBatch = nil
+	participant.iceBatchTimer = nil
+	participant.m.Unlock()
+
+	if len(candidates) == 0 {
+		return
+	}
+
+	payload := event_desc.VoiceICECandidatesPayload{
+		Candidates: candidates,
+	}
+	if err := r.sendEvent(ctx, userID, event_desc.TypeVoiceICECandidates, payload); err != nil {
+		logger.ErrorCtx(ctx, err, "[voice_topic] send ICE candidates")
 	}
 }
 
@@ -526,11 +607,66 @@ func trackID(userID domain.UserID, track *webrtc.TrackRemote) string {
 	return strconv.FormatInt(userID.I64(), 10) + ":" + track.ID() + ":" + track.StreamID()
 }
 
-func readRTCP(sender *webrtc.RTPSender) {
-	buffer := make([]byte, rtcpBufferSize)
+func readRTCP(sender *webrtc.RTPSender, track *localTrack) {
 	for {
-		if _, _, err := sender.Read(buffer); err != nil {
+		packets, _, err := sender.ReadRTCP()
+		if err != nil {
 			return
 		}
+		for _, packet := range packets {
+			switch packet.(type) {
+			case *rtcp.PictureLossIndication, *rtcp.FullIntraRequest:
+				requestKeyFrame(track)
+			default:
+			}
+		}
+	}
+}
+
+func (r *topic) requestParticipantKeyFrames(participant *participant) {
+	r.m.RLock()
+	tracks := make([]*localTrack, 0, len(r.tracks))
+	for _, track := range r.tracks {
+		if track.owner != participant.userID {
+			tracks = append(tracks, track)
+		}
+	}
+	r.m.RUnlock()
+
+	participant.m.Lock()
+	defer participant.m.Unlock()
+	for _, track := range tracks {
+		if _, ok := participant.senders[track.id]; ok {
+			requestKeyFrameBurst(track)
+		}
+	}
+}
+
+func requestKeyFrameBurst(track *localTrack) {
+	requestKeyFrame(track)
+	time.AfterFunc(500*time.Millisecond, func() {
+		requestKeyFrame(track)
+	})
+	time.AfterFunc(1500*time.Millisecond, func() {
+		requestKeyFrame(track)
+	})
+}
+
+func requestKeyFrame(track *localTrack) {
+	if track.kind != webrtc.RTPCodecTypeVideo || track.publisher == nil || track.ssrc == 0 {
+		return
+	}
+
+	track.publisher.m.Lock()
+	pc := track.publisher.pc
+	track.publisher.m.Unlock()
+	if pc == nil {
+		return
+	}
+
+	if err := pc.WriteRTCP([]rtcp.Packet{
+		&rtcp.PictureLossIndication{MediaSSRC: track.ssrc},
+	}); err != nil {
+		logger.Error(errutil.E(err).Debug("publisher.pc.WriteRTCP"), "[voice_topic] request key frame")
 	}
 }

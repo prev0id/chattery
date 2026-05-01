@@ -4,9 +4,14 @@ import ProfilePicture from "~/components/ProfilePicture";
 
 export default function VoiceTopicStreamPreview(props) {
   const [isFullscreen, setIsFullscreen] = createSignal(false);
+  const [videoReady, setVideoReady] = createSignal(false);
 
   let cardRef;
   let videoRef;
+
+  const hasVideo = () =>
+    props.hasVideo ?? Boolean(props.stream?.getVideoTracks?.().length);
+  const showVideo = () => hasVideo() && videoReady();
 
   const toggleFullscreen = async () => {
     if (!cardRef) return;
@@ -33,8 +38,15 @@ export default function VoiceTopicStreamPreview(props) {
   createEffect(() => {
     const stream = props.stream;
     if (videoRef && videoRef.srcObject !== stream) {
+      setVideoReady(false);
       videoRef.srcObject = stream || null;
       videoRef.play?.().catch(() => {});
+    }
+  });
+
+  createEffect(() => {
+    if (!hasVideo()) {
+      setVideoReady(false);
     }
   });
 
@@ -45,9 +57,6 @@ export default function VoiceTopicStreamPreview(props) {
     props.onVideoReady?.(videoRef);
   });
 
-  const hasVideo = () =>
-    props.hasVideo ?? Boolean(props.stream?.getVideoTracks?.().length);
-
   return (
     <div
       ref={cardRef}
@@ -55,15 +64,19 @@ export default function VoiceTopicStreamPreview(props) {
     >
       <div class="relative h-full w-full bg-slate-900">
         <video
-          class={`w-full h-full object-cover bg-black ${hasVideo() ? "" : "hidden"}`}
+          class={`w-full h-full object-cover bg-black transition-opacity ${showVideo() ? "opacity-100" : "opacity-0"}`}
           id={props.id}
           ref={(el) => {
             videoRef = el;
           }}
+          onLoadedData={() => setVideoReady(true)}
+          onPlaying={() => setVideoReady(true)}
+          onWaiting={() => setVideoReady(false)}
+          onEmptied={() => setVideoReady(false)}
           autoplay
           playsInline
         ></video>
-        <Show when={!hasVideo()}>
+        <Show when={!showVideo()}>
           <div class="absolute inset-0 flex items-center justify-center">
             <Show
               when={props.participant?.avatar}

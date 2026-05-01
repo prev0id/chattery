@@ -17,7 +17,7 @@ export default function VoiceTopicGrid(props) {
         )}
       </For>
       <Show when={props.call.participants.length === 0}>
-        <div class="m-auto text-lg font-semibold tracking-wider">
+        <div class="w-full text-center text-lg font-semibold tracking-wider">
           Waiting for others to join
         </div>
       </Show>

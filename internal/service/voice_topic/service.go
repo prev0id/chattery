@@ -174,11 +174,11 @@ func (s *Service) joinLocal(ctx context.Context, topicID domain.TopicID, userID 
 		}
 	}
 
-	if err := s.broadcastParticipant(ctx, topicID, userID, event_desc.TypeVoiceJoined); err != nil {
-		return err
-	}
 	if joined {
-		s.sendExistingParticipants(ctx, topicID, userID)
+		s.sendVoiceState(ctx, topicID, userID)
+		if err := s.broadcastParticipantExcept(ctx, topicID, userID, userID, event_desc.TypeVoiceJoined); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -228,6 +228,8 @@ func (s *Service) handleSignalLocal(ctx context.Context, topicID domain.TopicID,
 		return topic.handleAnswer(ctx, userID, payload)
 	case event_desc.TypeVoiceICECandidate:
 		return topic.handleICECandidate(ctx, userID, payload)
+	case event_desc.TypeVoiceICECandidates:
+		return topic.handleICECandidates(ctx, userID, payload)
 	default:
 		return errutil.E().
 			Kind(errutil.InvalidRequest).
@@ -236,6 +238,16 @@ func (s *Service) handleSignalLocal(ctx context.Context, topicID domain.TopicID,
 }
 
 func (s *Service) broadcastParticipant(ctx context.Context, topicID domain.TopicID, userID domain.UserID, eventType event_desc.Type) error {
+	return s.broadcastParticipantExcept(ctx, topicID, userID, 0, eventType)
+}
+
+func (s *Service) broadcastParticipantExcept(
+	ctx context.Context,
+	topicID domain.TopicID,
+	userID domain.UserID,
+	except domain.UserID,
+	eventType event_desc.Type,
+) error {
 	payload := s.convertParticipantPayload(topicID, userID)
 	event, err := render.Event(eventType, event_desc.Channel{
 		Type: event_desc.ChannelVoiceTopic,
@@ -251,6 +263,9 @@ func (s *Service) broadcastParticipant(ctx context.Context, topicID domain.Topic
 	}
 
 	for _, participant := range participants {
+		if except != 0 && participant == except {
+			continue
+		}
 		if err := s.redis.PublishToUser(ctx, participant, event); err != nil {
 			logger.ErrorCtx(ctx, err, "s.redis.PublishToUser")
 		}
@@ -258,30 +273,31 @@ func (s *Service) broadcastParticipant(ctx context.Context, topicID domain.Topic
 	return nil
 }
 
-func (s *Service) sendExistingParticipants(ctx context.Context, topicID domain.TopicID, to domain.UserID) {
+func (s *Service) sendVoiceState(ctx context.Context, topicID domain.TopicID, to domain.UserID) {
 	participants, err := s.redis.ListVoiceParticipants(ctx, topicID, s.ownerTTL)
 	if err != nil {
 		logger.ErrorCtx(ctx, err, "s.redis.ListVoiceParticipants")
 		return
 	}
 
+	payload := event_desc.VoiceStatePayload{
+		TopicID:      topicID.I64(),
+		Participants: make([]event_desc.VoiceParticipantPayload, 0, len(participants)),
+	}
 	for _, participant := range participants {
-		if participant == to {
-			continue
-		}
+		payload.Participants = append(payload.Participants, s.convertParticipantPayload(topicID, participant))
+	}
 
-		payload := s.convertParticipantPayload(topicID, participant)
-		event, err := render.Event(event_desc.TypeVoiceJoined, event_desc.Channel{
-			Type: event_desc.ChannelVoiceTopic,
-			ID:   topicID.I64(),
-		}, payload)
-		if err != nil {
-			logger.ErrorCtx(ctx, err, "render.Event")
-			continue
-		}
-		if err := s.redis.PublishToUser(ctx, to, event); err != nil {
-			logger.ErrorCtx(ctx, err, "s.redis.PublishToUser")
-		}
+	event, err := render.Event(event_desc.TypeVoiceState, event_desc.Channel{
+		Type: event_desc.ChannelVoiceTopic,
+		ID:   topicID.I64(),
+	}, payload)
+	if err != nil {
+		logger.ErrorCtx(ctx, err, "render.Event")
+		return
+	}
+	if err := s.redis.PublishToUser(ctx, to, event); err != nil {
+		logger.ErrorCtx(ctx, err, "s.redis.PublishToUser")
 	}
 }
 

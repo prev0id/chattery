@@ -5,18 +5,20 @@ import "encoding/json"
 type Type string
 
 const (
-	TypePing              Type = "ping"
-	TypePong              Type = "pong"
-	TypeError             Type = "error"
-	TypeJoin              Type = "join"
-	TypeLeave             Type = "leave"
-	TypeMessage           Type = "message"
-	TypeVoiceOffer        Type = "voice_offer"
-	TypeVoiceAnswer       Type = "voice_answer"
-	TypeVoiceICECandidate Type = "voice_ice_candidate"
-	TypeVoiceJoined       Type = "voice_joined"
-	TypeVoiceLeft         Type = "voice_left"
-	TypeVoiceSignalAck    Type = "voice_signal_ack"
+	TypePing               Type = "ping"
+	TypePong               Type = "pong"
+	TypeError              Type = "error"
+	TypeJoin               Type = "join"
+	TypeLeave              Type = "leave"
+	TypeMessage            Type = "message"
+	TypeVoiceOffer         Type = "voice_offer"
+	TypeVoiceAnswer        Type = "voice_answer"
+	TypeVoiceICECandidate  Type = "voice_ice_candidate"
+	TypeVoiceICECandidates Type = "voice_ice_candidates"
+	TypeVoiceState         Type = "voice_state"
+	TypeVoiceJoined        Type = "voice_joined"
+	TypeVoiceLeft          Type = "voice_left"
+	TypeVoiceSignalAck     Type = "voice_signal_ack"
 )
 
 type Event struct {
@@ -43,6 +45,11 @@ type VoiceParticipantPayload struct {
 	TopicID int64    `json:"topic_id"`
 }
 
+type VoiceStatePayload struct {
+	Participants []VoiceParticipantPayload `json:"participants"`
+	TopicID      int64                     `json:"topic_id"`
+}
+
 type VoiceSignalAckPayload struct {
 	NodeID  string `json:"node_id"`
 	TopicID int64  `json:"topic_id"`
@@ -58,6 +65,10 @@ type VoiceICECandidatePayload struct {
 	UsernameFragment *string `json:"usernameFragment,omitzero"`
 	SDPMLineIndex    *uint16 `json:"sdpMLineIndex,omitzero"`
 	Candidate        string  `json:"candidate"`
+}
+
+type VoiceICECandidatesPayload struct {
+	Candidates []VoiceICECandidatePayload `json:"candidates"`
 }
 
 type UserInfo struct {

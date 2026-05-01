@@ -69,7 +69,7 @@ func (c *Connection) handleEvent(ctx context.Context, event *event_desc.Event) {
 		c.handleJoin(ctx, event)
 	case event_desc.TypeLeave:
 		c.handleLeave(ctx)
-	case event_desc.TypeVoiceOffer, event_desc.TypeVoiceAnswer, event_desc.TypeVoiceICECandidate:
+	case event_desc.TypeVoiceOffer, event_desc.TypeVoiceAnswer, event_desc.TypeVoiceICECandidate, event_desc.TypeVoiceICECandidates:
 		c.handleVoiceSignal(ctx, event)
 	default:
 		c.sendError("unknown event type")

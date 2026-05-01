@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, onMount, untrack } from "solid-js";
+import { batch, createEffect, createSignal, onCleanup, onMount, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
 import { WSChannelType, WSEventType } from "~/lib/ws";
 import { appWebSocket } from "~/stores/websocket";
@@ -149,10 +149,16 @@ export function createCallMedia() {
         audio: false,
       });
 
-      stopScreenShare();
-      stopStream(cameraStream());
-      setCameraStream(stream);
-      setCameraActive(true);
+      const previousCamera = cameraStream();
+      const previousScreen = screenStream();
+      batch(() => {
+        setScreenStream(null);
+        setScreenActive(false);
+        setCameraStream(stream);
+        setCameraActive(true);
+      });
+      stopStream(previousScreen);
+      stopStream(previousCamera);
       setErrors((prev) => ({ ...prev, camera: "" }));
       return stream;
     } catch (err) {
@@ -165,9 +171,10 @@ export function createCallMedia() {
   }
 
   function stopCamera() {
-    stopStream(cameraStream());
+    const previousCamera = cameraStream();
     setCameraStream(null);
     setCameraActive(false);
+    stopStream(previousCamera);
   }
 
   async function toggleCamera() {
@@ -263,10 +270,16 @@ export function createCallMedia() {
           }),
         );
 
-      stopCamera();
-      stopStream(screenStream());
-      setScreenStream(stream);
-      setScreenActive(true);
+      const previousCamera = cameraStream();
+      const previousScreen = screenStream();
+      batch(() => {
+        setCameraStream(null);
+        setCameraActive(false);
+        setScreenStream(stream);
+        setScreenActive(true);
+      });
+      stopStream(previousCamera);
+      stopStream(previousScreen);
       setErrors((prev) => ({ ...prev, screen: "" }));
 
       const [videoTrack] = stream.getVideoTracks();
@@ -287,9 +300,10 @@ export function createCallMedia() {
   }
 
   function stopScreenShare() {
-    stopStream(screenStream());
+    const previousScreen = screenStream();
     setScreenStream(null);
     setScreenActive(false);
+    stopStream(previousScreen);
   }
 
   async function toggleScreenShare() {
@@ -385,10 +399,14 @@ export function createVoiceCall(props) {
   const [participants, setParticipants] = createStore([]);
 
   const senders = new Map();
+  const iceCandidateQueue = [];
   let pc = null;
   let currentChannel = null;
   let makingOffer = false;
   let pendingNegotiation = false;
+  let pendingServerOffer = null;
+  let iceFlushTimer = null;
+  let negotiationQueue = Promise.resolve();
 
   function topicID() {
     const value = props.topicID?.();
@@ -430,16 +448,49 @@ export function createVoiceCall(props) {
     setParticipants((current) => current.filter((item) => item.id !== Number(id)));
   }
 
+  function setVoiceState(payload) {
+    const next = (payload?.participants || [])
+      .map((participant) => ({
+        id: Number(participant.user_id),
+        user: participant.sender,
+        label: participant.sender?.username || `User #${participant.user_id}`,
+      }))
+      .filter((participant) => participant.id && participant.id !== currentUser()?.id);
+
+    setParticipants((current) =>
+      next.map((participant) => {
+        const existing = current.find((item) => item.id === participant.id);
+        return existing ? { ...existing, ...participant } : participant;
+      }),
+    );
+  }
+
+  function flushICECandidates() {
+    iceFlushTimer = null;
+    if (!iceCandidateQueue.length) return;
+
+    const candidates = iceCandidateQueue.splice(0, iceCandidateQueue.length);
+    sendSignal(WSEventType.VoiceICECandidates, { candidates });
+  }
+
+  function enqueueICECandidate(candidate) {
+    iceCandidateQueue.push(candidate.toJSON());
+    if (!iceFlushTimer) {
+      iceFlushTimer = setTimeout(flushICECandidates, 50);
+    }
+  }
+
   function addRemoteTrack(event) {
     const [eventStream] = event.streams;
     const stream = eventStream || new MediaStream([event.track]);
     const userID = Number(stream.id);
     if (!userID || currentUser()?.id === userID) return;
+    const isVideo = event.track.kind === "video";
 
     upsertParticipant({
       id: userID,
       stream,
-      hasVideo: stream.getVideoTracks().length > 0,
+      hasVideo: isVideo || stream.getVideoTracks().some((track) => !track.muted && track.readyState === "live"),
     });
 
     stream.getVideoTracks().forEach((track) => {
@@ -452,29 +503,45 @@ export function createVoiceCall(props) {
     });
 
     event.track.onended = () => {
-      upsertParticipant({ id: userID, stream: null, hasVideo: false });
+      upsertParticipant({ id: userID, stream, hasVideo: false });
     };
   }
 
-  async function negotiate() {
-    if (!pc || pc.signalingState !== "stable") {
-      pendingNegotiation = true;
-      return;
-    }
+  function negotiate() {
+    negotiationQueue = negotiationQueue
+      .then(async () => {
+        if (!pc || pc.signalingState !== "stable") {
+          pendingNegotiation = true;
+          return;
+        }
 
-    try {
-      makingOffer = true;
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      sendSignal(WSEventType.VoiceOffer, {
-        type: offer.type,
-        sdp: offer.sdp,
+        try {
+          makingOffer = true;
+          const offer = await pc.createOffer();
+          if (!pc || pc.signalingState !== "stable") {
+            pendingNegotiation = true;
+            return;
+          }
+          await pc.setLocalDescription(offer);
+          sendSignal(WSEventType.VoiceOffer, {
+            type: offer.type,
+            sdp: offer.sdp,
+          });
+        } catch (err) {
+          if (pc?.signalingState === "stable") {
+            setCallError(err, "Unable to negotiate voice connection");
+          } else {
+            pendingNegotiation = true;
+          }
+        } finally {
+          makingOffer = false;
+        }
+      })
+      .catch((err) => {
+        setCallError(err, "Unable to negotiate voice connection");
       });
-    } catch (err) {
-      setCallError(err, "Unable to negotiate voice connection");
-    } finally {
-      makingOffer = false;
-    }
+
+    return negotiationQueue;
   }
 
   async function syncSender(key, track, stream, shouldNegotiate = true) {
@@ -483,6 +550,9 @@ export function createVoiceCall(props) {
     const existing = senders.get(key);
     if (track && existing) {
       await existing.replaceTrack(track);
+      if (key === "video" && typeof existing.generateKeyFrame === "function") {
+        existing.generateKeyFrame().catch(() => {});
+      }
       return;
     }
 
@@ -538,10 +608,19 @@ export function createVoiceCall(props) {
 
     connection.onicecandidate = (event) => {
       if (!event.candidate) return;
-      sendSignal(WSEventType.VoiceICECandidate, event.candidate.toJSON());
+      enqueueICECandidate(event.candidate);
     };
 
     connection.ontrack = addRemoteTrack;
+    connection.onsignalingstatechange = () => {
+      if (connection.signalingState === "stable" && pendingServerOffer) {
+        const offer = pendingServerOffer;
+        pendingServerOffer = null;
+        handleVoiceOffer(offer).catch((err) => {
+          setCallError(err, "Unable to handle voice offer");
+        });
+      }
+    };
 
     connection.onconnectionstatechange = () => {
       const state = connection.connectionState;
@@ -573,7 +652,21 @@ export function createVoiceCall(props) {
     if (!pc) return;
     const desc = parsePayload(payload);
     const readyForOffer = !makingOffer && pc.signalingState === "stable";
-    if (!readyForOffer) return;
+    if (!readyForOffer) {
+      if (pc.signalingState === "have-local-offer") {
+        try {
+          await pc.setLocalDescription({ type: "rollback" });
+          makingOffer = false;
+          pendingNegotiation = false;
+        } catch {
+          pendingServerOffer = payload;
+          return;
+        }
+      } else {
+        pendingServerOffer = payload;
+        return;
+      }
+    }
 
     await pc.setRemoteDescription(desc);
     const answer = await pc.createAnswer();
@@ -591,6 +684,17 @@ export function createVoiceCall(props) {
     await pc.addIceCandidate(candidate);
   }
 
+  async function handleVoiceICECandidates(payload) {
+    if (!pc) return;
+    const parsed = parsePayload(payload);
+    const candidates = parsed?.candidates || [];
+
+    for (const candidate of candidates) {
+      if (!candidate?.candidate) continue;
+      await pc.addIceCandidate(candidate);
+    }
+  }
+
   async function handleVoiceEvent(event) {
     if (!currentChannel || !sameChannel(event.channel, currentChannel)) return;
 
@@ -601,6 +705,10 @@ export function createVoiceCall(props) {
         await handleVoiceOffer(event.payload);
       } else if (event.type === WSEventType.VoiceICECandidate) {
         await handleVoiceICECandidate(event.payload);
+      } else if (event.type === WSEventType.VoiceICECandidates) {
+        await handleVoiceICECandidates(event.payload);
+      } else if (event.type === WSEventType.VoiceState) {
+        setVoiceState(parsePayload(event.payload));
       } else if (event.type === WSEventType.VoiceJoined) {
         const payload = parsePayload(event.payload);
         upsertParticipant({
@@ -639,8 +747,15 @@ export function createVoiceCall(props) {
       appWebSocket.leave(currentChannel);
     }
     senders.clear();
+    iceCandidateQueue.splice(0, iceCandidateQueue.length);
+    if (iceFlushTimer) {
+      clearTimeout(iceFlushTimer);
+      iceFlushTimer = null;
+    }
     pendingNegotiation = false;
+    pendingServerOffer = null;
     makingOffer = false;
+    negotiationQueue = Promise.resolve();
     currentChannel = null;
     setParticipants([]);
 

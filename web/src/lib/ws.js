@@ -10,6 +10,8 @@ export const WSEventType = {
   VoiceOffer: "voice_offer",
   VoiceAnswer: "voice_answer",
   VoiceICECandidate: "voice_ice_candidate",
+  VoiceICECandidates: "voice_ice_candidates",
+  VoiceState: "voice_state",
   VoiceJoined: "voice_joined",
   VoiceLeft: "voice_left",
 };
