@@ -21,20 +21,35 @@ func New(client *redis.Client) *Client {
 	return &Client{conn: client}
 }
 
-// func (c *Client) Get(ctx context.Context, key string) (string, error) {
-// 	value, err := c.conn.Get(ctx, key).Result()
-// 	if err == redis.Nil {
-// 		return "", errutil.E(err).Kind(errutil.NotFound).Debug("key:" + key)
-// 	}
-// 	if err != nil {
-// 		return "", errutil.E(err).Debug("key:"+key, "c.conn.Get")
-// 	}
-// 	return value, nil
-// }
-
 func (c *Client) SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error {
 	if err := c.conn.Set(ctx, key, value, expiration).Err(); err != nil {
 		return errutil.E(err).Debug("key:"+key, "c.conn.Set")
+	}
+	return nil
+}
+
+func (c *Client) SetNXString(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
+	wasSet, err := c.conn.SetNX(ctx, key, value, expiration).Result()
+	if err != nil {
+		return false, errutil.E(err).Debug("key:"+key, "c.conn.SetNX")
+	}
+	return wasSet, nil
+}
+
+func (c *Client) GetString(ctx context.Context, key string) (string, error) {
+	value, err := c.conn.Get(ctx, key).Result()
+	if errors.Is(err, redis.Nil) {
+		return "", errutil.E(err).Kind(errutil.NotFound).Debug("key:" + key)
+	}
+	if err != nil {
+		return "", errutil.E(err).Debug("key:"+key, "c.conn.Get")
+	}
+	return value, nil
+}
+
+func (c *Client) Expire(ctx context.Context, key string, expiration time.Duration) error {
+	if err := c.conn.Expire(ctx, key, expiration).Err(); err != nil {
+		return errutil.E(err).Debug("key:"+key, "c.conn.Expire")
 	}
 	return nil
 }

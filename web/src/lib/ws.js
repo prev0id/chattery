@@ -7,11 +7,17 @@ export const WSEventType = {
   Leave: "leave",
   Message: "message",
   Error: "error",
+  VoiceOffer: "voice_offer",
+  VoiceAnswer: "voice_answer",
+  VoiceICECandidate: "voice_ice_candidate",
+  VoiceJoined: "voice_joined",
+  VoiceLeft: "voice_left",
 };
 
 export const WSChannelType = {
   DM: "dm",
   TextTopic: "text_topic",
+  VoiceTopic: "voice_topic",
 };
 
 export function websocketURL(path = "/ws/") {

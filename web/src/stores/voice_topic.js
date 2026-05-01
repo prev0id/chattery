@@ -1,8 +1,44 @@
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, untrack } from "solid-js";
+import { createStore } from "solid-js/store";
+import { WSChannelType, WSEventType } from "~/lib/ws";
+import { appWebSocket } from "~/stores/websocket";
+
+const storageKeys = {
+  camera: "chattery.voice.camera_id",
+  mic: "chattery.voice.mic_id",
+  speaker: "chattery.voice.speaker_id",
+};
 
 function stopStream(stream) {
   if (!stream) return;
   stream.getTracks().forEach((track) => track.stop());
+}
+
+function savedDevice(key) {
+  try {
+    return localStorage.getItem(key) || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveDevice(key, value) {
+  try {
+    if (value) {
+      localStorage.setItem(key, value);
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // localStorage can be unavailable in private contexts.
+  }
+}
+
+function availableDeviceID(devices, preferred) {
+  if (preferred && devices.some((device) => device.deviceId === preferred)) {
+    return preferred;
+  }
+  return devices[0]?.deviceId || "";
 }
 
 function videoConstraint(deviceId) {
@@ -13,14 +49,43 @@ function audioConstraint(deviceId) {
   return deviceId ? { deviceId: { exact: deviceId } } : true;
 }
 
+function parsePayload(payload) {
+  if (typeof payload !== "string") return payload;
+
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return payload;
+  }
+}
+
+function sameChannel(left, right) {
+  return (
+    left?.type === right?.type && Number(left?.id) === Number(right?.id)
+  );
+}
+
+function supportsSinkID() {
+  return typeof HTMLMediaElement !== "undefined" &&
+    "setSinkId" in HTMLMediaElement.prototype;
+}
+
 export function createCallMedia() {
   const [devices, setDevices] = createSignal({
     videoInputs: [],
     audioInputs: [],
+    audioOutputs: [],
   });
 
-  const [selectedCameraId, setSelectedCameraId] = createSignal("");
-  const [selectedMicId, setSelectedMicId] = createSignal("");
+  const [selectedCameraId, setSelectedCameraId] = createSignal(
+    savedDevice(storageKeys.camera),
+  );
+  const [selectedMicId, setSelectedMicId] = createSignal(
+    savedDevice(storageKeys.mic),
+  );
+  const [selectedSpeakerId, setSelectedSpeakerId] = createSignal(
+    savedDevice(storageKeys.speaker),
+  );
 
   const [cameraStream, setCameraStream] = createSignal(null);
   const [micStream, setMicStream] = createSignal(null);
@@ -34,6 +99,7 @@ export function createCallMedia() {
     camera: "",
     mic: "",
     screen: "",
+    speaker: "",
   });
 
   async function refreshDevices() {
@@ -42,14 +108,38 @@ export function createCallMedia() {
     const all = await navigator.mediaDevices.enumerateDevices();
     const videoInputs = all.filter((d) => d.kind === "videoinput");
     const audioInputs = all.filter((d) => d.kind === "audioinput");
+    const audioOutputs = all.filter((d) => d.kind === "audiooutput");
 
     setDevices({
       videoInputs,
       audioInputs,
+      audioOutputs,
     });
 
-    setSelectedCameraId((current) => current || videoInputs[0]?.deviceId || "");
-    setSelectedMicId((current) => current || audioInputs[0]?.deviceId || "");
+    setSelectedCameraId((current) => {
+      const next = availableDeviceID(
+        videoInputs,
+        current || savedDevice(storageKeys.camera),
+      );
+      saveDevice(storageKeys.camera, next);
+      return next;
+    });
+    setSelectedMicId((current) => {
+      const next = availableDeviceID(
+        audioInputs,
+        current || savedDevice(storageKeys.mic),
+      );
+      saveDevice(storageKeys.mic, next);
+      return next;
+    });
+    setSelectedSpeakerId((current) => {
+      const next = availableDeviceID(
+        audioOutputs,
+        current || savedDevice(storageKeys.speaker),
+      );
+      saveDevice(storageKeys.speaker, next);
+      return next;
+    });
   }
 
   async function startCamera(deviceId = selectedCameraId()) {
@@ -59,6 +149,7 @@ export function createCallMedia() {
         audio: false,
       });
 
+      stopScreenShare();
       stopStream(cameraStream());
       setCameraStream(stream);
       setCameraActive(true);
@@ -89,6 +180,7 @@ export function createCallMedia() {
 
   async function changeCamera(deviceId) {
     setSelectedCameraId(deviceId);
+    saveDevice(storageKeys.camera, deviceId);
     if (cameraActive()) {
       await startCamera(deviceId);
     }
@@ -131,8 +223,29 @@ export function createCallMedia() {
 
   async function changeMic(deviceId) {
     setSelectedMicId(deviceId);
+    saveDevice(storageKeys.mic, deviceId);
     if (micActive()) {
       await startMic(deviceId);
+    }
+  }
+
+  function changeSpeaker(deviceId) {
+    setSelectedSpeakerId(deviceId);
+    saveDevice(storageKeys.speaker, deviceId);
+    setErrors((prev) => ({ ...prev, speaker: "" }));
+  }
+
+  async function applySpeaker(videoEl) {
+    if (!videoEl || !supportsSinkID()) return;
+
+    try {
+      await videoEl.setSinkId(selectedSpeakerId());
+      setErrors((prev) => ({ ...prev, speaker: "" }));
+    } catch (err) {
+      setErrors((prev) => ({
+        ...prev,
+        speaker: err?.message || "Unable to change output device",
+      }));
     }
   }
 
@@ -150,6 +263,7 @@ export function createCallMedia() {
           }),
         );
 
+      stopCamera();
       stopStream(screenStream());
       setScreenStream(stream);
       setScreenActive(true);
@@ -201,8 +315,10 @@ export function createCallMedia() {
 
     if (cam) cam.getVideoTracks().forEach((track) => stream.addTrack(track));
     if (mic) mic.getAudioTracks().forEach((track) => stream.addTrack(track));
-    if (screen)
+    if (screen) {
       screen.getVideoTracks().forEach((track) => stream.addTrack(track));
+      screen.getAudioTracks().forEach((track) => stream.addTrack(track));
+    }
 
     return stream;
   }
@@ -235,6 +351,7 @@ export function createCallMedia() {
     devices,
     selectedCameraId,
     selectedMicId,
+    selectedSpeakerId,
     cameraStream,
     micStream,
     screenStream,
@@ -242,6 +359,7 @@ export function createCallMedia() {
     micActive,
     screenActive,
     errors,
+    supportsSinkID: supportsSinkID(),
     refreshDevices,
     startCamera,
     stopCamera,
@@ -251,10 +369,324 @@ export function createCallMedia() {
     stopMic,
     toggleMic,
     changeMic,
+    changeSpeaker,
+    applySpeaker,
     startScreenShare,
     stopScreenShare,
     toggleScreenShare,
     stopAll,
     getPublishStream,
+  };
+}
+
+export function createVoiceCall(props) {
+  const [status, setStatus] = createSignal("idle");
+  const [error, setError] = createSignal("");
+  const [participants, setParticipants] = createStore([]);
+
+  const senders = new Map();
+  let pc = null;
+  let currentChannel = null;
+  let makingOffer = false;
+  let pendingNegotiation = false;
+
+  function topicID() {
+    const value = props.topicID?.();
+    return value ? Number(value) : 0;
+  }
+
+  function currentUser() {
+    return typeof props.currentUser === "function"
+      ? props.currentUser()
+      : props.currentUser;
+  }
+
+  function sendSignal(type, payload) {
+    if (!currentChannel) return;
+    appWebSocket.sendEvent(type, currentChannel, payload);
+  }
+
+  function setCallError(err, fallback) {
+    const message = err?.message || fallback;
+    setError(message);
+    setStatus("error");
+  }
+
+  function upsertParticipant(participant) {
+    const id = Number(participant.id);
+    if (!id || currentUser()?.id === id) return;
+
+    setParticipants((current) => {
+      if (current.some((item) => item.id === id)) {
+        return current.map((item) =>
+          item.id === id ? { ...item, ...participant, id } : item,
+        );
+      }
+      return [...current, { ...participant, id }];
+    });
+  }
+
+  function removeParticipant(id) {
+    setParticipants((current) => current.filter((item) => item.id !== Number(id)));
+  }
+
+  function addRemoteTrack(event) {
+    const [eventStream] = event.streams;
+    const stream = eventStream || new MediaStream([event.track]);
+    const userID = Number(stream.id);
+    if (!userID || currentUser()?.id === userID) return;
+
+    upsertParticipant({
+      id: userID,
+      stream,
+      hasVideo: stream.getVideoTracks().length > 0,
+    });
+
+    stream.getVideoTracks().forEach((track) => {
+      track.onmute = () => {
+        upsertParticipant({ id: userID, stream, hasVideo: false });
+      };
+      track.onunmute = () => {
+        upsertParticipant({ id: userID, stream, hasVideo: true });
+      };
+    });
+
+    event.track.onended = () => {
+      upsertParticipant({ id: userID, stream: null, hasVideo: false });
+    };
+  }
+
+  async function negotiate() {
+    if (!pc || pc.signalingState !== "stable") {
+      pendingNegotiation = true;
+      return;
+    }
+
+    try {
+      makingOffer = true;
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      sendSignal(WSEventType.VoiceOffer, {
+        type: offer.type,
+        sdp: offer.sdp,
+      });
+    } catch (err) {
+      setCallError(err, "Unable to negotiate voice connection");
+    } finally {
+      makingOffer = false;
+    }
+  }
+
+  async function syncSender(key, track, stream, shouldNegotiate = true) {
+    if (!pc) return;
+
+    const existing = senders.get(key);
+    if (track && existing) {
+      await existing.replaceTrack(track);
+      return;
+    }
+
+    if (track && !existing) {
+      senders.set(key, pc.addTrack(track, stream));
+      if (shouldNegotiate) {
+        await negotiate();
+      }
+      return;
+    }
+
+    if (!track && existing) {
+      pc.removeTrack(existing);
+      senders.delete(key);
+      if (shouldNegotiate) {
+        await negotiate();
+      }
+    }
+  }
+
+  async function syncLocalTracks(shouldNegotiate = true) {
+    if (!pc) return;
+
+    try {
+      const camera = props.media.cameraStream();
+      const mic = props.media.micStream();
+      const screen = props.media.screenStream();
+      const video = screen || camera;
+
+      await syncSender(
+        "video",
+        video?.getVideoTracks()[0],
+        video,
+        shouldNegotiate,
+      );
+      await syncSender("mic", mic?.getAudioTracks()[0], mic, shouldNegotiate);
+      await syncSender(
+        "screen-audio",
+        screen?.getAudioTracks()[0],
+        screen,
+        shouldNegotiate,
+      );
+    } catch (err) {
+      setCallError(err, "Unable to update local media tracks");
+    }
+  }
+
+  function createPeerConnection() {
+    const connection = new RTCPeerConnection();
+
+    connection.addTransceiver("audio", { direction: "recvonly" });
+    connection.addTransceiver("video", { direction: "recvonly" });
+
+    connection.onicecandidate = (event) => {
+      if (!event.candidate) return;
+      sendSignal(WSEventType.VoiceICECandidate, event.candidate.toJSON());
+    };
+
+    connection.ontrack = addRemoteTrack;
+
+    connection.onconnectionstatechange = () => {
+      const state = connection.connectionState;
+      if (state === "connected") {
+        setStatus("connected");
+        setError("");
+      } else if (state === "connecting") {
+        setStatus("connecting");
+      } else if (["failed", "closed", "disconnected"].includes(state)) {
+        setStatus(state);
+      }
+    };
+
+    return connection;
+  }
+
+  async function handleVoiceAnswer(payload) {
+    if (!pc) return;
+    const desc = parsePayload(payload);
+    await pc.setRemoteDescription(desc);
+
+    if (pendingNegotiation) {
+      pendingNegotiation = false;
+      await negotiate();
+    }
+  }
+
+  async function handleVoiceOffer(payload) {
+    if (!pc) return;
+    const desc = parsePayload(payload);
+    const readyForOffer = !makingOffer && pc.signalingState === "stable";
+    if (!readyForOffer) return;
+
+    await pc.setRemoteDescription(desc);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    sendSignal(WSEventType.VoiceAnswer, {
+      type: answer.type,
+      sdp: answer.sdp,
+    });
+  }
+
+  async function handleVoiceICECandidate(payload) {
+    if (!pc) return;
+    const candidate = parsePayload(payload);
+    if (!candidate?.candidate) return;
+    await pc.addIceCandidate(candidate);
+  }
+
+  async function handleVoiceEvent(event) {
+    if (!currentChannel || !sameChannel(event.channel, currentChannel)) return;
+
+    try {
+      if (event.type === WSEventType.VoiceAnswer) {
+        await handleVoiceAnswer(event.payload);
+      } else if (event.type === WSEventType.VoiceOffer) {
+        await handleVoiceOffer(event.payload);
+      } else if (event.type === WSEventType.VoiceICECandidate) {
+        await handleVoiceICECandidate(event.payload);
+      } else if (event.type === WSEventType.VoiceJoined) {
+        const payload = parsePayload(event.payload);
+        upsertParticipant({
+          id: payload?.user_id,
+          user: payload?.sender,
+          label: payload?.sender?.username || `User #${payload?.user_id}`,
+        });
+      } else if (event.type === WSEventType.VoiceLeft) {
+        const payload = parsePayload(event.payload);
+        removeParticipant(payload?.user_id);
+      }
+    } catch (err) {
+      setCallError(err, "Unable to handle voice event");
+    }
+  }
+
+  async function start() {
+    const id = topicID();
+    if (!id) return;
+
+    stop();
+
+    currentChannel = { type: WSChannelType.VoiceTopic, id };
+    setStatus("connecting");
+    setError("");
+    setParticipants([]);
+
+    pc = createPeerConnection();
+    appWebSocket.join(currentChannel);
+    await syncLocalTracks(false);
+    await negotiate();
+  }
+
+  function stop() {
+    if (currentChannel) {
+      appWebSocket.leave(currentChannel);
+    }
+    senders.clear();
+    pendingNegotiation = false;
+    makingOffer = false;
+    currentChannel = null;
+    setParticipants([]);
+
+    if (pc) {
+      pc.onicecandidate = null;
+      pc.ontrack = null;
+      pc.onconnectionstatechange = null;
+      pc.close();
+      pc = null;
+    }
+    setStatus("idle");
+  }
+
+  const unsubscribeEvent = appWebSocket.subscribeEvent(handleVoiceEvent);
+  const unsubscribeError = appWebSocket.subscribeError((payload) => {
+    setCallError(payload, payload?.message || "Voice websocket error");
+  });
+
+  createEffect(() => {
+    const id = topicID();
+    if (!id) return;
+    untrack(() => {
+      start();
+    });
+  });
+
+  createEffect(() => {
+    props.media.cameraStream();
+    props.media.micStream();
+    props.media.screenStream();
+    if (untrack(() => pc)) {
+      syncLocalTracks();
+    }
+  });
+
+  onCleanup(() => {
+    unsubscribeEvent();
+    unsubscribeError();
+    stop();
+  });
+
+  return {
+    status,
+    error,
+    participants,
+    currentUser,
+    stop,
   };
 }

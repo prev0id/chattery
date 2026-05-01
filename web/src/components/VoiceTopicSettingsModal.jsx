@@ -48,10 +48,37 @@ export default function VoiceTopicSettingsModal(props) {
           </select>
         </div>
 
+        <div class="space-y-2">
+          <label class="block font-semibold tracking-wider" for="select_speaker">
+            Speaker device
+          </label>
+          <select
+            id="select_speaker"
+            class="bg-emerald-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-emerald-500 w-full"
+            value={props.media.selectedSpeakerId()}
+            disabled={!props.media.supportsSinkID}
+            onChange={(e) => props.media.changeSpeaker(e.currentTarget.value)}
+          >
+            <For each={props.media.devices().audioOutputs}>
+              {(device, index) => (
+                <option value={device.deviceId}>
+                  {device.label || `Speaker ${index() + 1}`}
+                </option>
+              )}
+            </For>
+          </select>
+          {!props.media.supportsSinkID && (
+            <p class="text-sm text-rose-700">
+              Output device selection is not supported by this browser.
+            </p>
+          )}
+        </div>
+
         <div class="mt-2">
           <div class="font-semibold tracking-wider mb-2">Media errors</div>
           <div>Camera: {props.media.errors().camera || "none"}</div>
           <div>Mic: {props.media.errors().mic || "none"}</div>
+          <div>Speaker: {props.media.errors().speaker || "none"}</div>
           <div>Screen: {props.media.errors().screen || "none"}</div>
         </div>
       </div>

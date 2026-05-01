@@ -1,10 +1,12 @@
 import { Maximize, Minimize, Volume2 } from "lucide-solid";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
+import ProfilePicture from "~/components/ProfilePicture";
 
 export default function VoiceTopicStreamPreview(props) {
   const [isFullscreen, setIsFullscreen] = createSignal(false);
 
   let cardRef;
+  let videoRef;
 
   const toggleFullscreen = async () => {
     if (!cardRef) return;
@@ -28,23 +30,58 @@ export default function VoiceTopicStreamPreview(props) {
     document.removeEventListener("fullscreenchange", handleFullscreenChange);
   });
 
+  createEffect(() => {
+    const stream = props.stream;
+    if (videoRef && videoRef.srcObject !== stream) {
+      videoRef.srcObject = stream || null;
+      videoRef.play?.().catch(() => {});
+    }
+  });
+
+  createEffect(() => {
+    if (!videoRef) return;
+    videoRef.volume = props.volume ?? 1;
+    videoRef.muted = Boolean(props.muted);
+    props.onVideoReady?.(videoRef);
+  });
+
+  const hasVideo = () =>
+    props.hasVideo ?? Boolean(props.stream?.getVideoTracks?.().length);
+
   return (
     <div
       ref={cardRef}
       class="relative group border-2 neo-shadow hover:neo-shadow-lg rounded-lg h-48 aspect-video overflow-hidden transition-all duration-300 ease-in-out"
     >
-      <video
-        class="w-full h-full object-cover"
-        id={props.id}
-        ref={props.ref}
-        autoplay
-        muted
-      ></video>
-      {/* <div class="absolute inset-x-0 bottom-0 px-2 flex items-end justify-between gap-3">
-        <p class="text-white font-semibold tracking-wider text-neo-shadow">
-          {props.participant?.username}
-        </p>
-      </div>*/}
+      <div class="relative h-full w-full bg-slate-900">
+        <video
+          class={`w-full h-full object-cover bg-black ${hasVideo() ? "" : "hidden"}`}
+          id={props.id}
+          ref={(el) => {
+            videoRef = el;
+          }}
+          autoplay
+          playsInline
+        ></video>
+        <Show when={!hasVideo()}>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <Show
+              when={props.participant?.avatar}
+              fallback={
+                <div class="text-center text-white font-semibold tracking-wider">
+                  {props.emptyText || "No video"}
+                </div>
+              }
+            >
+              <ProfilePicture
+                src={props.participant.avatar}
+                class="size-24"
+                alt={props.label || props.participant?.username || "Participant"}
+              />
+            </Show>
+          </div>
+        </Show>
+      </div>
       <div
         class={`absolute inset-x-0 bottom-0 px-2 pb-2 mx-auto flex gap-3 bg-linear-to-t from-black to-transparent ${isFullscreen() ? "justify-center gap-16" : "justify-between"}`}
       >
@@ -54,23 +91,25 @@ export default function VoiceTopicStreamPreview(props) {
             "text-3xl": isFullscreen(),
           }}
         >
-          {props.participant?.username}
+          {props.label || props.participant?.username || "Participant"}
         </p>
 
-        <div class="flex items-center gap-1">
-          <Volume2
-            class={`text-white ${isFullscreen() ? "size-10" : "size-5"}`}
-          />
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            // value={volume()}
-            // onInput={handleVolume}
-            class={`accent-sky-500 ${isFullscreen() ? "w-32" : "w-20"}`}
-          />
-        </div>
+        <Show when={!props.hideVolume}>
+          <div class="flex items-center gap-1">
+            <Volume2
+              class={`text-white ${isFullscreen() ? "size-10" : "size-5"}`}
+            />
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={props.volume ?? 1}
+              onInput={(e) => props.onVolume?.(Number(e.currentTarget.value))}
+              class={`accent-sky-500 ${isFullscreen() ? "w-32" : "w-20"}`}
+            />
+          </div>
+        </Show>
 
         <button
           type="button"

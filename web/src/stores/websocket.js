@@ -23,8 +23,10 @@ function sameChannel(left, right) {
 
 function createAppWebSocket() {
   const [activeChannel, setActiveChannel] = createSignal(null);
+  const eventHandlers = new Set();
   const messageHandlers = new Set();
   const errorHandlers = new Set();
+  const pendingEvents = [];
 
   let client;
 
@@ -44,10 +46,14 @@ function createAppWebSocket() {
     reconnect: true,
     onOpen: () => {
       sendJoin(activeChannel());
+      while (pendingEvents.length > 0) {
+        client.sendJson(pendingEvents.shift());
+      }
     },
     onBeforeDisconnect: sendLeave,
     onMessage: (event) => {
       if (!event || typeof event !== "object") return;
+      eventHandlers.forEach((handler) => handler(event));
 
       if (event.type === WSEventType.Ping) {
         client.sendJson({ type: WSEventType.Pong });
@@ -98,6 +104,12 @@ function createAppWebSocket() {
     const current = untrack(activeChannel);
     if (!sameChannel(current, channel)) return;
 
+    for (let i = pendingEvents.length - 1; i >= 0; i -= 1) {
+      if (sameChannel(pendingEvents[i]?.channel, channel)) {
+        pendingEvents.splice(i, 1);
+      }
+    }
+
     if (untrack(client.status) === "open") {
       sendLeave();
     }
@@ -107,6 +119,26 @@ function createAppWebSocket() {
   function subscribeMessage(handler) {
     messageHandlers.add(handler);
     return () => messageHandlers.delete(handler);
+  }
+
+  function sendEvent(type, channel, payload) {
+    connect();
+    const event = {
+      type,
+      channel,
+      payload,
+    };
+
+    if (untrack(client.status) !== "open") {
+      pendingEvents.push(event);
+      return;
+    }
+    client.sendJson(event);
+  }
+
+  function subscribeEvent(handler) {
+    eventHandlers.add(handler);
+    return () => eventHandlers.delete(handler);
   }
 
   function subscribeError(handler) {
@@ -121,7 +153,9 @@ function createAppWebSocket() {
     connect,
     join,
     leave,
+    sendEvent,
     status: client.status,
+    subscribeEvent,
     subscribeMessage,
     subscribeError,
   };

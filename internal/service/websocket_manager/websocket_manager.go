@@ -24,20 +24,28 @@ type serverService interface {
 	ValidateAccessToTopic(ctx context.Context, userID domain.UserID, topicID domain.TopicID, topicType domain.TopicType) error
 }
 
+type voiceService interface {
+	Join(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
+	Leave(ctx context.Context, userID domain.UserID, topicID domain.TopicID) error
+	HandleSignal(ctx context.Context, userID domain.UserID, event *event_desc.Event) error
+}
+
 type WebsocketManager struct {
 	redis  redis
 	dm     dmService
 	server serverService
+	voice  voiceService
 
 	sessions      map[domain.UserID]*session
 	sessionsMutex sync.RWMutex
 }
 
-func New(redisAdapter redis, dm dmService, server serverService) *WebsocketManager {
+func New(redisAdapter redis, dm dmService, server serverService, voice voiceService) *WebsocketManager {
 	return &WebsocketManager{
 		redis:    redisAdapter,
 		dm:       dm,
 		server:   server,
+		voice:    voice,
 		sessions: make(map[domain.UserID]*session),
 	}
 }

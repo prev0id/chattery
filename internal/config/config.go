@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"time"
 
 	"chattery/internal/utils/bind"
@@ -9,11 +10,12 @@ import (
 type Config struct {
 	Redis    Redis
 	HTTP     HTTP
-	Session  Session
 	Postgres Postgres
 	App      App
-	Chat     Chat
+	Voice    Voice
+	Session  Session
 	Cache    Cache
+	Chat     Chat
 }
 
 type App struct {
@@ -52,7 +54,18 @@ type Cache struct {
 	ServerStoreSyncTimeout time.Duration
 }
 
+type Voice struct {
+	NodeID     string
+	STUNServer string
+	OwnerTTL   time.Duration
+}
+
 func Init() *Config {
+	hostname, _ := os.Hostname()
+	if hostname == "" {
+		hostname = "local"
+	}
+
 	return &Config{
 		App: App{
 			Name:    bind.EnvString("APP_NAME", "chattery"),
@@ -79,6 +92,11 @@ func Init() *Config {
 			UserStoreSyncTimeout:   bind.EnvDuration("CACHE_USER_SYNC_TIMEOUT", 30*time.Second),
 			ServerStoreSyncTimeout: bind.EnvDuration("CACHE_SERVER_SYNC_TIMEOUT", 30*time.Second),
 			DMStoreSyncTimeout:     bind.EnvDuration("CACHE_DM_SYNC_TIMEOUT", 30*time.Second),
+		},
+		Voice: Voice{
+			NodeID:     bind.EnvString("VOICE_NODE_ID", hostname),
+			OwnerTTL:   bind.EnvDuration("VOICE_OWNER_TTL", 30*time.Second),
+			STUNServer: bind.EnvString("VOICE_STUN_SERVER", "stun:stun.l.google.com:19302"),
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),

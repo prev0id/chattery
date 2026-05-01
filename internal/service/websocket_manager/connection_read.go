@@ -21,10 +21,24 @@ func (c *Connection) ReadPump() {
 }
 
 func (c *Connection) cleanup() {
+	c.leaveVoiceOnCleanup()
 	c.cancel()
 	c.manager.unregisterConnection(c)
 	if err := c.ws.Close(websocket.StatusNormalClosure, ""); err != nil {
 		logger.Error(err, "[connection] cleanup: ws.Close")
+	}
+}
+
+func (c *Connection) leaveVoiceOnCleanup() {
+	c.channelMutex.RLock()
+	channel := c.channel
+	c.channelMutex.RUnlock()
+
+	if channel.Type != event_desc.ChannelVoiceTopic {
+		return
+	}
+	if err := c.manager.voice.Leave(c.ctx, c.userID, domain.TopicID(channel.ID)); err != nil {
+		logger.ErrorCtx(c.ctx, err, "[connection] voice.Leave")
 	}
 }
 
@@ -54,7 +68,9 @@ func (c *Connection) handleEvent(ctx context.Context, event *event_desc.Event) {
 	case event_desc.TypeJoin:
 		c.handleJoin(ctx, event)
 	case event_desc.TypeLeave:
-		c.handleLeave()
+		c.handleLeave(ctx)
+	case event_desc.TypeVoiceOffer, event_desc.TypeVoiceAnswer, event_desc.TypeVoiceICECandidate:
+		c.handleVoiceSignal(ctx, event)
 	default:
 		c.sendError("unknown event type")
 	}
@@ -86,6 +102,16 @@ func (c *Connection) handleJoin(ctx context.Context, event *event_desc.Event) {
 			c.sendError("no access to topic")
 			return
 		}
+	case event_desc.ChannelVoiceTopic:
+		topicID := domain.TopicID(channel.ID)
+		if c.manager.voice == nil {
+			c.sendError("voice service is unavailable")
+			return
+		}
+		if err := c.manager.voice.Join(ctx, c.userID, topicID); err != nil {
+			c.sendError(err.Error())
+			return
+		}
 	default:
 		c.sendError("invalid channel type")
 		return
@@ -96,8 +122,35 @@ func (c *Connection) handleJoin(ctx context.Context, event *event_desc.Event) {
 	c.channelMutex.Unlock()
 }
 
-func (c *Connection) handleLeave() {
+func (c *Connection) handleLeave(ctx context.Context) {
+	c.channelMutex.RLock()
+	channel := c.channel
+	c.channelMutex.RUnlock()
+
+	if channel.Type == event_desc.ChannelVoiceTopic && c.manager.voice != nil {
+		if err := c.manager.voice.Leave(ctx, c.userID, domain.TopicID(channel.ID)); err != nil {
+			c.sendError(err.Error())
+		}
+	}
+
 	c.channelMutex.Lock()
 	defer c.channelMutex.Unlock()
 	c.channel = event_desc.Channel{}
+}
+
+func (c *Connection) handleVoiceSignal(ctx context.Context, event *event_desc.Event) {
+	c.channelMutex.RLock()
+	channel := c.channel
+	c.channelMutex.RUnlock()
+
+	if event.Channel.ID == 0 && channel.Type == event_desc.ChannelVoiceTopic {
+		event.Channel = channel
+	}
+	if event.Channel.Type != event_desc.ChannelVoiceTopic {
+		c.sendError("voice signal requires voice topic channel")
+		return
+	}
+	if err := c.manager.voice.HandleSignal(ctx, c.userID, event); err != nil {
+		c.sendError(err.Error())
+	}
 }

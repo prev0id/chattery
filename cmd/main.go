@@ -20,6 +20,7 @@ import (
 	"chattery/internal/service/server"
 	"chattery/internal/service/text_topic"
 	"chattery/internal/service/user"
+	"chattery/internal/service/voice_topic"
 	ws_manager "chattery/internal/service/websocket_manager"
 	dm_store "chattery/internal/store/dm"
 	server_store "chattery/internal/store/server"
@@ -61,6 +62,7 @@ func main() {
 	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, dmStore, cfg)
 	serverService := server.New(serverDB, transactionManager, serverStore, cfg)
 	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, userStore, cfg)
+	voiceTopicService := voice_topic.New(redisAdapter, serverService, userStore, cfg)
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	if err := syncer.Start(cfg.Cache.UserStoreSyncTimeout, userStore); err != nil {
@@ -72,8 +74,9 @@ func main() {
 	if err := syncer.Start(cfg.Cache.ServerStoreSyncTimeout, serverStore); err != nil {
 		logger.Fatal(err, "syncer.New")
 	}
+	voiceTopicService.Start(appCtx)
 
-	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService)
+	wsManagerInstance := ws_manager.New(redisAdapter, dmService, serverService, voiceTopicService)
 
 	apiServer := api.
 		NewServer(cfg).
