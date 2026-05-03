@@ -47,11 +47,30 @@ func (c *Client) GetString(ctx context.Context, key string) (string, error) {
 	return value, nil
 }
 
+func (c *Client) GetI64(ctx context.Context, key string) (int64, error) {
+	value, err := c.conn.Get(ctx, key).Int64()
+	if errors.Is(err, redis.Nil) {
+		return 0, errutil.E(err).Kind(errutil.NotFound).Debug("key:" + key)
+	}
+	if err != nil {
+		return 0, errutil.E(err).Debug("key:"+key, "c.conn.Get")
+	}
+	return value, nil
+}
+
 func (c *Client) Expire(ctx context.Context, key string, expiration time.Duration) error {
 	if err := c.conn.Expire(ctx, key, expiration).Err(); err != nil {
 		return errutil.E(err).Debug("key:"+key, "c.conn.Expire")
 	}
 	return nil
+}
+
+func (c *Client) TTL(ctx context.Context, key string) (time.Duration, error) {
+	ttl, err := c.conn.TTL(ctx, key).Result()
+	if err != nil {
+		return 0, errutil.E(err).Debug("key:"+key, "c.conn.TTL")
+	}
+	return ttl, nil
 }
 
 func (c *Client) GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error) {

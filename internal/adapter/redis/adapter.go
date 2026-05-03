@@ -2,6 +2,9 @@ package redis
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"strconv"
 	"time"
 
@@ -12,12 +15,15 @@ import (
 	"chattery/internal/utils/logger"
 )
 
+const redisKeyNotFoundTTL = -2 * time.Second
+
 type client interface {
-	GetExI64(ctx context.Context, key string, expiration time.Duration) (int64, error)
+	GetI64(ctx context.Context, key string) (int64, error)
 	GetString(ctx context.Context, key string) (string, error)
 	SetI64(ctx context.Context, key string, value int64, expiration time.Duration) error
 	SetNXString(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
 	Expire(ctx context.Context, key string, expiration time.Duration) error
+	TTL(ctx context.Context, key string) (time.Duration, error)
 	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channel string, message string) error
 	Subscribe(ctx context.Context, channel string, sink chan<- string, done <-chan struct{})
@@ -27,31 +33,52 @@ type client interface {
 }
 
 type Adapter struct {
-	client client
+	client        client
+	sessionSecret []byte
 }
 
-func NewRedisAdapter(client client) *Adapter {
-	return &Adapter{client: client}
+func NewRedisAdapter(client client, sessionSecret string) *Adapter {
+	return &Adapter{
+		client:        client,
+		sessionSecret: []byte(sessionSecret),
+	}
 }
 
 func (r *Adapter) WriteSession(ctx context.Context, session domain.Session, userID domain.UserID, expiration time.Duration) error {
-	if err := r.client.SetI64(ctx, sessionKey(session), userID.I64(), expiration); err != nil {
+	if err := r.client.SetI64(ctx, r.sessionKey(session), userID.I64(), expiration); err != nil {
 		return errutil.E(err).Debug("r.client.SetI64")
 	}
 	return nil
 }
 
-func (r *Adapter) UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.UserID {
-	userID, err := r.client.GetExI64(ctx, sessionKey(session), expiration)
+func (r *Adapter) UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration, refreshBefore time.Duration) (domain.UserID, bool, error) {
+	key := r.sessionKey(session)
+
+	userID, err := r.client.GetI64(ctx, key)
 	if err != nil {
-		logger.Error(err, "r.client.GetExI64")
-		return domain.UserIsUnknown
+		return domain.UserIsUnknown, false, errutil.E(err).Debug("r.client.GetI64")
 	}
-	return domain.UserID(userID)
+
+	ttl, err := r.client.TTL(ctx, key)
+	if err != nil {
+		return domain.UserIsUnknown, false, errutil.E(err).Debug("r.client.TTL")
+	}
+	if ttl == redisKeyNotFoundTTL {
+		return domain.UserIsUnknown, false, errutil.E().Kind(errutil.NotFound).Debug("key:" + key)
+	}
+
+	refreshed := ttl < refreshBefore
+	if refreshed {
+		if err := r.client.Expire(ctx, key, expiration); err != nil {
+			return domain.UserIsUnknown, false, errutil.E(err).Debug("r.client.Expire")
+		}
+	}
+
+	return domain.UserID(userID), refreshed, nil
 }
 
 func (r *Adapter) ClearSession(ctx context.Context, session domain.Session) error {
-	if err := r.client.Delete(ctx, sessionKey(session)); err != nil {
+	if err := r.client.Delete(ctx, r.sessionKey(session)); err != nil {
 		return errutil.E(err).Debug("r.client.Delete")
 	}
 	return nil
@@ -194,8 +221,10 @@ func (r *Adapter) SubscribeToVoiceNode(ctx context.Context, nodeID string, event
 	}
 }
 
-func sessionKey(session domain.Session) string {
-	return "Session_" + session.String()
+func (r *Adapter) sessionKey(session domain.Session) string {
+	mac := hmac.New(sha256.New, r.sessionSecret)
+	_, _ = mac.Write([]byte(session.String()))
+	return "Session_" + hex.EncodeToString(mac.Sum(nil))
 }
 
 func userChannelKey(userID domain.UserID) string {

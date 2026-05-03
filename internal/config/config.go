@@ -9,11 +9,11 @@ import (
 
 type Config struct {
 	Redis    Redis
+	Session  Session
 	HTTP     HTTP
 	Postgres Postgres
 	App      App
 	Voice    Voice
-	Session  Session
 	Cache    Cache
 	Chat     Chat
 }
@@ -40,8 +40,10 @@ type Postgres struct {
 }
 
 type Session struct {
-	SecretKey  string
-	Expiration time.Duration
+	SecretKey     string
+	CookieDomain  string
+	Expiration    time.Duration
+	RefreshBefore time.Duration
 }
 
 type Chat struct {
@@ -77,8 +79,10 @@ func Init() *Config {
 			Port: bind.EnvString("HTTP_PORT", "8080"),
 		},
 		Session: Session{
-			Expiration: bind.EnvDuration("SESSION_EXPIRATION", 5*time.Hour),
-			SecretKey:  bind.EnvString("SESSION_KEY", "local-key"),
+			Expiration:    bind.EnvDuration("SESSION_EXPIRATION", 5*time.Hour),
+			RefreshBefore: bind.EnvDuration("SESSION_REFRESH_BEFORE", 30*time.Minute),
+			SecretKey:     bind.EnvString("SESSION_KEY", "local-key"),
+			CookieDomain:  bind.EnvString("SESSION_COOKIE_DOMAIN", ""),
 		},
 		Redis: Redis{
 			Address:  bind.EnvString("REDIS_ADDRESS", "localhost:6379"),

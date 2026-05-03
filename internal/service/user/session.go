@@ -19,16 +19,33 @@ func (s *Service) SessionMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+		if !session.Valid() {
+			s.clearSessionCookie(w)
+			next.ServeHTTP(w, r)
+			return
+		}
 
 		ctx := r.Context()
-		// save expiration before GetEx
 		expiresAt := time.Now().Add(s.expiration)
 
-		userID := s.cache.UserIDFromSession(ctx, session, s.expiration)
+		userID, refreshed, err := s.cache.UserIDFromSession(ctx, session, s.expiration, s.refreshBefore)
+		if errutil.Is(errutil.NotFound, err) {
+			s.clearSessionCookie(w)
+			next.ServeHTTP(w, r)
+			return
+		}
+		if err != nil {
+			logger.ErrorCtx(ctx, err, "s.cache.UserIDFromSession")
+			ctx = domain.SessionErrorToContext(ctx, err)
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
 
 		if userID != domain.UserIsUnknown {
 			ctx = domain.UserIDToContext(ctx, userID)
-			s.writeSessionsCookie(w, session, expiresAt)
+			if refreshed {
+				s.writeSessionsCookie(w, session, expiresAt)
+			}
 		} else {
 			s.clearSessionCookie(w)
 		}
@@ -53,6 +70,10 @@ func (s *Service) CreateSession(ctx context.Context, w http.ResponseWriter, user
 
 func (s *Service) ClearSession(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	session := domain.GetSessionFromRequest(r)
+	if session == domain.NoSession {
+		s.clearSessionCookie(w)
+		return
+	}
 	if err := s.cache.ClearSession(ctx, session); err != nil {
 		logger.ErrorCtx(ctx, err, "s.cache.ExpireSession")
 	}
@@ -65,12 +86,16 @@ func (*Service) AuthRequiredMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+		if err := domain.SessionErrorFromContext(r.Context()); err != nil {
+			render.Error(w, r, errutil.E(err).Kind(errutil.Internal).Message("session storage unavailable"))
+			return
+		}
 		render.Error(w, r, errutil.E().Kind(errutil.Unauthorized).Message("login required"))
 	})
 }
 
 func (s *Service) clearSessionCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     domain.SessionCookieName,
 		Value:    "",
 		Path:     "/",
@@ -78,11 +103,15 @@ func (s *Service) clearSessionCookie(w http.ResponseWriter) {
 		HttpOnly: true,
 		Secure:   !s.debug,
 		SameSite: http.SameSiteLaxMode,
-	})
+	}
+	if s.cookieDomain != "" {
+		cookie.Domain = s.cookieDomain
+	}
+	http.SetCookie(w, cookie)
 }
 
 func (s *Service) writeSessionsCookie(w http.ResponseWriter, session domain.Session, expiresAt time.Time) {
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     domain.SessionCookieName,
 		Value:    session.String(),
 		Path:     "/",
@@ -90,5 +119,9 @@ func (s *Service) writeSessionsCookie(w http.ResponseWriter, session domain.Sess
 		HttpOnly: true,
 		Secure:   !s.debug,
 		SameSite: http.SameSiteLaxMode,
-	})
+	}
+	if s.cookieDomain != "" {
+		cookie.Domain = s.cookieDomain
+	}
+	http.SetCookie(w, cookie)
 }

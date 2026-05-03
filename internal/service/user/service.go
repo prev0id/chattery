@@ -20,7 +20,7 @@ type db interface {
 type cache interface {
 	WriteSession(ctx context.Context, session domain.Session, user domain.UserID, expiration time.Duration) error
 	ClearSession(ctx context.Context, session domain.Session) error
-	UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration) domain.UserID
+	UserIDFromSession(ctx context.Context, session domain.Session, expiration time.Duration, refreshBefore time.Duration) (domain.UserID, bool, error)
 }
 
 type txManager interface {
@@ -28,21 +28,24 @@ type txManager interface {
 }
 
 type Service struct {
-	db          db
-	cache       cache
-	transaction txManager
-
-	expiration time.Duration
-	debug      bool
+	db            db
+	cache         cache
+	transaction   txManager
+	cookieDomain  string
+	expiration    time.Duration
+	refreshBefore time.Duration
+	debug         bool
 }
 
 func New(dbAdapter db, cacheAdapter cache, transaction txManager, cfg *config.Config) *Service {
 	return &Service{
-		db:          dbAdapter,
-		cache:       cacheAdapter,
-		transaction: transaction,
-		debug:       cfg.App.Debug,
-		expiration:  cfg.Session.Expiration,
+		db:            dbAdapter,
+		cache:         cacheAdapter,
+		transaction:   transaction,
+		debug:         cfg.App.Debug,
+		expiration:    cfg.Session.Expiration,
+		refreshBefore: cfg.Session.RefreshBefore,
+		cookieDomain:  cfg.Session.CookieDomain,
 	}
 }
 
@@ -104,20 +107,4 @@ func (s *Service) DeleteUser(ctx context.Context, id domain.UserID) error {
 		}
 		return nil
 	})
-}
-
-func (*Service) Search(context.Context, domain.UserID, string) ([]*domain.User, error) {
-	// users, err := s.db.Users(ctx)
-	// if err != nil {
-	// 	return nil, errutil.E(err).Debug("s.db.Chats")
-	// }
-
-	// query = strings.ToLower(query)
-
-	// users = sliceutil.Filter(users, func(chat *domain.User) bool {
-	// 	return
-	// })
-
-	// return users, nil
-	return nil, nil
 }

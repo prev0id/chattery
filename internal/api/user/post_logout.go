@@ -10,7 +10,5 @@ func (s *Server) PostLogout(w http.ResponseWriter, r *http.Request) {
 
 	s.user.ClearSession(ctx, w, r)
 
-	w.WriteHeader(http.StatusOK)
-
-	http.Redirect(w, r, "/login", http.StatusOK)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

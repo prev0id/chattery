@@ -147,6 +147,7 @@
 - [ ] Подключить profile settings modal к реальным `/v1/user/*` endpoint'ам вместо неподключенных HTML form handlers
 - [ ] Дописать закомментированный `internal/service/voice_topic`
 - [ ] Добавить e2e/unit тесты для сервисов и API handlers
+- [ ] перенести toast в entry
 
 ### Extra (на подумать)
 - [ ] Turn server
@@ -154,6 +155,7 @@
 - [ ] E2E tests
 - [x] Notifications
 - [ ] Desc package
+- [x] Password as struct
 
 ## работа очередей
 

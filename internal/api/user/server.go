@@ -14,7 +14,6 @@ type userService interface {
 	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
 	UpdateUser(ctx context.Context, updated *domain.User) error
 	DeleteUser(ctx context.Context, userID domain.UserID) error
-	Search(ctx context.Context, user domain.UserID, query string) ([]*domain.User, error)
 	GetByID(ctx context.Context, userID domain.UserID) (*domain.User, error)
 	// TODO move to utils wrappers around http
 	CreateSession(ctx context.Context, w http.ResponseWriter, userID domain.UserID) error
@@ -42,12 +41,9 @@ func (s *Server) Route(router chi.Router) {
 
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
-
 		withAuthRouter.Post("/logout", s.PostLogout)
 		withAuthRouter.Put("/update", s.PostUpdateUser)
 		withAuthRouter.Delete("/delete", s.DeleteMe)
-
 		withAuthRouter.Get("/me", s.GetMe)
-		withAuthRouter.Get("/list", s.GetUsers)
 	})
 }

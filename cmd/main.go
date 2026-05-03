@@ -57,7 +57,7 @@ func main() {
 	serverStore := server_store.New(serverDB)
 
 	redisClient := redis.New(redisConn)
-	redisAdapter := redis_adapter.NewRedisAdapter(redisClient)
+	redisAdapter := redis_adapter.NewRedisAdapter(redisClient, cfg.Session.SecretKey)
 
 	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, dmStore, cfg)
 	serverService := server.New(serverDB, transactionManager, serverStore, cfg)
