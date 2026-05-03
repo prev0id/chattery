@@ -3,7 +3,6 @@
 
 bin/
 tmp/
-migrations/
 queries/
 .air.toml
 
@@ -14,5 +13,5 @@ web/node_modules/
 web/dist/
 
 Dockerfile
-docker-compose.yml
+docker-compose*.yml
 README.md

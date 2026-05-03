@@ -2,6 +2,7 @@ MIGRATIONS_PATH=migrations
 E2E_MIGRATIONS_PATH=e2e/migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 DOCKER_COMPOSE_BIN=docker-compose
+LOCAL_COMPOSE_FILE=docker-compose.local.yml
 
 .PHONY: run
 run:
@@ -21,14 +22,14 @@ build-web:
 
 .PHONY: down
 down:
-	$(DOCKER_COMPOSE_BIN) down -v
+	$(DOCKER_COMPOSE_BIN) -f $(LOCAL_COMPOSE_FILE) down -v
 
 .PHONY: up
 up: up-docker up-migrate up-e2e
 
 .PHONY: up-docker
 up-docker:
-	$(DOCKER_COMPOSE_BIN) up -d
+	$(DOCKER_COMPOSE_BIN) -f $(LOCAL_COMPOSE_FILE) up -d
 
 .PHONY: up-migrate
 up-migrate:

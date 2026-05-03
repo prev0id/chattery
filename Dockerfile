@@ -38,7 +38,9 @@ COPY --from=go-builder /out/chattery /app/chattery
 
 ENV APP_DEBUG=false \
     HTTP_HOST=0.0.0.0 \
-    HTTP_PORT=8080
+    HTTP_PORT=8080 \
+    APP_NAME=chattery \
+    APP_VERSION=production
 
 USER chattery
 EXPOSE 8080
