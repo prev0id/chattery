@@ -3,8 +3,10 @@ import {
   createEffect,
   createMemo,
   createResource,
+  createSignal,
   For,
   onCleanup,
+  Show,
 } from "solid-js";
 import Button from "~/shared/ui/Button";
 import Toasts from "~/shared/ui/Toasts";
@@ -14,27 +16,27 @@ import { DM_MESSAGES } from "~/features/dm/constants";
 import { DmContext } from "~/features/dm/context";
 import { createDmPreviewFromMessage } from "~/features/dm/model";
 import { normalizeChatMessage } from "~/features/chat/model";
-import { WSChannelType } from "~/lib/ws";
+import { WS_CHANNEL_TYPE } from "~/lib/ws";
 import { routes } from "~/shared/config/routes";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { parseRouteId } from "~/shared/lib/route";
 import AppSidebar from "~/shared/ui/AppSidebar";
-import { userData } from "~/stores/auth";
-import { toast } from "~/stores/toast";
-import { appWebSocket } from "~/stores/websocket";
-
-async function loadDms() {
-  try {
-    return await getDms();
-  } catch (error) {
-    toast.error(getUserErrorMessage(error, DM_MESSAGES.listFailed));
-    return [];
-  }
-}
+import { userData } from "~/shared/stores/auth";
+import { appWebSocket } from "~/shared/stores/websocket";
 
 export default function DmLayout(props) {
   const navigate = useNavigate();
   const params = useParams();
+  const [loadError, setLoadError] = createSignal("");
+  const loadDms = async () => {
+    setLoadError("");
+    try {
+      return await getDms();
+    } catch (error) {
+      setLoadError(getUserErrorMessage(error, DM_MESSAGES.listFailed));
+      return [];
+    }
+  };
   const [dms, { mutate: mutateDms, refetch: refetchDms }] =
     createResource(loadDms);
 
@@ -80,7 +82,7 @@ export default function DmLayout(props) {
 
   createEffect(() => {
     const unsubscribe = appWebSocket.subscribeMessage(({ channel, payload }) => {
-      if (channel?.type !== WSChannelType.DM) return;
+      if (channel?.type !== WS_CHANNEL_TYPE.DM) return;
 
       const dmId = Number(channel.id);
       const knownDm = dms()?.some((dm) => dm.id === dmId);
@@ -103,6 +105,11 @@ export default function DmLayout(props) {
         >
           Search users
         </Button>
+        <Show when={loadError()}>
+          <p class="rounded-lg bg-red-200 px-3 py-2 text-sm font-semibold text-red-700">
+            {loadError()}
+          </p>
+        </Show>
         <For each={dms()}>{(dm) => <DmSidebarItem dm={dm} />}</For>
       </AppSidebar>
       <main class="flex-1 flex flex-col h-full">

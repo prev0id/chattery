@@ -7,7 +7,10 @@ async function parseJsonResponse(response) {
   try {
     return JSON.parse(text);
   } catch {
-    return {};
+    throw new ApiError("Invalid server response", {
+      status: response.status,
+      payload: { body: text },
+    });
   }
 }
 

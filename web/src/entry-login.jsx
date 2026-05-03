@@ -1,6 +1,6 @@
 import { render } from "solid-js/web";
-import Login from "./pages/Login.jsx";
+import LoginPage from "~/pages/LoginPage";
 
-import "./index.css";
+import "~/styles/index.css";
 
-render(() => <Login />, document.getElementById("root"));
+render(() => <LoginPage />, document.getElementById("root"));

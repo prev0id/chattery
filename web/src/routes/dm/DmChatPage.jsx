@@ -3,7 +3,7 @@ import Header from "~/shared/ui/Header";
 import HeaderItem from "~/shared/ui/HeaderItem";
 import { CHAT_TARGET } from "~/features/chat/constants";
 import { useDmContext } from "~/features/dm/context";
-import { WSChannelType } from "~/lib/ws";
+import { WS_CHANNEL_TYPE } from "~/lib/ws";
 
 export default function DmChatPage() {
   const { currentDm, currentDmId } = useDmContext();
@@ -16,7 +16,7 @@ export default function DmChatPage() {
       <Chat
         chatId={currentDmId()}
         type={CHAT_TARGET.dm}
-        channelType={WSChannelType.DM}
+        channelType={WS_CHANNEL_TYPE.DM}
       />
     </>
   );

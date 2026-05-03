@@ -22,8 +22,16 @@ export class NetworkError extends Error {
 }
 
 export function getUserErrorMessage(error, fallback = "Request failed") {
-  if (error instanceof ApiError || error instanceof NetworkError) {
+  if (error instanceof NetworkError) {
     return error.message || fallback;
+  }
+
+  if (error instanceof AuthRequiredError) {
+    return "Please sign in to continue";
+  }
+
+  if (error instanceof ApiError) {
+    return fallback;
   }
 
   return fallback;

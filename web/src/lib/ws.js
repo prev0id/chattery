@@ -1,6 +1,9 @@
 import { createSignal, onCleanup } from "solid-js";
 
-export const WSEventType = {
+const NORMAL_CLOSE_CODE = 1000;
+const RECONNECT_DELAY_MS = 1200;
+
+export const WS_EVENT_TYPE = {
   Ping: "ping",
   Pong: "pong",
   Join: "join",
@@ -16,7 +19,7 @@ export const WSEventType = {
   VoiceLeft: "voice_left",
 };
 
-export const WSChannelType = {
+export const WS_CHANNEL_TYPE = {
   DM: "dm",
   TextTopic: "text_topic",
   VoiceTopic: "voice_topic",
@@ -76,8 +79,10 @@ export function createWebSocketClient(getUrl, options = {}) {
     closedManually = false;
     if (socket) {
       try {
-        socket.close(1000, "reconnect");
-      } catch {}
+        socket.close(NORMAL_CLOSE_CODE, "reconnect");
+      } catch {
+        // Closing a half-open browser WebSocket can throw; reconnect continues with a fresh socket.
+      }
       socket = null;
     }
 
@@ -121,7 +126,10 @@ export function createWebSocketClient(getUrl, options = {}) {
         socket = null;
 
         if (!closedManually && options.reconnect) {
-          reconnectTimer = setTimeout(connect, options.reconnectDelay ?? 1200);
+          reconnectTimer = setTimeout(
+            connect,
+            options.reconnectDelay ?? RECONNECT_DELAY_MS,
+          );
         }
       };
     } catch (err) {
@@ -130,7 +138,7 @@ export function createWebSocketClient(getUrl, options = {}) {
     }
   }
 
-  function disconnect(code = 1000, reason = "client disconnect") {
+  function disconnect(code = NORMAL_CLOSE_CODE, reason = "client disconnect") {
     closedManually = true;
     clearReconnect();
 
@@ -149,7 +157,9 @@ export function createWebSocketClient(getUrl, options = {}) {
     ) {
       try {
         ws.close(code, reason);
-      } catch {}
+      } catch {
+        // The socket is already being discarded, so close failures are safe to ignore.
+      }
     }
   }
 
@@ -166,51 +176,4 @@ export function createWebSocketClient(getUrl, options = {}) {
     lastMessage,
     socket: () => socket,
   };
-}
-
-function parsePayload(payload) {
-  if (typeof payload !== "string") return payload;
-
-  try {
-    return JSON.parse(payload);
-  } catch {
-    return payload;
-  }
-}
-
-export function createChatWebSocketClient({ channel, onMessage, onError }) {
-  const client = createWebSocketClient(websocketURL, {
-    reconnect: true,
-    onOpen: () => {
-      client.sendJson({
-        type: WSEventType.Join,
-        payload: channel,
-      });
-    },
-    onBeforeDisconnect: () => {
-      client.sendJson({ type: WSEventType.Leave });
-    },
-    onMessage: (event) => {
-      if (!event || typeof event !== "object") return;
-
-      if (event.type === WSEventType.Ping) {
-        client.sendJson({ type: WSEventType.Pong });
-        return;
-      }
-
-      if (event.type === WSEventType.Error) {
-        onError?.(parsePayload(event.payload));
-        return;
-      }
-
-      if (event.type === WSEventType.Message) {
-        onMessage?.({
-          channel: event.channel,
-          payload: parsePayload(event.payload),
-        });
-      }
-    },
-  });
-
-  return client;
 }

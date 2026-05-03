@@ -1,5 +1,5 @@
 import { createAsync, useNavigate, useParams } from "@solidjs/router";
-import { createMemo, For } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import Button from "~/shared/ui/Button";
 import ServerSidebarItem from "~/features/server/components/ServerSidebarItem";
 import { getServersQuery } from "~/features/server/actions";
@@ -9,21 +9,21 @@ import { routes } from "~/shared/config/routes";
 import { parseRouteId } from "~/shared/lib/route";
 import AppSidebar from "~/shared/ui/AppSidebar";
 import Toasts from "~/shared/ui/Toasts";
-import { toast } from "~/stores/toast";
 import { SERVER_MESSAGES } from "~/features/server/constants";
-
-async function loadServers() {
-  try {
-    return await getServersQuery();
-  } catch (error) {
-    toast.error(getUserErrorMessage(error, SERVER_MESSAGES.listFailed));
-    return [];
-  }
-}
 
 export default function ServerLayout(props) {
   const navigate = useNavigate();
   const params = useParams();
+  const [loadError, setLoadError] = createSignal("");
+  const loadServers = async () => {
+    setLoadError("");
+    try {
+      return await getServersQuery();
+    } catch (error) {
+      setLoadError(getUserErrorMessage(error, SERVER_MESSAGES.listFailed));
+      return [];
+    }
+  };
   const servers = createAsync(loadServers);
 
   const currentServerId = () => parseRouteId(params.serverId);
@@ -53,6 +53,11 @@ export default function ServerLayout(props) {
         >
           Create Server
         </Button>
+        <Show when={loadError()}>
+          <p class="rounded-lg bg-red-200 px-3 py-2 text-sm font-semibold text-red-700">
+            {loadError()}
+          </p>
+        </Show>
         <For each={servers()}>
           {(server) => (
             <ServerSidebarItem

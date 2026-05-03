@@ -5,7 +5,7 @@ import Button from "~/shared/ui/Button";
 import { ProfileSettingsModal } from "~/features/auth/components/ProfileSettingsModal";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { routes } from "~/shared/config/routes";
-import { userData } from "~/stores/auth";
+import { userData } from "~/shared/stores/auth";
 
 export default function AppSidebar(props) {
   const navigate = useNavigate();

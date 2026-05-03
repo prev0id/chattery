@@ -1,0 +1,1 @@
+const s={dm:{list:()=>"/dm",chat:e=>`/dm/${e}`,search:()=>"/dm/search"},server:{list:()=>"/server",manage:()=>"/server/manage",create:()=>"/server/create",edit:e=>`/server/${e}/edit`,textTopic:(e,r)=>`/server/${e}/text/${r}`,voiceTopic:(e,r)=>`/server/${e}/voice/${r}`}};export{s as r};

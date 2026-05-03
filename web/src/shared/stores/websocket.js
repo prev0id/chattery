@@ -2,7 +2,7 @@ import { createRoot, createSignal, untrack } from "solid-js";
 import {
   createWebSocketClient,
   websocketURL,
-  WSEventType,
+  WS_EVENT_TYPE,
 } from "~/lib/ws";
 
 const MAX_PENDING_EVENTS = 100;
@@ -40,7 +40,7 @@ function createAppWebSocket() {
   function sendJoin(channel) {
     if (!channel) return;
     client.sendJson({
-      type: WSEventType.Join,
+      type: WS_EVENT_TYPE.Join,
       payload: channel,
     });
   }
@@ -48,8 +48,8 @@ function createAppWebSocket() {
   function sendLeave(channel) {
     client.sendJson(
       channel
-        ? { type: WSEventType.Leave, payload: channel }
-        : { type: WSEventType.Leave },
+        ? { type: WS_EVENT_TYPE.Leave, payload: channel }
+        : { type: WS_EVENT_TYPE.Leave },
     );
   }
 
@@ -76,18 +76,18 @@ function createAppWebSocket() {
         });
       });
 
-      if (event.type === WSEventType.Ping) {
-        client.sendJson({ type: WSEventType.Pong });
+      if (event.type === WS_EVENT_TYPE.Ping) {
+        client.sendJson({ type: WS_EVENT_TYPE.Pong });
         return;
       }
 
-      if (event.type === WSEventType.Error) {
+      if (event.type === WS_EVENT_TYPE.Error) {
         const payload = parsePayload(event.payload);
         errorHandlers.forEach((handler) => handler(payload));
         return;
       }
 
-      if (event.type === WSEventType.Message) {
+      if (event.type === WS_EVENT_TYPE.Message) {
         const message = {
           channel: event.channel,
           payload: parsePayload(event.payload),

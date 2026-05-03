@@ -1,6 +1,6 @@
 import { Show } from "solid-js";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
-import { userData } from "~/stores/auth";
+import { userData } from "~/shared/stores/auth";
 
 export default function ChatMessage(props) {
   return (

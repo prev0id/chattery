@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 import Modal from "~/shared/ui/Modal";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
-import { userData } from "~/stores/auth";
+import { userData } from "~/shared/stores/auth";
 
 export function ProfileSettingsModal(props) {
   const [showPassword, setShowPassword] = createSignal(false);

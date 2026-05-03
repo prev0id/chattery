@@ -1,7 +1,7 @@
 import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
-import { WSChannelType, WSEventType } from "~/lib/ws";
-import { appWebSocket } from "~/stores/websocket";
+import { WS_CHANNEL_TYPE, WS_EVENT_TYPE } from "~/lib/ws";
+import { appWebSocket } from "~/shared/stores/websocket";
 
 const ICE_BATCH_DELAY_MS = 50;
 
@@ -189,7 +189,7 @@ export function createVoiceCall(props) {
     if (!iceCandidateQueue.length) return;
 
     const candidates = iceCandidateQueue.splice(0, iceCandidateQueue.length);
-    sendSignal(WSEventType.VoiceICECandidates, { candidates });
+    sendSignal(WS_EVENT_TYPE.VoiceICECandidates, { candidates });
   }
 
   function enqueueICECandidate(candidate) {
@@ -252,7 +252,7 @@ export function createVoiceCall(props) {
             return;
           }
           await pc.setLocalDescription(offer);
-          sendSignal(WSEventType.VoiceOffer, {
+          sendSignal(WS_EVENT_TYPE.VoiceOffer, {
             type: offer.type,
             sdp: offer.sdp,
           });
@@ -280,7 +280,9 @@ export function createVoiceCall(props) {
     if (track && existing) {
       await existing.replaceTrack(track);
       if (key === "video" && typeof existing.generateKeyFrame === "function") {
-        existing.generateKeyFrame().catch(() => {});
+        existing.generateKeyFrame().catch(() => {
+          // Keyframe generation is best-effort and unsupported by some browsers.
+        });
       }
       return;
     }
@@ -400,7 +402,7 @@ export function createVoiceCall(props) {
     await pc.setRemoteDescription(desc);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    sendSignal(WSEventType.VoiceAnswer, {
+    sendSignal(WS_EVENT_TYPE.VoiceAnswer, {
       type: answer.type,
       sdp: answer.sdp,
     });
@@ -428,17 +430,17 @@ export function createVoiceCall(props) {
     if (!currentChannel || !sameChannel(event.channel, currentChannel)) return;
 
     try {
-      if (event.type === WSEventType.VoiceAnswer) {
+      if (event.type === WS_EVENT_TYPE.VoiceAnswer) {
         await handleVoiceAnswer(event.payload);
-      } else if (event.type === WSEventType.VoiceOffer) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceOffer) {
         await handleVoiceOffer(event.payload);
-      } else if (event.type === WSEventType.VoiceICECandidate) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceICECandidate) {
         await handleVoiceICECandidate(event.payload);
-      } else if (event.type === WSEventType.VoiceICECandidates) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceICECandidates) {
         await handleVoiceICECandidates(event.payload);
-      } else if (event.type === WSEventType.VoiceState) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceState) {
         setVoiceState(parsePayload(event.payload));
-      } else if (event.type === WSEventType.VoiceJoined) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceJoined) {
         const payload = parsePayload(event.payload);
         upsertParticipant({
           id: payload?.user_id,
@@ -447,7 +449,7 @@ export function createVoiceCall(props) {
         });
         setStatus("connected");
         setError("");
-      } else if (event.type === WSEventType.VoiceLeft) {
+      } else if (event.type === WS_EVENT_TYPE.VoiceLeft) {
         const payload = parsePayload(event.payload);
         removeParticipant(payload?.user_id);
       }
@@ -463,7 +465,7 @@ export function createVoiceCall(props) {
     stop();
     const generation = startGeneration;
 
-    currentChannel = { type: WSChannelType.VoiceTopic, id };
+    currentChannel = { type: WS_CHANNEL_TYPE.VoiceTopic, id };
     setStatus("connecting");
     setError("");
     setParticipants([]);
@@ -473,7 +475,7 @@ export function createVoiceCall(props) {
     await syncLocalTracks(false);
     if (
       generation !== startGeneration ||
-      !sameChannel(currentChannel, { type: WSChannelType.VoiceTopic, id })
+      !sameChannel(currentChannel, { type: WS_CHANNEL_TYPE.VoiceTopic, id })
     ) {
       return;
     }

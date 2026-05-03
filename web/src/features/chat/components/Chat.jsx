@@ -20,8 +20,8 @@ import { normalizeChatPage } from "~/features/chat/model";
 import { getTopicMessages, sendTopicMessage } from "~/features/server/api";
 import { SERVER_MESSAGES } from "~/features/server/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
-import { toast } from "~/stores/toast";
-import { appWebSocket } from "~/stores/websocket";
+import { toast } from "~/shared/stores/toast";
+import { appWebSocket } from "~/shared/stores/websocket";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 
@@ -38,6 +38,7 @@ export function Chat(props) {
   let containerRef;
   let bottomRef;
   let loadRequestId = 0;
+  let hasShownMarkReadError = false;
 
   const scrollToBottom = (smooth = false) => {
     requestAnimationFrame(() => {
@@ -197,6 +198,8 @@ export function Chat(props) {
 
             if (chatKind === CHAT_KIND.dm && message?.id) {
               markDmRead(chatId, message.id).catch((error) => {
+                if (hasShownMarkReadError) return;
+                hasShownMarkReadError = true;
                 toast.error(
                   getUserErrorMessage(error, DM_MESSAGES.markReadFailed),
                 );

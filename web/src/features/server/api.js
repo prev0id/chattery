@@ -25,6 +25,12 @@ export async function searchServers(query) {
   return normalizeServerList(data);
 }
 
+/**
+ * Joins a server.
+ *
+ * @param {number} serverId
+ * @returns {Promise<Object>}
+ */
 export function joinServer(serverId) {
   return apiRequest(API_ENDPOINTS.server.join, {
     method: "POST",
@@ -32,6 +38,12 @@ export function joinServer(serverId) {
   });
 }
 
+/**
+ * Leaves a server.
+ *
+ * @param {number} serverId
+ * @returns {Promise<Object>}
+ */
 export function leaveServer(serverId) {
   return apiRequest(API_ENDPOINTS.server.leave, {
     method: "POST",
@@ -39,6 +51,12 @@ export function leaveServer(serverId) {
   });
 }
 
+/**
+ * Creates a server.
+ *
+ * @param {string} name
+ * @returns {Promise<{id: number}>}
+ */
 export function createServer(name) {
   return apiRequest(API_ENDPOINTS.server.create, {
     method: "POST",
@@ -46,6 +64,13 @@ export function createServer(name) {
   });
 }
 
+/**
+ * Updates a server.
+ *
+ * @param {number} serverId
+ * @param {string} name
+ * @returns {Promise<Object>}
+ */
 export function updateServer(serverId, name) {
   return apiRequest(API_ENDPOINTS.server.update, {
     method: "POST",
@@ -53,6 +78,12 @@ export function updateServer(serverId, name) {
   });
 }
 
+/**
+ * Deletes a server.
+ *
+ * @param {number} serverId
+ * @returns {Promise<Object>}
+ */
 export function deleteServer(serverId) {
   return apiRequest(API_ENDPOINTS.server.delete, {
     method: "DELETE",
@@ -60,6 +91,14 @@ export function deleteServer(serverId) {
   });
 }
 
+/**
+ * Creates a topic.
+ *
+ * @param {number} serverId
+ * @param {string} name
+ * @param {"text" | "voice"} type
+ * @returns {Promise<Object>}
+ */
 export function createTopic(serverId, name, type) {
   return apiRequest(API_ENDPOINTS.server.createTopic, {
     method: "POST",
@@ -67,6 +106,13 @@ export function createTopic(serverId, name, type) {
   });
 }
 
+/**
+ * Updates a topic.
+ *
+ * @param {number} topicId
+ * @param {string} name
+ * @returns {Promise<Object>}
+ */
 export function updateTopic(topicId, name) {
   return apiRequest(API_ENDPOINTS.server.updateTopic, {
     method: "POST",
@@ -74,6 +120,12 @@ export function updateTopic(topicId, name) {
   });
 }
 
+/**
+ * Deletes a topic.
+ *
+ * @param {number} topicId
+ * @returns {Promise<Object>}
+ */
 export function deleteTopic(topicId) {
   return apiRequest(API_ENDPOINTS.server.deleteTopic, {
     method: "DELETE",
@@ -81,6 +133,13 @@ export function deleteTopic(topicId) {
   });
 }
 
+/**
+ * Loads topic messages.
+ *
+ * @param {number} topicId
+ * @param {import("~/features/chat/model").ChatCursor=} cursor
+ * @returns {Promise<Object>}
+ */
 export function getTopicMessages(topicId, cursor = null) {
   const body = {
     cursor: mapChatCursorToDto("topic_id", topicId, cursor),
@@ -92,6 +151,13 @@ export function getTopicMessages(topicId, cursor = null) {
   });
 }
 
+/**
+ * Sends a topic message.
+ *
+ * @param {number} topicId
+ * @param {string} text
+ * @returns {Promise<Object>}
+ */
 export function sendTopicMessage(topicId, text) {
   return apiRequest(API_ENDPOINTS.server.sendTopicMessage, {
     method: "POST",

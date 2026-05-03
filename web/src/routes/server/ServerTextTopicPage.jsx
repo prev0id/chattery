@@ -3,7 +3,7 @@ import Header from "~/shared/ui/Header";
 import HeaderItem from "~/shared/ui/HeaderItem";
 import { CHAT_TARGET } from "~/features/chat/constants";
 import { useServerContext } from "~/features/server/context";
-import { WSChannelType } from "~/lib/ws";
+import { WS_CHANNEL_TYPE } from "~/lib/ws";
 
 export default function ServerTextTopicPage() {
   const { currentServer, currentTopic } = useServerContext();
@@ -17,7 +17,7 @@ export default function ServerTextTopicPage() {
       <Chat
         chatId={currentTopic()?.id}
         type={CHAT_TARGET.server}
-        channelType={WSChannelType.TextTopic}
+        channelType={WS_CHANNEL_TYPE.TextTopic}
       />
     </>
   );

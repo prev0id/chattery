@@ -40,7 +40,9 @@ export default function VoiceTopicStreamPreview(props) {
     if (videoRef && videoRef.srcObject !== stream) {
       setVideoReady(false);
       videoRef.srcObject = stream || null;
-      videoRef.play?.().catch(() => {});
+      videoRef.play?.().catch(() => {
+        // Browsers can block autoplay with audio; the stream remains attached for the next user gesture.
+      });
     }
   });
 

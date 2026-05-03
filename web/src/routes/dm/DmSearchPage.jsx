@@ -10,26 +10,27 @@ import { DM_MESSAGES } from "~/features/dm/constants";
 import { useDmContext } from "~/features/dm/context";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { routes } from "~/shared/config/routes";
-import { toast } from "~/stores/toast";
-
-async function searchUsersByQuery(query) {
-  if (!query) return [];
-
-  try {
-    return await searchDmUsers(query);
-  } catch (error) {
-    toast.error(getUserErrorMessage(error, DM_MESSAGES.searchFailed));
-    return [];
-  }
-}
+import { toast } from "~/shared/stores/toast";
 
 export default function DmSearchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { refetchDms } = useDmContext();
   const [pendingUsers, setPendingUsers] = createSignal(new Set());
+  const [searchError, setSearchError] = createSignal("");
 
   const query = createMemo(() => (searchParams.query || "").trim());
+  const searchUsersByQuery = async (value) => {
+    setSearchError("");
+    if (!value) return [];
+
+    try {
+      return await searchDmUsers(value);
+    } catch (error) {
+      setSearchError(getUserErrorMessage(error, DM_MESSAGES.searchFailed));
+      return [];
+    }
+  };
   const [users, { refetch: refetchUsers }] = createResource(
     query,
     searchUsersByQuery,
@@ -78,6 +79,11 @@ export default function DmSearchPage() {
           query={searchParams.query || ""}
           setSearchParams={setSearchParams}
         />
+        <Show when={searchError()}>
+          <p class="rounded-lg bg-red-200 px-4 py-2 text-red-700">
+            {searchError()}
+          </p>
+        </Show>
 
         <Show
           when={query().length > 0}

@@ -6,7 +6,7 @@ import VoiceTopicMenu from "~/features/voice/components/VoiceTopicMenu";
 import VoiceTopicSettingsModal from "~/features/voice/components/VoiceTopicSettingsModal";
 import VoiceTopicStatus from "~/features/voice/components/VoiceTopicStatus";
 import { useServerContext } from "~/features/server/context";
-import { userData } from "~/stores/auth";
+import { userData } from "~/shared/stores/auth";
 import { createVoiceCall } from "~/features/voice/call";
 import { createCallMedia } from "~/features/voice/media";
 

@@ -14,27 +14,28 @@ import { SERVER_MESSAGES } from "~/features/server/constants";
 import { useServerContext } from "~/features/server/context";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { routes } from "~/shared/config/routes";
-import { toast } from "~/stores/toast";
-
-async function searchServersByQuery(query) {
-  if (!query) return [];
-
-  try {
-    return await searchServers(query);
-  } catch (error) {
-    toast.error(getUserErrorMessage(error, SERVER_MESSAGES.searchFailed));
-    return [];
-  }
-}
+import { toast } from "~/shared/stores/toast";
 
 export default function ServerManagePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { servers } = useServerContext();
   const [pendingServers, setPendingServers] = createSignal(new Set());
+  const [searchError, setSearchError] = createSignal("");
 
   const query = createMemo(() => (searchParams.query || "").trim());
   const isSearching = createMemo(() => query().length > 0);
+  const searchServersByQuery = async (value) => {
+    setSearchError("");
+    if (!value) return [];
+
+    try {
+      return await searchServers(value);
+    } catch (error) {
+      setSearchError(getUserErrorMessage(error, SERVER_MESSAGES.searchFailed));
+      return [];
+    }
+  };
   const [searchResults, { refetch: refetchSearchResults }] = createResource(
     query,
     searchServersByQuery,
@@ -97,6 +98,11 @@ export default function ServerManagePage() {
           query={searchParams.query || ""}
           setSearchParams={setSearchParams}
         />
+        <Show when={searchError()}>
+          <p class="rounded-lg bg-red-200 px-4 py-2 text-red-700">
+            {searchError()}
+          </p>
+        </Show>
 
         <Show
           when={isSearching()}

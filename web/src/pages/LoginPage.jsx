@@ -5,8 +5,10 @@ import Button from "~/shared/ui/Button";
 import { loginUser } from "~/features/auth/api";
 import { AUTH_MESSAGES } from "~/features/auth/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
+import { redirectToApp } from "~/shared/config/navigation";
+import { routes } from "~/shared/config/routes";
 
-export default function Login() {
+export default function LoginPage() {
   const [login, setLogin] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [showPassword, setShowPassword] = createSignal(false);
@@ -23,7 +25,7 @@ export default function Login() {
         login: login(),
         password: password(),
       });
-      window.location.href = "/app/dm";
+      redirectToApp(routes.dm.list());
     } catch (error) {
       setFormError(getUserErrorMessage(error, AUTH_MESSAGES.loginFailed));
     } finally {

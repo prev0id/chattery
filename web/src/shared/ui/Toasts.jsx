@@ -1,7 +1,7 @@
 import { X } from "lucide-solid";
 import { For, Match, Switch } from "solid-js";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
-import { removeToast, toasts } from "~/stores/toast";
+import { removeToast, toasts } from "~/shared/stores/toast";
 
 export default function Toasts() {
   return (

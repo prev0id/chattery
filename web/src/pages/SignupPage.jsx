@@ -5,8 +5,9 @@ import Button from "~/shared/ui/Button";
 import { createUser } from "~/features/auth/api";
 import { AUTH_MESSAGES } from "~/features/auth/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
+import { redirectToApp } from "~/shared/config/navigation";
 
-export default function Signup() {
+export default function SignupPage() {
   const [username, setUsername] = createSignal("");
   const [login, setLogin] = createSignal("");
   const [password, setPassword] = createSignal("");
@@ -33,7 +34,7 @@ export default function Signup() {
         login: login(),
         password: password(),
       });
-      window.location.href = "/app";
+      redirectToApp();
     } catch (error) {
       setFormError(getUserErrorMessage(error, AUTH_MESSAGES.signupFailed));
     } finally {
