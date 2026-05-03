@@ -1,7 +1,7 @@
-import { Chat } from "~/components/Chat";
+import { Chat } from "~/features/chat/components/Chat";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { SERVER_CHAT_TARGET } from "~/features/server/constants";
+import { CHAT_TARGET } from "~/features/chat/constants";
 import { useServerContext } from "~/features/server/context";
 import { WSChannelType } from "~/lib/ws";
 
@@ -16,7 +16,7 @@ export default function ServerTextTopicPage() {
       </Header>
       <Chat
         chatID={currentTopic()?.id}
-        type={SERVER_CHAT_TARGET}
+        type={CHAT_TARGET.server}
         channelType={WSChannelType.TextTopic}
       />
     </>

@@ -7,5 +7,3 @@ export const DM_MESSAGES = {
   sendFailed: "Failed to send message",
   markReadFailed: "Failed to mark DM as read",
 };
-
-export const DM_CHAT_TARGET = "dm";

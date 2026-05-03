@@ -1,7 +1,7 @@
-import { Chat } from "~/components/Chat";
+import { Chat } from "~/features/chat/components/Chat";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { DM_CHAT_TARGET } from "~/features/dm/constants";
+import { CHAT_TARGET } from "~/features/chat/constants";
 import { useDmContext } from "~/features/dm/context";
 import { WSChannelType } from "~/lib/ws";
 
@@ -15,7 +15,7 @@ export default function DmChatPage() {
       </Header>
       <Chat
         chatID={currentDmId()}
-        type={DM_CHAT_TARGET}
+        type={CHAT_TARGET.dm}
         channelType={WSChannelType.DM}
       />
     </>

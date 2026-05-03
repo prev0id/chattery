@@ -1,10 +1,11 @@
+import { ArrowLeftToLine } from "lucide-solid";
 import {
   createEffect,
+  createSignal,
   For,
   on,
   onCleanup,
   Show,
-  createSignal,
   untrack,
 } from "solid-js";
 import {
@@ -12,22 +13,27 @@ import {
   markDmRead,
   sendDmMessage,
 } from "~/features/dm/api";
-import { DM_CHAT_TARGET, DM_MESSAGES } from "~/features/dm/constants";
+import { DM_MESSAGES } from "~/features/dm/constants";
+import {
+  CHAT_KIND,
+  CHAT_TARGET,
+  LOAD_MORE_THRESHOLD_PX,
+  SCROLL_BOTTOM_THRESHOLD_PX,
+} from "~/features/chat/constants";
 import {
   getTopicMessages,
   sendTopicMessage,
 } from "~/features/server/api";
-import {
-  SERVER_CHAT_TARGET,
-  SERVER_MESSAGES,
-} from "~/features/server/constants";
-import { appWebSocket } from "~/stores/websocket";
+import { SERVER_MESSAGES } from "~/features/server/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
-import { toast } from "../stores/toast";
+import { toast } from "~/stores/toast";
+import { appWebSocket } from "~/stores/websocket";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
-import { ArrowLeftToLine } from "lucide-solid";
 
+/**
+ * @param {{chatID: number, type: string, channelType: string, onMessage?: (message: Object) => void}} props
+ */
 export function Chat(props) {
   const [messages, setMessages] = createSignal([]);
   const [messagesCursor, setMessagesCursor] = createSignal(null);
@@ -50,19 +56,22 @@ export function Chat(props) {
   const isScrolledToBottom = () => {
     const el = containerRef;
     if (!el) return true;
-    return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    return (
+      el.scrollHeight - el.scrollTop - el.clientHeight <
+      SCROLL_BOTTOM_THRESHOLD_PX
+    );
   };
 
   const normalizeMessages = (response) =>
     response?.messages?.slice().reverse() ?? [];
 
-  const loadChatMessages = async (chatId, chatType) => {
-    setCurrentChat({ id: chatId, type: chatType });
+  const loadChatMessages = async (chatId, chatKind) => {
+    setCurrentChat({ id: chatId, kind: chatKind });
     setLoading(true);
 
     try {
       const response =
-        chatType === "topic"
+        chatKind === CHAT_KIND.topic
           ? await getTopicMessages(chatId)
           : await getDmMessages(chatId);
 
@@ -72,7 +81,7 @@ export function Chat(props) {
       scrollToBottom(false);
     } catch (error) {
       const fallback =
-        chatType === "topic"
+        chatKind === CHAT_KIND.topic
           ? SERVER_MESSAGES.topicMessagesFailed
           : DM_MESSAGES.messagesFailed;
       toast.error(getUserErrorMessage(error, fallback));
@@ -95,7 +104,7 @@ export function Chat(props) {
 
     try {
       const response =
-        chat.type === "topic"
+        chat.kind === CHAT_KIND.topic
           ? await getTopicMessages(chat.id, cursor)
           : await getDmMessages(chat.id, cursor);
 
@@ -113,7 +122,7 @@ export function Chat(props) {
       }
     } catch (error) {
       const fallback =
-        chat.type === "topic"
+        chat.kind === CHAT_KIND.topic
           ? SERVER_MESSAGES.topicMessagesFailed
           : DM_MESSAGES.messagesFailed;
       toast.error(getUserErrorMessage(error, fallback));
@@ -143,7 +152,7 @@ export function Chat(props) {
     const el = containerRef;
     if (!el) return;
 
-    if (el.scrollTop <= 50) {
+    if (el.scrollTop <= LOAD_MORE_THRESHOLD_PX) {
       loadMoreMessages();
     }
   };
@@ -153,9 +162,10 @@ export function Chat(props) {
       () => {
         const chatId = props.chatID;
         const channelType = props.channelType;
-        const chatType = props.type === DM_CHAT_TARGET ? "dm" : "topic";
+        const chatKind =
+          props.type === CHAT_TARGET.dm ? CHAT_KIND.dm : CHAT_KIND.topic;
         return chatId && channelType
-          ? `${chatType}:${channelType}:${Number(chatId)}`
+          ? `${chatKind}:${channelType}:${Number(chatId)}`
           : "";
       },
       () => {
@@ -163,10 +173,10 @@ export function Chat(props) {
         const channelType = untrack(() => props.channelType);
         if (!chatId || !channelType) return;
 
-        const chatType = untrack(() =>
-          props.type === DM_CHAT_TARGET ? "dm" : "topic",
+        const chatKind = untrack(() =>
+          props.type === CHAT_TARGET.dm ? CHAT_KIND.dm : CHAT_KIND.topic,
         );
-        loadChatMessages(chatId, chatType);
+        loadChatMessages(chatId, chatKind);
 
         const channel = { type: channelType, id: Number(chatId) };
         appWebSocket.join(channel);
@@ -182,7 +192,7 @@ export function Chat(props) {
             addMessage(payload);
             props.onMessage?.(payload);
 
-            if (chatType === "dm" && payload?.id) {
+            if (chatKind === CHAT_KIND.dm && payload?.id) {
               markDmRead(chatId, payload.id).catch((error) => {
                 toast.error(
                   getUserErrorMessage(error, DM_MESSAGES.markReadFailed),
@@ -210,13 +220,13 @@ export function Chat(props) {
 
     setSending(true);
     try {
-      if (chat.type === "topic") {
+      if (chat.kind === CHAT_KIND.topic) {
         return Boolean(await sendTopicMessage(chat.id, text));
       }
       return Boolean(await sendDmMessage(chat.id, text));
     } catch (error) {
       const fallback =
-        chat.type === "topic"
+        chat.kind === CHAT_KIND.topic
           ? SERVER_MESSAGES.sendTopicMessageFailed
           : DM_MESSAGES.sendFailed;
       toast.error(getUserErrorMessage(error, fallback));
@@ -249,7 +259,7 @@ export function Chat(props) {
           </Show>
 
           <For each={messages()}>
-            {(message) => <ChatMessage msg={message} />}
+            {(message) => <ChatMessage message={message} />}
           </For>
 
           <div ref={bottomRef} />

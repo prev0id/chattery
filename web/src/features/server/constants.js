@@ -3,8 +3,6 @@ export const SERVER_TOPIC_TYPE = {
   voice: "voice",
 };
 
-export const SERVER_CHAT_TARGET = "server";
-
 export const SERVER_MESSAGES = {
   created: "Server created!",
   updated: "Server updated",
