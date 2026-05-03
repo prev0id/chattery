@@ -9,11 +9,11 @@ import (
 
 type Config struct {
 	Redis    Redis
-	Session  Session
 	HTTP     HTTP
 	Postgres Postgres
 	App      App
 	Voice    Voice
+	Session  Session
 	Cache    Cache
 	Chat     Chat
 }

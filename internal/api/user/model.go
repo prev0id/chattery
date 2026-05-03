@@ -2,7 +2,6 @@ package user
 
 import (
 	"chattery/internal/domain"
-	"chattery/internal/utils/sliceutil"
 )
 
 type PostCreateUserRequest struct {
@@ -43,12 +42,6 @@ func convertPostCreateUserRequest(req *PostCreateUserRequest) *domain.User {
 		Username: domain.Username(req.Username),
 		Login:    login,
 		Password: domain.NewPassword(req.Password, login),
-	}
-}
-
-func convertGetUsersResponse(users []*domain.User) GetUsersResponse {
-	return GetUsersResponse{
-		Users: sliceutil.Map(users, convertUserResponse),
 	}
 }
 
