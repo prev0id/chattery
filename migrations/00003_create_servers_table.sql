@@ -37,8 +37,8 @@ CREATE TABLE topic_messages (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE servers;
-DROP TABLE server_participants;
-DROP TABLE topics;
 DROP TABLE topic_messages;
+DROP TABLE topics;
+DROP TABLE server_participants;
+DROP TABLE servers;
 -- +goose StatementEnd

@@ -17,7 +17,9 @@ const (
 )
 
 func Timestamp(t time.Time) string {
-	now := time.Now()
+	now := time.Now().UTC()
+	t = t.UTC()
+
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	yesterday := today.AddDate(0, 0, -1)
 	msgDate := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)

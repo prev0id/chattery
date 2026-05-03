@@ -43,14 +43,14 @@ func (a *Adapter) UserByLogin(ctx context.Context, login domain.Email) (*domain.
 }
 
 func (a *Adapter) UserByID(ctx context.Context, userID domain.UserID) (*domain.User, error) {
-	user, err := a.db.Query(ctx).UserByUsername(ctx, userID.I64())
+	user, err := a.db.Query(ctx).UserByID(ctx, userID.I64())
 	if database.NotFound(err) {
 		return nil, errutil.E(err).
 			Kind(errutil.NotFound).
 			Messagef("user %d not found", userID)
 	}
 	if err != nil {
-		return nil, errutil.E(err).Debug("Query.UserByUsername")
+		return nil, errutil.E(err).Debug("Query.UserByID")
 	}
 	return convertUserFromDB(user), nil
 }

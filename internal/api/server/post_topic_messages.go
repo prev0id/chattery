@@ -8,11 +8,11 @@ import (
 	"chattery/internal/utils/render"
 )
 
-func (s *Server) GetTopicMessages(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostTopicMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := domain.UserIDFromContext(ctx)
 
-	request, requestErr := bind.JSON[GetTopicMessagesRequest](r)
+	request, requestErr := bind.JSON[PostTopicMessagesRequest](r)
 	if requestErr != nil {
 		render.Error(w, r, requestErr)
 		return
@@ -37,5 +37,5 @@ func (s *Server) GetTopicMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, r, convertGetTopicMessagesResponse(nextCursor, messages, s.cache.ListByID()))
+	render.JSON(w, r, convertPostTopicMessagesResponse(nextCursor, messages, s.cache.ListByID()))
 }

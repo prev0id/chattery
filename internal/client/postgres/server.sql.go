@@ -569,7 +569,7 @@ func (q *Queries) NextPagesOfTopicMessages(ctx context.Context, arg *NextPagesOf
 const updateServer = `-- name: UpdateServer :exec
 UPDATE servers
 SET name=$2,
-    updated_at=now()
+    updated_at=NOW()
 WHERE id=$1
 `
 
@@ -582,7 +582,7 @@ type UpdateServerParams struct {
 //
 //	UPDATE servers
 //	SET name=$2,
-//	    updated_at=now()
+//	    updated_at=NOW()
 //	WHERE id=$1
 func (q *Queries) UpdateServer(ctx context.Context, arg *UpdateServerParams) error {
 	_, err := q.db.Exec(ctx, updateServer, arg.ID, arg.Name)

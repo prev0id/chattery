@@ -6,7 +6,7 @@ RETURNING id;
 -- name: UpdateServer :exec
 UPDATE servers
 SET name=$2,
-    updated_at=now()
+    updated_at=NOW()
 WHERE id=$1;
 
 -- name: GetUserServers :many
@@ -59,11 +59,11 @@ DELETE FROM server_participants
 WHERE server_id = $1 AND user_id = $2;
 
 -- name: GetServerParticipant :one
-SELECT * FROM server_participants
+SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
 WHERE server_id = $1 AND user_id = $2;
 
 -- name: GetServerParticipants :many
-SELECT * FROM server_participants
+SELECT server_id, user_id, role, created_at, updated_at FROM server_participants
 WHERE server_id = $1;
 
 -- name: CreateTopic :one
@@ -88,7 +88,7 @@ DELETE FROM topics
 WHERE id = $1;
 
 -- name: GetTopic :one
-SELECT * FROM topics
+SELECT id, server_id, name, type, created_at, updated_at FROM topics
 WHERE id=$1;
 
 -- name: DeleteMessagesByServerID :exec
@@ -108,13 +108,13 @@ DELETE FROM servers
 WHERE id = $1;
 
 -- name: FirstPageOfTopicMessages :many
-SELECT * FROM topic_messages
+SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 WHERE topic_id = $1
 ORDER BY created_at DESC, id DESC
 LIMIT $2;
 
 -- name: NextPagesOfTopicMessages :many
-SELECT * FROM topic_messages
+SELECT id, topic_id, user_id, text, created_at, updated_at FROM topic_messages
 WHERE topic_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 ORDER BY created_at DESC, id DESC
 LIMIT $4;

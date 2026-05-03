@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os/signal"
+	"syscall"
 
 	dm_adapter "chattery/internal/adapter/postgres/dm"
 	server_adapter "chattery/internal/adapter/postgres/server"
@@ -32,7 +34,8 @@ import (
 )
 
 func main() {
-	appCtx := context.Background()
+	appCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	cfg := config.Init()
 
@@ -62,7 +65,10 @@ func main() {
 	dmService := dm.New(dmDB, transactionManager, redisAdapter, userStore, dmStore, cfg)
 	serverService := server.New(serverDB, transactionManager, serverStore, cfg)
 	textTopicService := text_topic.New(serverDB, transactionManager, redisAdapter, userStore, cfg)
-	voiceTopicService := voice_topic.New(redisAdapter, serverService, userStore, cfg)
+	voiceTopicService, err := voice_topic.New(redisAdapter, serverService, userStore, cfg)
+	if err != nil {
+		logger.Fatal(err, "voice_topic.New")
+	}
 	userService := user.New(userDB, redisAdapter, transactionManager, cfg)
 
 	if err := syncer.Start(cfg.Cache.UserStoreSyncTimeout, userStore); err != nil {
@@ -90,7 +96,7 @@ func main() {
 			server_api.New(userService, serverService, textTopicService, userStore),
 		)
 
-	if err := apiServer.Run(); err != nil {
+	if err := apiServer.Run(appCtx); err != nil {
 		logger.Fatal(err, "server.Run")
 	}
 }

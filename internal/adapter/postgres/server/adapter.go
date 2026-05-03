@@ -10,6 +10,11 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
+const (
+	uniqueServerParticipantConstraint = "server_participants_server_id_user_id_key"
+	uniqueTopicConstraint             = "topics_server_id_name_type_key"
+)
+
 type queryProvider interface {
 	Query(ctx context.Context) postgres.Querier
 }
@@ -61,6 +66,11 @@ func (a *Adapter) CreateServerParticipant(ctx context.Context, participant *doma
 	}
 
 	err := a.db.Query(ctx).CreateServerParticipant(ctx, req)
+	if database.IsConstraintViolation(err, uniqueServerParticipantConstraint) {
+		return errutil.E(err).
+			Kind(errutil.Exist).
+			Messagef("user %d is already a participant of server %d", participant.UserID, participant.ServerID)
+	}
 	if err != nil {
 		return errutil.E(err).Debug("Query.CreateServerParticipant")
 	}
@@ -88,6 +98,11 @@ func (a *Adapter) CreateTopic(ctx context.Context, topic *domain.Topic) (domain.
 	}
 
 	id, err := a.db.Query(ctx).CreateTopic(ctx, req)
+	if database.IsConstraintViolation(err, uniqueTopicConstraint) {
+		return 0, errutil.E(err).
+			Kind(errutil.Exist).
+			Messagef("topic %s already exists in server %d", topic.Name, topic.ServerID)
+	}
 	if err != nil {
 		return 0, errutil.E(err).Debug("Query.CreateTopic")
 	}
@@ -175,6 +190,11 @@ func (a *Adapter) GetServer(ctx context.Context, serverID domain.ServerID) (*dom
 	}
 	if err != nil {
 		return nil, errutil.E(err).Debug("Query.GetServer")
+	}
+	if len(rows) == 0 {
+		return nil, errutil.E().
+			Kind(errutil.NotFound).
+			Messagef("server %d not found", serverID.I64())
 	}
 
 	return convertServerWithTopicsFromDB(rows), nil

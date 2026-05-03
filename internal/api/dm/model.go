@@ -46,11 +46,11 @@ type PostReadRequest struct {
 	MessageID int64 `json:"message_id"`
 }
 
-type GetMessagesRequest struct {
+type PostMessagesRequest struct {
 	Cursor *Cursor `json:"cursor"`
 }
 
-type GetMessagesResponse struct {
+type PostMessagesResponse struct {
 	Cursor   *Cursor    `json:"cursor"`
 	Messages []*Message `json:"messages"`
 }
@@ -125,7 +125,7 @@ func convertMessageResponse(msg *domain.DMMessage, users map[domain.UserID]*doma
 	}
 }
 
-func convertGetMessagesRequest(request *GetMessagesRequest) *domain.DMCursor {
+func convertPostMessagesRequest(request *PostMessagesRequest) *domain.DMCursor {
 	return &domain.DMCursor{
 		ChatID:    domain.DMID(request.Cursor.DMID),
 		MessageID: domain.DMMessageID(request.Cursor.MessageID),
@@ -150,12 +150,12 @@ func convertCursorResponse(cursor *domain.DMCursor) *Cursor {
 	}
 }
 
-func convertGetMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage, users map[domain.UserID]*domain.User) *GetMessagesResponse {
+func convertPostMessagesResponse(cursor *domain.DMCursor, messages []*domain.DMMessage, users map[domain.UserID]*domain.User) *PostMessagesResponse {
 	msgs := make([]*Message, 0, len(messages))
 	for _, msg := range messages {
 		msgs = append(msgs, convertMessageResponse(msg, users))
 	}
-	return &GetMessagesResponse{
+	return &PostMessagesResponse{
 		Messages: msgs,
 		Cursor:   convertCursorResponse(cursor),
 	}

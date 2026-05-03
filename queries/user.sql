@@ -9,15 +9,15 @@ SET username=$2,
     login=$3,
     password=$4,
     avatar_id=$5,
-    updated_at=now()
+    updated_at=NOW()
 WHERE id = $1;
 
--- name: UserByUsername :one
-SELECT * FROM users
+-- name: UserByID :one
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 WHERE id = $1;
 
 -- name: UserByLogin :one
-SELECT * FROM users
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 WHERE login = $1;
 
 -- name: DeleteUserByID :execrows
@@ -25,4 +25,4 @@ DELETE FROM users
 WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT * FROM users;
+SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users;

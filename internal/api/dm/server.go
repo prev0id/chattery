@@ -54,7 +54,7 @@ func (s *Server) Route(router chi.Router) {
 		withAuthRouter.Get("/search", s.SearchUsers)
 		withAuthRouter.Post("/create", s.PostCreateDM)
 		withAuthRouter.Post("/message", s.PostMessage)
-		withAuthRouter.Post("/messages", s.GetMessages)
+		withAuthRouter.Post("/messages", s.PostMessages)
 		withAuthRouter.Post("/read", s.PostRead)
 	})
 }

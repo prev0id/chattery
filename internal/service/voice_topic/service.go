@@ -48,10 +48,15 @@ type Service struct {
 	m        sync.RWMutex
 }
 
-func New(redisAdapter redis, server serverService, user userCache, cfg *config.Config) *Service {
+func New(redisAdapter redis, server serverService, user userCache, cfg *config.Config) (*Service, error) {
 	ownerTTL := cfg.Voice.OwnerTTL
 	if ownerTTL <= 0 {
 		ownerTTL = 30 * time.Second
+	}
+
+	webrtcAPI, err := newWebRTCAPI(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Service{
@@ -60,9 +65,9 @@ func New(redisAdapter redis, server serverService, user userCache, cfg *config.C
 		user:     user,
 		nodeID:   cfg.Voice.NodeID,
 		ownerTTL: ownerTTL,
-		webrtc:   newWebRTCAPI(cfg),
+		webrtc:   webrtcAPI,
 		topics:   make(map[domain.TopicID]*topic),
-	}
+	}, nil
 }
 
 func (s *Service) Start(ctx context.Context) {

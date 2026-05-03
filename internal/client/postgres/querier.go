@@ -237,21 +237,21 @@ type Querier interface {
 	//
 	//  UPDATE dm_participants
 	//  SET last_read_message_id=GREATEST(last_read_message_id, $3),
-	//      updated_at=now()
+	//      updated_at=NOW()
 	//  WHERE dm_id=$1 AND user_id=$2
 	SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error
 	//SetLastMessageInDM
 	//
 	//  UPDATE dms
 	//  SET last_message_id=$2,
-	//      updated_at=now()
+	//      updated_at=NOW()
 	//  WHERE id = $1
 	SetLastMessageInDM(ctx context.Context, arg *SetLastMessageInDMParams) error
 	//UpdateServer
 	//
 	//  UPDATE servers
 	//  SET name=$2,
-	//      updated_at=now()
+	//      updated_at=NOW()
 	//  WHERE id=$1
 	UpdateServer(ctx context.Context, arg *UpdateServerParams) error
 	//UpdateTopic
@@ -269,19 +269,19 @@ type Querier interface {
 	//      login=$3,
 	//      password=$4,
 	//      avatar_id=$5,
-	//      updated_at=now()
+	//      updated_at=NOW()
 	//  WHERE id = $1
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) error
+	//UserByID
+	//
+	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
+	//  WHERE id = $1
+	UserByID(ctx context.Context, id int64) (*User, error)
 	//UserByLogin
 	//
 	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
 	//  WHERE login = $1
 	UserByLogin(ctx context.Context, login string) (*User, error)
-	//UserByUsername
-	//
-	//  SELECT id, username, login, password, avatar_id, created_at, updated_at FROM users
-	//  WHERE id = $1
-	UserByUsername(ctx context.Context, id int64) (*User, error)
 	//UserDMs
 	//
 	//  SELECT

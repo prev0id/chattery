@@ -6,7 +6,7 @@ RETURNING id;
 -- name: SetLastMessageInDM :exec
 UPDATE dms
 SET last_message_id=$2,
-    updated_at=now()
+    updated_at=NOW()
 WHERE id = $1;
 
 -- name: UserDMs :many
@@ -53,7 +53,7 @@ VALUES ($1, $2);
 -- name: SetDMLastReadMessage :exec
 UPDATE dm_participants
 SET last_read_message_id=GREATEST(last_read_message_id, $3),
-    updated_at=now()
+    updated_at=NOW()
 WHERE dm_id=$1 AND user_id=$2;
 
 -- name: CreateDMMessage :one
@@ -62,23 +62,23 @@ VALUES ($1, $2, $3)
 RETURNING id;
 
 -- name: FirstPageOfDMMessages :many
-SELECT * FROM dm_messages
+SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1
 ORDER BY created_at DESC, id DESC
 LIMIT $2;
 
 -- name: GetDMMessage :one
-SELECT * FROM dm_messages
+SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND id = $2;
 
 -- name: NextPagesOfDMMessages :many
-SELECT * FROM dm_messages
+SELECT id, dm_id, user_id, text, created_at, updated_at FROM dm_messages
 WHERE dm_id = $1 AND (created_at < $2 OR (created_at = $2 AND id < $3))
 ORDER BY created_at DESC, id DESC
 LIMIT $4;
 
 -- name: GetDMParticipant :one
-SELECT * FROM dm_participants
+SELECT dm_id, user_id, last_read_message_id, created_at, updated_at FROM dm_participants
 WHERE dm_id = $1 AND user_id = $2;
 
 -- name: GetDMBetweenUsers :one

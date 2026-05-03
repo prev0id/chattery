@@ -1,6 +1,8 @@
 package voice_topic
 
 import (
+	"fmt"
+
 	"github.com/pion/interceptor"
 	"github.com/pion/webrtc/v4"
 
@@ -12,15 +14,15 @@ type webrtcAPI struct {
 	configuration webrtc.Configuration
 }
 
-func newWebRTCAPI(cfg *config.Config) *webrtcAPI {
+func newWebRTCAPI(cfg *config.Config) (*webrtcAPI, error) {
 	mediaEngine := &webrtc.MediaEngine{}
 	if err := mediaEngine.RegisterDefaultCodecs(); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("mediaEngine.RegisterDefaultCodecs: %w", err)
 	}
 
 	interceptorRegistry := &interceptor.Registry{}
 	if err := webrtc.RegisterDefaultInterceptors(mediaEngine, interceptorRegistry); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("webrtc.RegisterDefaultInterceptors: %w", err)
 	}
 
 	configuration := webrtc.Configuration{}
@@ -36,7 +38,7 @@ func newWebRTCAPI(cfg *config.Config) *webrtcAPI {
 			webrtc.WithInterceptorRegistry(interceptorRegistry),
 		),
 		configuration: configuration,
-	}
+	}, nil
 }
 
 func (w *webrtcAPI) newPeerConnection() (*webrtc.PeerConnection, error) {

@@ -75,11 +75,11 @@ type PostMessageRequest struct {
 	TopicID int64  `json:"topic_id"`
 }
 
-type GetTopicMessagesRequest struct {
+type PostTopicMessagesRequest struct {
 	Cursor *Cursor `json:"cursor"`
 }
 
-type GetTopicMessagesResponse struct {
+type PostTopicMessagesResponse struct {
 	Cursor   *Cursor   `json:"cursor"`
 	Messages []Message `json:"messages"`
 }
@@ -201,12 +201,12 @@ func convertCursorResponse(cursor *domain.TopicCursor) *Cursor {
 	}
 }
 
-func convertGetTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage, users map[domain.UserID]*domain.User) *GetTopicMessagesResponse {
+func convertPostTopicMessagesResponse(cursor *domain.TopicCursor, messages []*domain.TopicMessage, users map[domain.UserID]*domain.User) *PostTopicMessagesResponse {
 	msgs := make([]Message, len(messages))
 	for i, msg := range messages {
 		msgs[i] = convertMessageResponse(msg, users)
 	}
-	return &GetTopicMessagesResponse{
+	return &PostTopicMessagesResponse{
 		Messages: msgs,
 		Cursor:   convertCursorResponse(cursor),
 	}

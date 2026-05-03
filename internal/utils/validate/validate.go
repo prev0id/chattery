@@ -190,7 +190,7 @@ func containsOnlyWords(str, field string) error {
 	}
 	return errutil.E().
 		Kind(errutil.InvalidRequest).
-		Messagef("%s can only contain letters (a-z, A-Z), digits, underscores and dashes -", field)
+		Messagef("%s can only contain letters (a-z, A-Z), digits, spaces, underscores and dashes -", field)
 }
 
 func oneOf[T comparable](value T, field string, targets ...T) error {
@@ -200,7 +200,7 @@ func oneOf[T comparable](value T, field string, targets ...T) error {
 
 	return errutil.E().
 		Kind(errutil.InvalidRequest).
-		Messagef("%s can only one of values %v", field, targets)
+		Messagef("%s must be one of values %v", field, targets)
 }
 
 func NotEmpty[T comparable](value T, field string) error {

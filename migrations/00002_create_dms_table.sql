@@ -33,7 +33,7 @@ CREATE INDEX dm_messages_dm_id_created_id_desc_idx
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE dms;
-DROP TABLE dm_participants;
 DROP TABLE dm_messages;
+DROP TABLE dm_participants;
+DROP TABLE dms;
 -- +goose StatementEnd

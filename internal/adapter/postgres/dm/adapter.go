@@ -10,6 +10,8 @@ import (
 	"chattery/internal/utils/sliceutil"
 )
 
+const uniqueDMParticipantConstraint = "dm_participants_dm_id_user_id_key"
+
 type queryProvider interface {
 	Query(ctx context.Context) postgres.Querier
 }
@@ -57,6 +59,11 @@ func (a *Adapter) CreateDMParticipant(ctx context.Context, dmID domain.DMID, use
 	}
 
 	err := a.db.Query(ctx).CreateDMParticipant(ctx, req)
+	if database.IsConstraintViolation(err, uniqueDMParticipantConstraint) {
+		return errutil.E(err).
+			Kind(errutil.Exist).
+			Messagef("user %d is already a participant of dm %d", userID, dmID)
+	}
 	if err != nil {
 		return errutil.E(err).Debug("Query.CreateDMParticipant")
 	}

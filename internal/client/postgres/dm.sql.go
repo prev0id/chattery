@@ -421,7 +421,7 @@ func (q *Queries) NextPagesOfDMMessages(ctx context.Context, arg *NextPagesOfDMM
 const setDMLastReadMessage = `-- name: SetDMLastReadMessage :exec
 UPDATE dm_participants
 SET last_read_message_id=GREATEST(last_read_message_id, $3),
-    updated_at=now()
+    updated_at=NOW()
 WHERE dm_id=$1 AND user_id=$2
 `
 
@@ -435,7 +435,7 @@ type SetDMLastReadMessageParams struct {
 //
 //	UPDATE dm_participants
 //	SET last_read_message_id=GREATEST(last_read_message_id, $3),
-//	    updated_at=now()
+//	    updated_at=NOW()
 //	WHERE dm_id=$1 AND user_id=$2
 func (q *Queries) SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMessageParams) error {
 	_, err := q.db.Exec(ctx, setDMLastReadMessage, arg.DmID, arg.UserID, arg.LastReadMessageID)
@@ -445,7 +445,7 @@ func (q *Queries) SetDMLastReadMessage(ctx context.Context, arg *SetDMLastReadMe
 const setLastMessageInDM = `-- name: SetLastMessageInDM :exec
 UPDATE dms
 SET last_message_id=$2,
-    updated_at=now()
+    updated_at=NOW()
 WHERE id = $1
 `
 
@@ -458,7 +458,7 @@ type SetLastMessageInDMParams struct {
 //
 //	UPDATE dms
 //	SET last_message_id=$2,
-//	    updated_at=now()
+//	    updated_at=NOW()
 //	WHERE id = $1
 func (q *Queries) SetLastMessageInDM(ctx context.Context, arg *SetLastMessageInDMParams) error {
 	_, err := q.db.Exec(ctx, setLastMessageInDM, arg.ID, arg.LastMessageID)
