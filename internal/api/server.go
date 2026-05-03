@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/httplog/v3"
 
 	"chattery/internal/config"
+	"chattery/internal/domain"
 )
 
 const MiB = 1024 * 1024
@@ -49,6 +50,7 @@ func NewServer(cfg *config.Config) *Server {
 		middleware.Recoverer,
 		middleware.Heartbeat("/ping"),
 	)
+	server.mux.NotFound(redirectUnknownPath)
 
 	return server
 }
@@ -96,4 +98,13 @@ func (s *Server) Run(ctx context.Context) error {
 		}
 		return fmt.Errorf("server.ListenAndServe: %w", err)
 	}
+}
+
+func redirectUnknownPath(w http.ResponseWriter, r *http.Request) {
+	if domain.UserIDFromContext(r.Context()) != domain.UserIsUnknown {
+		http.Redirect(w, r, "/app/dm", http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, "/login", http.StatusFound)
 }
