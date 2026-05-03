@@ -150,15 +150,3 @@ export const deleteServerAction = action(async (serverID) => {
   }
   return redirect("/server");
 }, "delete_server_action");
-
-export async function fetchDMs() {
-  try {
-    const res = await fetch("/v1/dm/list");
-    const data = await handleResponse(res, "Failed to load DMs");
-    return data?.dms || [];
-  } catch (err) {
-    console.log(err);
-    toast.error("Network error – please check your connection");
-    return [];
-  }
-}

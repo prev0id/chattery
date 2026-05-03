@@ -7,20 +7,21 @@ import {
   createSignal,
   untrack,
 } from "solid-js";
+import { fetchTopicMessages, sendTopicMessage } from "../lib/api";
 import {
-  fetchTopicMessages,
-  sendTopicMessage,
-  fetchDMMessages,
-  sendDMMessage,
-  markDMRead,
-} from "../lib/api";
+  getDmMessages,
+  markDmRead,
+  sendDmMessage,
+} from "~/features/dm/api";
+import { DM_CHAT_TARGET, DM_MESSAGES } from "~/features/dm/constants";
 import { appWebSocket } from "~/stores/websocket";
+import { getUserErrorMessage } from "~/shared/api/errors";
 import { toast } from "../stores/toast";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import { ArrowLeftToLine } from "lucide-solid";
 
-const DMsType = "dms";
+const DMsType = DM_CHAT_TARGET;
 const ServersType = "servers";
 const TopicTypeText = "text";
 const TopicTypeVoice = "voice";
@@ -63,12 +64,14 @@ export function Chat(props) {
       const response =
         chatType === "topic"
           ? await fetchTopicMessages(chatId)
-          : await fetchDMMessages(chatId);
+          : await getDmMessages(chatId);
 
       setMessages(normalizeMessages(response));
       setMessagesCursor(response?.cursor ?? null);
 
       scrollToBottom(false);
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, DM_MESSAGES.messagesFailed));
     } finally {
       setLoading(false);
     }
@@ -90,7 +93,7 @@ export function Chat(props) {
       const response =
         chat.type === "topic"
           ? await fetchTopicMessages(chat.id, cursor)
-          : await fetchDMMessages(chat.id, cursor);
+          : await getDmMessages(chat.id, cursor);
 
       const olderMessages = normalizeMessages(response);
       if (olderMessages.length > 0) {
@@ -104,6 +107,8 @@ export function Chat(props) {
       } else {
         setMessagesCursor(null);
       }
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, DM_MESSAGES.messagesFailed));
     } finally {
       setLoading(false);
     }
@@ -168,7 +173,11 @@ export function Chat(props) {
             props.onMessage?.(payload);
 
             if (chatType === "dm" && payload?.id) {
-              markDMRead(chatId, payload.id);
+              markDmRead(chatId, payload.id).catch((error) => {
+                toast.error(
+                  getUserErrorMessage(error, DM_MESSAGES.markReadFailed),
+                );
+              });
             }
           },
         );
@@ -194,7 +203,10 @@ export function Chat(props) {
       if (chat.type === "topic") {
         return Boolean(await sendTopicMessage(chat.id, text));
       }
-      return Boolean(await sendDMMessage(chat.id, text));
+      return Boolean(await sendDmMessage(chat.id, text));
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, DM_MESSAGES.sendFailed));
+      return false;
     } finally {
       setSending(false);
     }

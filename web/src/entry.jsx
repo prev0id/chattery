@@ -11,17 +11,17 @@ import EditServer from "./routes/server/Edit";
 import ManageServer from "./routes/server/Manage";
 import CreateServer from "./routes/server/Create";
 
-import DMWrapper from "./routes/dm/Wrapper";
-import SelectDM from "./routes/dm/Select";
-import DM from "./routes/dm/DM";
-import SearchDM from "./routes/dm/Search";
+import DmLayout from "./routes/dm/DmLayout";
+import DmSelectPage from "./routes/dm/DmSelectPage";
+import DmChatPage from "./routes/dm/DmChatPage";
+import DmSearchPage from "./routes/dm/DmSearchPage";
 import { WSChannelType } from "./lib/ws";
 import { toast } from "./stores/toast";
 import { userData } from "./stores/auth";
 import { appWebSocket } from "./stores/websocket";
 
 const filters = {
-  dmID: /^\d+$/,
+  dmId: /^\d+$/,
   serverID: /^\d+$/,
   topicID: /^\d+$/,
 };
@@ -50,10 +50,10 @@ render(
     <>
       <GlobalDMNotifications />
       <Router base="/app">
-        <Route path="/dm" component={DMWrapper}>
-          <Route path="/" component={SelectDM} />
-          <Route path="/search" component={SearchDM} />
-          <Route path="/:dmID" component={DM} matchFilters={filters} />
+        <Route path="/dm" component={DmLayout}>
+          <Route path="/" component={DmSelectPage} />
+          <Route path="/search" component={DmSearchPage} />
+          <Route path="/:dmId" component={DmChatPage} matchFilters={filters} />
         </Route>
         <Route path="/server" component={ServerWrapper}>
           <Route path="/" component={SelectServer} />

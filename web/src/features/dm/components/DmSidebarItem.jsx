@@ -1,10 +1,14 @@
 import { A } from "@solidjs/router";
-import ProfilePicture from "./ProfilePicture";
+import ProfilePicture from "~/components/ProfilePicture";
+import { routes } from "~/shared/config/routes";
 
-export default function SidebarDM(props) {
+/**
+ * @param {{dm: import("~/features/dm/model").Dm}} props
+ */
+export default function DmSidebarItem(props) {
   return (
     <A
-      href={`/dm/${props.dm.id}`}
+      href={routes.dm.chat(props.dm.id)}
       class="flex gap-2 h-14 border-2 border-black rounded-lg neo-shadow-rose p-0.5 hover:neo-shadow hover:bg-emerald-200 hover:scale-105 transition-all duration-300 ease-in-out text-left"
       activeClass="bg-emerald-200"
       inactiveClass="bg-white"

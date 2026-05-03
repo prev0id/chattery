@@ -1,48 +1,71 @@
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import { MessageSquarePlus, Search } from "lucide-solid";
+import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import Button from "~/components/Button";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
 import ProfilePicture from "~/components/ProfilePicture";
-import { createDM, searchUsers } from "~/lib/api";
-import { UseDMContext } from "~/stores/dm";
+import { createDm, searchDmUsers } from "~/features/dm/api";
+import { DM_MESSAGES } from "~/features/dm/constants";
+import { useDmContext } from "~/features/dm/context";
+import { getUserErrorMessage } from "~/shared/api/errors";
+import { routes } from "~/shared/config/routes";
+import { toast } from "~/stores/toast";
 
-export default function SearchDM() {
+async function searchUsersByQuery(query) {
+  if (!query) return [];
+
+  try {
+    return await searchDmUsers(query);
+  } catch (error) {
+    toast.error(getUserErrorMessage(error, DM_MESSAGES.searchFailed));
+    return [];
+  }
+}
+
+export default function DmSearchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { refetchDMs } = UseDMContext();
+  const { refetchDms } = useDmContext();
   const [pendingUsers, setPendingUsers] = createSignal(new Set());
 
   const query = createMemo(() => (searchParams.query || "").trim());
-  const [users, { refetch: refetchUsers }] = createResource(query, (value) =>
-    value ? searchUsers(value) : [],
+  const [users, { refetch: refetchUsers }] = createResource(
+    query,
+    searchUsersByQuery,
   );
 
-  const isPending = (userID) => pendingUsers().has(userID);
+  const isPending = (userId) => pendingUsers().has(userId);
 
-  const setUserPending = (userID, pending) => {
+  const setUserPending = (userId, isPending) => {
     setPendingUsers((current) => {
       const next = new Set(current);
-      if (pending) {
-        next.add(userID);
+      if (isPending) {
+        next.add(userId);
       } else {
-        next.delete(userID);
+        next.delete(userId);
       }
       return next;
     });
   };
 
-  const handleCreateDM = async (userID) => {
-    setUserPending(userID, true);
-    const result = await createDM(userID);
-    if (result?.id) {
-      await refetchDMs?.();
-      refetchUsers();
-      navigate(`/dm/${result.id}`);
-      return;
+  const handleCreateDm = async (userId) => {
+    setUserPending(userId, true);
+
+    try {
+      const result = await createDm(userId);
+      if (result?.id) {
+        toast.success(DM_MESSAGES.created);
+        await refetchDms?.();
+        refetchUsers();
+        navigate(routes.dm.chat(result.id));
+        return;
+      }
+      setUserPending(userId, false);
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, DM_MESSAGES.createFailed));
+      setUserPending(userId, false);
     }
-    setUserPending(userID, false);
   };
 
   return (
@@ -69,7 +92,7 @@ export default function SearchDM() {
               <Button
                 variant="emerald"
                 disabled={isPending(user.id)}
-                onClick={() => handleCreateDM(user.id)}
+                onClick={() => handleCreateDm(user.id)}
               >
                 <span class="flex items-center gap-1">
                   <MessageSquarePlus class="size-5" />
