@@ -2,6 +2,7 @@ package user
 
 import (
 	"chattery/internal/domain"
+	"chattery/internal/utils/render"
 )
 
 type PostCreateUserRequest struct {
@@ -60,8 +61,7 @@ func convertUserResponse(user *domain.User) User {
 		ID:       user.ID.I64(),
 		Username: user.Username.String(),
 		Email:    user.Login.String(),
-		Avatar:   "/v1/image/" + user.Username.String() + ".png",
-		// AvatarURL: "/image/" + user.AvatarID.String(),
+		Avatar:   render.AvatarURL(user.Username),
 	}
 }
 

@@ -98,7 +98,7 @@ func convertUserInfo(user *domain.User) UserInfo {
 	return UserInfo{
 		ID:       user.ID.I64(),
 		Username: user.Username.String(),
-		Avatar:   "/v1/image/" + user.Username.String() + ".png",
+		Avatar:   render.AvatarURL(user.Username),
 	}
 }
 

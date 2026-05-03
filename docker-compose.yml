@@ -33,9 +33,11 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 user password;
-      /usr/bin/mc mb chattery/bucket;
-      /usr/bin/mc anonymous set public chattery/bucket;
+      until /usr/bin/mc alias set myminio http://minio:9000 user password; do
+        sleep 1;
+      done;
+      /usr/bin/mc mb --ignore-existing myminio/chattery;
+      /usr/bin/mc anonymous set public myminio/chattery;
       exit 0;
       "
   redis:

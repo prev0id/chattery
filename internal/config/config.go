@@ -12,10 +12,12 @@ type Config struct {
 	HTTP     HTTP
 	Postgres Postgres
 	App      App
+	S3       S3
 	Voice    Voice
 	Session  Session
 	Cache    Cache
 	Chat     Chat
+	Image    Image
 }
 
 type App struct {
@@ -39,6 +41,14 @@ type Postgres struct {
 	URL string
 }
 
+type S3 struct {
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	Bucket          string
+	UseSSL          bool
+}
+
 type Session struct {
 	SecretKey     string
 	CookieDomain  string
@@ -48,6 +58,13 @@ type Session struct {
 
 type Chat struct {
 	MessagesLimit int
+}
+
+type Image struct {
+	MaxFileSize int64
+	MaxWidth    int
+	MaxHeight   int
+	JPEGQuality int
 }
 
 type Cache struct {
@@ -92,6 +109,12 @@ func Init() *Config {
 		Chat: Chat{
 			MessagesLimit: bind.EnvInt("MESSAGES_LIMIT", 20),
 		},
+		Image: Image{
+			MaxFileSize: bind.EnvInt64("IMAGE_MAX_FILE_SIZE", 2*1024*1024),
+			MaxWidth:    bind.EnvInt("IMAGE_MAX_WIDTH", 1920),
+			MaxHeight:   bind.EnvInt("IMAGE_MAX_HEIGHT", 1080),
+			JPEGQuality: bind.EnvInt("IMAGE_JPEG_QUALITY", 75),
+		},
 		Cache: Cache{
 			UserStoreSyncTimeout:   bind.EnvDuration("CACHE_USER_SYNC_TIMEOUT", 30*time.Second),
 			ServerStoreSyncTimeout: bind.EnvDuration("CACHE_SERVER_SYNC_TIMEOUT", 30*time.Second),
@@ -104,6 +127,13 @@ func Init() *Config {
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),
+		},
+		S3: S3{
+			Endpoint:        bind.EnvString("S3_ENDPOINT", "localhost:9000"),
+			AccessKeyID:     bind.EnvString("S3_ACCESS_KEY_ID", "user"),
+			SecretAccessKey: bind.EnvString("S3_SECRET_ACCESS_KEY", "password"),
+			Bucket:          bind.EnvString("S3_BUCKET", "chattery"),
+			UseSSL:          bind.EnvBool("S3_USE_SSL", false),
 		},
 	}
 }

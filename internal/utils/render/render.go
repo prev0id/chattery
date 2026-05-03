@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"chattery/internal/api/websocket/event_desc"
+	"chattery/internal/domain"
 	"chattery/internal/utils/errutil"
 	"chattery/internal/utils/logger"
 )
@@ -98,4 +99,8 @@ func Event(eventType event_desc.Type, channel event_desc.Channel, payload any) (
 		return nil, errutil.E(err).Debug("JSONBytes", "event")
 	}
 	return renderedEvent, nil
+}
+
+func AvatarURL(username domain.Username) string {
+	return "/v1/image/" + username.String() + ".jpeg"
 }

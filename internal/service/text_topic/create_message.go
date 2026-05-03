@@ -99,7 +99,7 @@ func (s *Service) getUserInfo(userID domain.UserID) event_desc.UserInfo {
 
 	return event_desc.UserInfo{
 		Username: user.Username.String(),
-		Avatar:   "/v1/image/" + user.Username.String() + ".png",
+		Avatar:   render.AvatarURL(user.Username),
 		ID:       user.ID.I64(),
 	}
 }

@@ -31,6 +31,20 @@ func EnvInt(envName string, defaultValue int) int {
 	return value
 }
 
+func EnvInt64(envName string, defaultValue int64) int64 {
+	fromEnv := os.Getenv(envName)
+	if fromEnv == "" {
+		return defaultValue
+	}
+
+	value, err := strconv.ParseInt(fromEnv, 10, 64)
+	if err != nil {
+		return defaultValue
+	}
+
+	return value
+}
+
 func EnvDuration(envName string, defaultValue time.Duration) time.Duration {
 	fromEnv := os.Getenv(envName)
 	if fromEnv == "" {

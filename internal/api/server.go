@@ -43,7 +43,7 @@ func NewServer(cfg *config.Config) *Server {
 	}
 	server.mux = chi.NewRouter()
 	server.mux.Use(
-		middleware.RequestSize(2*MiB),
+		middleware.RequestSize(cfg.Image.MaxFileSize+MiB),
 		httplog.RequestLogger(slog.Default(), nil),
 		middleware.RequestID,
 		middleware.StripSlashes,
