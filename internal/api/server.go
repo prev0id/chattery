@@ -48,7 +48,7 @@ func NewServer(cfg *config.Config) *Server {
 		middleware.RequestID,
 		middleware.StripSlashes,
 		middleware.Recoverer,
-		middleware.Heartbeat("/ping"),
+		middleware.Heartbeat("/health"),
 	)
 	server.mux.NotFound(redirectUnknownPath)
 
