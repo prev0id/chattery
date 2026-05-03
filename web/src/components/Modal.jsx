@@ -10,7 +10,10 @@ export default function Modal(props) {
       <div class="flex justify-between items-center">
         <h1 class="text-2xl font-semibold tracking-wider">{props.name}</h1>
         <button
-          onclick={() => document.getElementById(props.id).hidePopover()}
+          popovertarget={props.id}
+          popovertargetaction="hide"
+          type="button"
+          aria-label="Close modal"
           class="flex items-center justify-center rounded-full p-1 hover:bg-red-600 hover:text-white"
         >
           <X class="size-5"></X>

@@ -5,17 +5,17 @@ import VoiceTopicGrid from "~/components/VoiceTopicGrid";
 import VoiceTopicMenu from "~/components/VoiceTopicMenu";
 import VoiceTopicSettingsModal from "~/components/VoiceTopicSettingsModal";
 import VoiceTopicStatus from "~/components/VoiceTopicStatus";
+import { useServerContext } from "~/features/server/context";
 import { userData } from "~/stores/auth";
-import { UseServerContext } from "~/stores/server";
 import { createCallMedia, createVoiceCall } from "~/stores/voice_topic";
 
-const settingsModalID = "voice_topic_call_settings";
+const SETTINGS_MODAL_ID = "voice_topic_call_settings";
 
-export default function VoiceTopic() {
-  const { currentServer, currentTopic } = UseServerContext();
+export default function ServerVoiceTopicPage() {
+  const { currentServer, currentTopic } = useServerContext();
   const media = createCallMedia();
   const call = createVoiceCall({
-    topicID: () => currentTopic()?.id,
+    topicId: () => currentTopic()?.id,
     media,
     currentUser: userData,
   });
@@ -41,8 +41,8 @@ export default function VoiceTopic() {
           setVolume={setVolume}
         />
       </div>
-      <VoiceTopicMenu media={media} settingsModalID={settingsModalID} />
-      <VoiceTopicSettingsModal media={media} id={settingsModalID} />
+      <VoiceTopicMenu media={media} settingsModalID={SETTINGS_MODAL_ID} />
+      <VoiceTopicSettingsModal media={media} id={SETTINGS_MODAL_ID} />
     </>
   );
 }

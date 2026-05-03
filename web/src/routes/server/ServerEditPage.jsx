@@ -1,19 +1,21 @@
+import { useAction, useSubmission } from "@solidjs/router";
 import { Check, Trash2 } from "lucide-solid";
+import { For, Show } from "solid-js";
 import Button from "~/components/Button";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { UseServerContext } from "~/stores/server";
 import {
-  updateServerAction,
   addTopicAction,
-  updateTopicAction,
-  deleteTopicAction,
   deleteServerAction,
-} from "~/lib/edit_server";
-import { useAction, useSubmission } from "@solidjs/router";
+  deleteTopicAction,
+  updateServerAction,
+  updateTopicAction,
+} from "~/features/server/actions";
+import { SERVER_TOPIC_TYPE } from "~/features/server/constants";
+import { useServerContext } from "~/features/server/context";
 
-export default function Edit() {
-  const { currentServer } = UseServerContext();
+export default function ServerEditPage() {
+  const { currentServer } = useServerContext();
 
   const serverName = () => currentServer()?.name;
 
@@ -35,7 +37,7 @@ export default function Edit() {
         <Show when={currentServer()?.topics?.length > 0}>
           <SectionSeparator />
           <SectionHeader>Update topics</SectionHeader>
-          <For each={currentServer()?.topics} key={(topic) => topic.id}>
+          <For each={currentServer()?.topics}>
             {(topic) => <UpdateTopicForm topic={topic} />}
           </For>
         </Show>
@@ -64,7 +66,7 @@ function SectionSeparator() {
 
 function UpdateServerForm(props) {
   const serverName = () => props.server()?.name;
-  const serverID = () => props.server()?.id;
+  const serverId = () => props.server()?.id;
 
   const submission = useSubmission(updateServerAction);
 
@@ -78,7 +80,7 @@ function UpdateServerForm(props) {
   return (
     <>
       <form
-        action={updateServerAction.with(serverID(), serverName())}
+        action={updateServerAction.with(serverId(), serverName())}
         class="flex gap-2"
         method="post"
       >
@@ -99,7 +101,7 @@ function UpdateServerForm(props) {
 }
 
 function AddTopicForm(props) {
-  const serverID = () => props.server()?.id;
+  const serverId = () => props.server()?.id;
 
   const submission = useSubmission(addTopicAction);
 
@@ -113,7 +115,7 @@ function AddTopicForm(props) {
   return (
     <>
       <form
-        action={addTopicAction.with(serverID())}
+        action={addTopicAction.with(serverId())}
         class="flex gap-2"
         method="post"
       >
@@ -121,8 +123,8 @@ function AddTopicForm(props) {
           class="rounded-lg neo-shadow border-2 px-2 text-center tracking-wider"
           name="type"
         >
-          <option value="text">Text</option>
-          <option value="voice">Voice</option>
+          <option value={SERVER_TOPIC_TYPE.text}>Text</option>
+          <option value={SERVER_TOPIC_TYPE.voice}>Voice</option>
         </select>
         <input
           class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
@@ -141,14 +143,14 @@ function AddTopicForm(props) {
 
 function UpdateTopicForm(props) {
   const update = useAction(updateTopicAction);
-  const del = useAction(deleteTopicAction);
+  const deleteTopic = useAction(deleteTopicAction);
 
   const updateSubmission = useSubmission(updateTopicAction);
   const deleteSubmission = useSubmission(deleteTopicAction);
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     await update(props.topic.id, formData);
   };
 
@@ -180,8 +182,8 @@ function UpdateTopicForm(props) {
         <div
           class="rounded-lg neo-shadow border-2 px-2 text-center tracking-wider w-16 flex items-center justify-center"
           classList={{
-            "bg-sky-200": props.topic.type === "text",
-            "bg-amber-200": props.topic.type === "voice",
+            "bg-sky-200": props.topic.type === SERVER_TOPIC_TYPE.text,
+            "bg-amber-200": props.topic.type === SERVER_TOPIC_TYPE.voice,
           }}
         >
           {props.topic.type}
@@ -203,7 +205,7 @@ function UpdateTopicForm(props) {
           type="button"
           variant="rose"
           disabled={deleteSubmission.pending}
-          onClick={() => del(props.topic.id)}
+          onClick={() => deleteTopic(props.topic.id)}
         >
           <Trash2 class="size-5" />
         </Button>

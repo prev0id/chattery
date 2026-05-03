@@ -1,62 +1,90 @@
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { revalidate, useNavigate, useSearchParams } from "@solidjs/router";
 import { LogOut, Search, Settings2, UserPlus } from "lucide-solid";
+import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import Button from "~/components/Button";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { joinServer, leaveServer, searchServers } from "~/lib/api";
-import { GetServers, UseServerContext } from "~/stores/server";
+import { getServersQuery } from "~/features/server/actions";
+import {
+  joinServer,
+  leaveServer,
+  searchServers,
+} from "~/features/server/api";
+import { SERVER_MESSAGES } from "~/features/server/constants";
+import { useServerContext } from "~/features/server/context";
+import { getUserErrorMessage } from "~/shared/api/errors";
+import { routes } from "~/shared/config/routes";
+import { toast } from "~/stores/toast";
 
-export default function Manage() {
+async function searchServersByQuery(query) {
+  if (!query) return [];
+
+  try {
+    return await searchServers(query);
+  } catch (error) {
+    toast.error(getUserErrorMessage(error, SERVER_MESSAGES.searchFailed));
+    return [];
+  }
+}
+
+export default function ServerManagePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { servers } = UseServerContext();
+  const { servers } = useServerContext();
   const [pendingServers, setPendingServers] = createSignal(new Set());
 
   const query = createMemo(() => (searchParams.query || "").trim());
   const isSearching = createMemo(() => query().length > 0);
   const [searchResults, { refetch: refetchSearchResults }] = createResource(
     query,
-    (value) => (value ? searchServers(value) : []),
+    searchServersByQuery,
   );
 
-  const isPending = (serverID) => pendingServers().has(serverID);
+  const isPending = (serverId) => pendingServers().has(serverId);
 
-  const setServerPending = (serverID, pending) => {
+  const setServerPending = (serverId, isPending) => {
     setPendingServers((current) => {
       const next = new Set(current);
-      if (pending) {
-        next.add(serverID);
+      if (isPending) {
+        next.add(serverId);
       } else {
-        next.delete(serverID);
+        next.delete(serverId);
       }
       return next;
     });
   };
 
   const refreshServers = async () => {
-    await revalidate(GetServers.key);
+    await revalidate(getServersQuery.key);
   };
 
-  const handleJoin = async (serverID) => {
-    setServerPending(serverID, true);
-    const result = await joinServer(serverID);
-    if (result) {
+  const handleJoin = async (serverId) => {
+    setServerPending(serverId, true);
+
+    try {
+      await joinServer(serverId);
+      toast.success(SERVER_MESSAGES.joined);
       await refreshServers();
       refetchSearchResults();
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, SERVER_MESSAGES.joinFailed));
+    } finally {
+      setServerPending(serverId, false);
     }
-    setServerPending(serverID, false);
   };
 
-  const handleLeave = async (serverID) => {
-    if (!confirm("Are you sure you want to leave this server?")) return;
+  const handleLeave = async (serverId) => {
+    setServerPending(serverId, true);
 
-    setServerPending(serverID, true);
-    const result = await leaveServer(serverID);
-    if (result) {
+    try {
+      await leaveServer(serverId);
+      toast.success(SERVER_MESSAGES.left);
       await refreshServers();
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, SERVER_MESSAGES.leaveFailed));
+    } finally {
+      setServerPending(serverId, false);
     }
-    setServerPending(serverID, false);
   };
 
   return (
@@ -81,7 +109,7 @@ export default function Manage() {
                 <MyServerActions
                   server={server}
                   isPending={isPending(server.id)}
-                  onEdit={() => navigate(`/server/${server.id}/edit`)}
+                  onEdit={() => navigate(routes.server.edit(server.id))}
                   onLeave={() => handleLeave(server.id)}
                 />
               )}

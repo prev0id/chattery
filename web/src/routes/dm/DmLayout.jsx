@@ -7,7 +7,6 @@ import {
   onCleanup,
 } from "solid-js";
 import Button from "~/components/Button";
-import Sidebar from "~/components/Sidebar";
 import Toasts from "~/components/Toast";
 import DmSidebarItem from "~/features/dm/components/DmSidebarItem";
 import { getDms } from "~/features/dm/api";
@@ -18,6 +17,7 @@ import { WSChannelType } from "~/lib/ws";
 import { routes } from "~/shared/config/routes";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { parseRouteId } from "~/shared/lib/route";
+import AppSidebar from "~/shared/ui/AppSidebar";
 import { userData } from "~/stores/auth";
 import { toast } from "~/stores/toast";
 import { appWebSocket } from "~/stores/websocket";
@@ -94,7 +94,7 @@ export default function DmLayout(props) {
 
   return (
     <>
-      <Sidebar fallback="Loading DMs...">
+      <AppSidebar fallback="Loading DMs...">
         <Button
           variant="amber"
           class="mx-4"
@@ -103,7 +103,7 @@ export default function DmLayout(props) {
           Search users
         </Button>
         <For each={dms()}>{(dm) => <DmSidebarItem dm={dm} />}</For>
-      </Sidebar>
+      </AppSidebar>
       <main class="flex-1 flex flex-col h-full">
         <DmContext.Provider
           value={{

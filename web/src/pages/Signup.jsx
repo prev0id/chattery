@@ -3,6 +3,9 @@ import Toasts from "../components/Toast";
 import { toast } from "../stores/toast";
 import FormTextInput from "../components/FormTextInput";
 import Button from "../components/Button";
+import { createUser } from "~/features/auth/api";
+import { AUTH_MESSAGES } from "~/features/auth/constants";
+import { getUserErrorMessage } from "~/shared/api/errors";
 
 export default function Signup() {
   const [username, setUsername] = createSignal("");
@@ -18,31 +21,20 @@ export default function Signup() {
     setIsLoading(true);
 
     if (password() !== repeatPassword()) {
-      toast.error("Passwords do not match");
+      toast.error(AUTH_MESSAGES.passwordMismatch);
       setIsLoading(false);
       return;
     }
 
     try {
-      const res = await fetch("/v1/user/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username(),
-          login: login(),
-          password: password(),
-        }),
+      await createUser({
+        username: username(),
+        login: login(),
+        password: password(),
       });
-
-      if (res.ok) {
-        window.location.href = "/app";
-        return;
-      }
-
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Something went wrong");
-    } catch (err) {
-      toast.error("Network error – please check your connection");
+      window.location.href = "/app";
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, AUTH_MESSAGES.signupFailed));
     } finally {
       setIsLoading(false);
     }

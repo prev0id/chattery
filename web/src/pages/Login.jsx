@@ -3,6 +3,9 @@ import Toasts from "../components/Toast";
 import { toast } from "../stores/toast";
 import FormTextInput from "../components/FormTextInput";
 import Button from "../components/Button";
+import { loginUser } from "~/features/auth/api";
+import { AUTH_MESSAGES } from "~/features/auth/constants";
+import { getUserErrorMessage } from "~/shared/api/errors";
 
 export default function Login() {
   const [login, setLogin] = createSignal("");
@@ -15,24 +18,13 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/v1/user/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          login: login(),
-          password: password(),
-        }),
+      await loginUser({
+        login: login(),
+        password: password(),
       });
-
-      if (res.ok) {
-        window.location.href = "/app/dm";
-        return;
-      }
-
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Something went wrong");
-    } catch (err) {
-      toast.error("Network error – please check your connection");
+      window.location.href = "/app/dm";
+    } catch (error) {
+      toast.error(getUserErrorMessage(error, AUTH_MESSAGES.loginFailed));
     } finally {
       setIsLoading(false);
     }

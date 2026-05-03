@@ -3,13 +3,13 @@ import { Router, Route } from "@solidjs/router";
 import { createEffect, onCleanup } from "solid-js";
 
 import "./index.css";
-import ServerWrapper from "./routes/server/Wrapper";
-import TextTopic from "./routes/server/TextTopic";
-import SelectServer from "./routes/server/Select";
-import VoiceTopic from "./routes/server/VoiceTopic";
-import EditServer from "./routes/server/Edit";
-import ManageServer from "./routes/server/Manage";
-import CreateServer from "./routes/server/Create";
+import ServerLayout from "./routes/server/ServerLayout";
+import ServerTextTopicPage from "./routes/server/ServerTextTopicPage";
+import ServerSelectPage from "./routes/server/ServerSelectPage";
+import ServerVoiceTopicPage from "./routes/server/ServerVoiceTopicPage";
+import ServerEditPage from "./routes/server/ServerEditPage";
+import ServerManagePage from "./routes/server/ServerManagePage";
+import ServerCreatePage from "./routes/server/ServerCreatePage";
 
 import DmLayout from "./routes/dm/DmLayout";
 import DmSelectPage from "./routes/dm/DmSelectPage";
@@ -22,8 +22,8 @@ import { appWebSocket } from "./stores/websocket";
 
 const filters = {
   dmId: /^\d+$/,
-  serverID: /^\d+$/,
-  topicID: /^\d+$/,
+  serverId: /^\d+$/,
+  topicId: /^\d+$/,
 };
 
 function GlobalDMNotifications() {
@@ -55,23 +55,23 @@ render(
           <Route path="/search" component={DmSearchPage} />
           <Route path="/:dmId" component={DmChatPage} matchFilters={filters} />
         </Route>
-        <Route path="/server" component={ServerWrapper}>
-          <Route path="/" component={SelectServer} />
-          <Route path="/create" component={CreateServer} />
-          <Route path="/manage" component={ManageServer} />
+        <Route path="/server" component={ServerLayout}>
+          <Route path="/" component={ServerSelectPage} />
+          <Route path="/create" component={ServerCreatePage} />
+          <Route path="/manage" component={ServerManagePage} />
           <Route
-            path="/:serverID/text/:topicID"
-            component={TextTopic}
+            path="/:serverId/text/:topicId"
+            component={ServerTextTopicPage}
             matchFilters={filters}
           />
           <Route
-            path="/:serverID/voice/:topicID"
-            component={VoiceTopic}
+            path="/:serverId/voice/:topicId"
+            component={ServerVoiceTopicPage}
             matchFilters={filters}
           />
           <Route
-            path="/:serverID/edit"
-            component={EditServer}
+            path="/:serverId/edit"
+            component={ServerEditPage}
             matchFilters={filters}
           />
         </Route>

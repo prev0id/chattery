@@ -1,8 +1,18 @@
 import { userData } from "../stores/auth";
 import Modal from "./Modal";
 import ProfilePicture from "./ProfilePicture";
+import { createSignal } from "solid-js";
 
 export function ProfileSettingsModal(props) {
+  const [showPassword, setShowPassword] = createSignal(false);
+
+  let avatarFormRef;
+  let avatarInputRef;
+
+  const handleAvatarInput = () => {
+    avatarFormRef?.submit();
+  };
+
   return (
     <Modal id={props.id} name="Profile Settings">
       <div class="mt-4">
@@ -16,23 +26,26 @@ export function ProfileSettingsModal(props) {
 
           <div class="flex-1 space-y-3">
             <form
+              ref={avatarFormRef}
               id="avatar-upload-form"
               enctype="multipart/form-data"
               class="flex items-center"
             >
-              <label
-                onclick="document.getElementById('avatar-file-input').click()"
+              <button
+                type="button"
+                onClick={() => avatarInputRef?.click()}
                 class="cursor-pointer px-6 py-2 text-lg font-semibold text-center border-2 neo-shadow rounded-lg bg-emerald-200 hover:bg-emerald-500 focus:outline-none focus:border-emerald-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider flex-1"
               >
                 Upload new avatar
-              </label>
+              </button>
               <input
+                ref={avatarInputRef}
                 type="file"
                 id="avatar-file-input"
                 name="avatar"
                 accept="image/*"
                 class="hidden"
-                onchange="document.getElementById('avatar-upload-form').submit()"
+                onChange={handleAvatarInput}
               />
             </form>
 
@@ -43,7 +56,6 @@ export function ProfileSettingsModal(props) {
             >
               <button
                 type="submit"
-                onclick="return confirm('Delete your current avatar?');"
                 class="w-full px-6 py-2 text-lg font-semibold text-center border-2 neo-shadow rounded-lg bg-red-200 hover:bg-red-500 focus:outline-none focus:border-red-500 hover:scale-105 transition-all duration-300 ease-in-out tracking-wider"
               >
                 Delete avatar
@@ -107,14 +119,14 @@ export function ProfileSettingsModal(props) {
               class="px-2 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
               id="new-password"
               name="newPassword"
-              type="password"
+              type={showPassword() ? "text" : "password"}
             />
             <button
               type="button"
-              onclick="togglePasswordVisibility(this)"
+              onClick={() => setShowPassword((current) => !current)}
               class="block ml-auto mt-1 px-2 border-2 neo-shadow rounded-lg bg-amber-200 hover:bg-amber-500 focus:outline-none focus:border-amber-500 hover:scale-105 transition-all duration-300 ease-in-out"
             >
-              Show
+              {showPassword() ? "Hide" : "Show"}
             </button>
           </div>
 

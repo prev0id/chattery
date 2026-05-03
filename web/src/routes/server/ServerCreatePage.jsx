@@ -1,10 +1,10 @@
+import { useSubmission } from "@solidjs/router";
 import Button from "~/components/Button";
 import Header from "~/components/Header";
 import HeaderItem from "~/components/HeaderItem";
-import { useSubmission } from "@solidjs/router";
-import { createServerAction } from "~/lib/create_server";
+import { createServerAction } from "~/features/server/actions";
 
-export default function Create() {
+export default function ServerCreatePage() {
   return (
     <>
       <Header icon="settings">

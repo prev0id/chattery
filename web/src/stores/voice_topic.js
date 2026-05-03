@@ -408,8 +408,8 @@ export function createVoiceCall(props) {
   let iceFlushTimer = null;
   let negotiationQueue = Promise.resolve();
 
-  function topicID() {
-    const value = props.topicID?.();
+  function topicId() {
+    const value = props.topicId?.();
     return value ? Number(value) : 0;
   }
 
@@ -726,7 +726,7 @@ export function createVoiceCall(props) {
   }
 
   async function start() {
-    const id = topicID();
+    const id = topicId();
     if (!id) return;
 
     stop();
@@ -775,7 +775,7 @@ export function createVoiceCall(props) {
   });
 
   createEffect(() => {
-    const id = topicID();
+    const id = topicId();
     if (!id) return;
     untrack(() => {
       start();

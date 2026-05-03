@@ -1,17 +1,21 @@
-import { Index, createMemo } from "solid-js";
 import { A } from "@solidjs/router";
+import { createMemo, For, Show } from "solid-js";
 import { Mic, MessagesSquare } from "lucide-solid";
-import { TopicTypeText, TopicTypeVoice } from "./Chat";
+import { SERVER_TOPIC_TYPE } from "~/features/server/constants";
+import { routes } from "~/shared/config/routes";
 
-export default function SidebarServer(props) {
-  const topics = createMemo(() => props.server().topics || []);
+/**
+ * @param {{server: import("~/features/server/model").Server, selectedServerId: number}} props
+ */
+export default function ServerSidebarItem(props) {
+  const topics = createMemo(() => props.server.topics || []);
 
   const textTopics = createMemo(() =>
-    topics().filter((topic) => topic.type === TopicTypeText),
+    topics().filter((topic) => topic.type === SERVER_TOPIC_TYPE.text),
   );
 
   const voiceTopics = createMemo(() =>
-    topics().filter((topic) => topic.type === TopicTypeVoice),
+    topics().filter((topic) => topic.type === SERVER_TOPIC_TYPE.voice),
   );
 
   return (
@@ -19,35 +23,35 @@ export default function SidebarServer(props) {
       <summary
         class="px-2 flex justify-between items-center rounded-lg border-2 transition-all duration-300 ease-in-out cursor-pointer hover:bg-emerald-200 hover:border-black border-white focus:outline-none focus:border-black"
         classList={{
-          "bg-emerald-200": props.server().id === props.selectedServerID,
+          "bg-emerald-200": props.server.id === props.selectedServerId,
         }}
       >
-        <h2 class="text-lg font-semibold">{props.server().name}</h2>
+        <h2 class="text-lg font-semibold">{props.server.name}</h2>
       </summary>
-      {textTopics().length > 0 && voiceTopics().length > 0 && (
+      <Show when={textTopics().length > 0 && voiceTopics().length > 0}>
         <hr class="mt-1" />
-      )}
-      <Index each={textTopics()}>
+      </Show>
+      <For each={textTopics()}>
         {(topic) => (
-          <SidebarTopic
-            href={`/server/${props.server().id}/${topic().type}/${topic().id}`}
-          >
+          <SidebarTopic href={routes.server.textTopic(props.server.id, topic.id)}>
             <MessagesSquare class="size-5" />
-            <p>{topic().name}</p>
+            <p>{topic.name}</p>
           </SidebarTopic>
         )}
-      </Index>
-      {textTopics().length > 0 && voiceTopics().length > 0 && <hr />}
-      <Index each={voiceTopics()}>
+      </For>
+      <Show when={textTopics().length > 0 && voiceTopics().length > 0}>
+        <hr />
+      </Show>
+      <For each={voiceTopics()}>
         {(topic) => (
           <SidebarTopic
-            href={`/server/${props.server().id}/${topic().type}/${topic().id}`}
+            href={routes.server.voiceTopic(props.server.id, topic.id)}
           >
             <Mic class="size-5" />
-            <p>{topic().name}</p>
+            <p>{topic.name}</p>
           </SidebarTopic>
         )}
-      </Index>
+      </For>
     </details>
   );
 }

@@ -1,22 +1,18 @@
 import { createResource } from "solid-js";
+import { getCurrentUser } from "~/features/auth/api";
+import { AUTH_MESSAGES } from "~/features/auth/constants";
+import { AuthRequiredError, getUserErrorMessage } from "~/shared/api/errors";
 import { toast } from "./toast";
 
 async function fetchUserData() {
   try {
-    const res = await fetch("/v1/user/me");
-    if (res.status === 401) {
+    return await getCurrentUser();
+  } catch (error) {
+    if (error instanceof AuthRequiredError) {
       window.location.href = "/login";
       return null;
     }
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Failed to load user data");
-      return null;
-    }
-    const data = await res.json();
-    return data.me;
-  } catch (err) {
-    toast.error("Network error – please check your connection");
+    toast.error(getUserErrorMessage(error, AUTH_MESSAGES.meFailed));
     return null;
   }
 }
