@@ -8,10 +8,10 @@
 
 Список задач, по которому можно отслеживать прогресс проекта.
 
-**Прогресс**: 84/108 (~78%)
+**Прогресс**: 98/108 (~91%)
 Задач всего: 108
-Выполнено: 84
-Осталось: 24
+Выполнено: 98
+Осталось: 10
 
 ### Infra (4/9 ~44%)
 Задачи, связанные с инфраструктурой сервиса, деплоем и локальной разработкой.
@@ -27,7 +27,7 @@
     - [ ] Redis
     - [ ] Server
 
-### Backend (39/51 ~76%)
+### Backend (49/51 ~96%)
 Задачи на серверную часть проекта.
 1. (13/13) User service
     - [x] Миграция БД
@@ -64,7 +64,7 @@
     - [x] CRUD топиков
     - [x] Сообщения в текстовых топиках
     - [x] Интеграция с Hub (WebSocket)
-4. (7/13) WebSocket Hub (realtime сообщения + будущий signaling)
+4. (12/13) WebSocket Hub (realtime сообщения + signaling)
     - [x] WebSocket endpoint `/ws/`
     - [x] Ping/pong heartbeat
     - [x] Redis pub/sub доставка событий пользователю
@@ -72,21 +72,21 @@
     - [x] Leave канала
     - [x] Broadcast сообщений участникам DM/text topic
     - [x] Глобальная доставка DM-событий пользователю для live sidebar/notifications
-    - [ ] Join канала voice topic с проверкой доступа
+    - [x] Join канала voice topic с проверкой доступа
     - [ ] Call events (start/end/join/leave)
-    - [ ] WebRTC signaling (offer, answer, ice candidates)
-    - [ ] Call room management для voice топиков
-    - [ ] Нотификация дисконекта участников звонка
-    - [ ] Broadcast участникам звонка
-5. (0/6) Voice Topic Service
+    - [x] WebRTC signaling (offer, answer, ice candidates)
+    - [x] Call room management для voice топиков
+    - [x] Нотификация дисконекта участников звонка
+    - [x] Broadcast участникам звонка
+5. (5/6) Voice Topic Service
     - [ ] Domain: Call, CallParticipant структуры
-    - [ ] Redis: хранение активных звонков
-    - [ ] Создание/удаление комнаты звонка
-    - [ ] Вход/выход участников
-    - [ ] Signaling: обработка offer/answer
-    - [ ] Signaling: обработка ICE candidates
+    - [x] Redis: хранение активных звонков
+    - [x] Создание/удаление комнаты звонка
+    - [x] Вход/выход участников
+    - [x] Signaling: обработка offer/answer
+    - [x] Signaling: обработка ICE candidates
 
-### Frontend (41/48 ~85%)
+### Frontend (45/48 ~94%)
 Задачи на клиентскую часть проекта (SolidJS).
 1. (4/4) Общее
     - [x] Vite + SolidJS зависимость
@@ -130,22 +130,22 @@
     - [x] JS: авто-прокрутка к новым сообщениям
     - [x] JS: догрузка старых сообщений по cursor при скролле вверх
     - [x] JS: live preview/unread для DM и toast-нотификации входящих сообщений
-5. (6/10) Звонки
+5. (10/10) Звонки
     - [x] Media hook для локальных устройств
     - [x] Поддержка микрофона
     - [x] Поддержка камеры
     - [x] Поддержка трансляции экрана
     - [x] UI: кнопки звонка и настройки устройств
     - [x] UI: локальный preview stream
-    - [ ] WebRTC peer/signaling hook
-    - [ ] UI: отображение удаленных участников
-    - [ ] Интеграция с signaling WebSocket
-    - [ ] Call UI подключает пользователя к backend-комнате voice topic
+    - [x] WebRTC peer/signaling hook
+    - [x] UI: отображение удаленных участников
+    - [x] Интеграция с signaling WebSocket
+    - [x] Call UI подключает пользователя к backend-комнате voice topic
 
 ### To fix
 - [x] sort services, topics, dms
 - [ ] Подключить profile settings modal к реальным `/v1/user/*` endpoint'ам вместо неподключенных HTML form handlers
-- [ ] Дописать закомментированный `internal/service/voice_topic`
+- [x] Дописать закомментированный `internal/service/voice_topic`
 - [ ] Добавить e2e/unit тесты для сервисов и API handlers
 - [ ] перенести toast в entry
 
