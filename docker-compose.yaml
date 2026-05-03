@@ -1,16 +1,12 @@
 services:
   migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: chattery:${APP_VERSION:-production}
+    image: ghcr.io/kukymbr/goose-docker:3.27.0
     restart: "no"
     environment:
-      GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: ${POSTGRES_URL:?}
-    entrypoint: ["/app/goose"]
-    command: ["-dir", "/app/migrations", "up"]
-
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=${POSTGRES_URL:?}
+    volumes:
+      - ./migrations:/migrations
   app:
     build:
       context: .
@@ -25,11 +21,11 @@ services:
       REDIS_ADDRESS: ${REDIS_ADDRESS:?}
       REDIS_USERNAME: ${REDIS_USERNAME:?}
       REDIS_PASSWORD: ${REDIS_PASSWORD:?}
-      S3_ENDPOINT: ${S3_ENDPOINT:-minio:9000}
+      S3_ENDPOINT: ${S3_ENDPOINT:?}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_USE_SSL: ${S3_USE_SSL}
+      S3_BUCKET: ${S3_BUCKET?}
+      S3_USE_SSL: ${S3_USE_SSL?}
       SESSION_KEY: ${SESSION_KEY:?}
       SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
       SESSION_EXPIRATION: ${SESSION_EXPIRATION}
