@@ -2,7 +2,7 @@ MIGRATIONS_PATH=migrations
 E2E_MIGRATIONS_PATH=e2e/migrations
 POSTGRES_STRING=postgresql://user:password@localhost:5432/chattery?sslmode=disable
 DOCKER_COMPOSE_BIN=docker-compose
-LOCAL_COMPOSE_FILE=docker-compose.local.yml
+LOCAL_COMPOSE_FILE=docker-compose.local.yaml
 
 .PHONY: run
 run:
