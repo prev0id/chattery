@@ -58,7 +58,7 @@ func (a *Adapter) UserByID(ctx context.Context, userID domain.UserID) (*domain.U
 func (a *Adapter) CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error) {
 	req := &postgres.CreateUserParams{
 		Login:    user.Login.String(),
-		Password: user.Password,
+		Password: user.Password.Hashed(),
 		Username: user.Username.String(),
 	}
 	id, err := a.db.Query(ctx).CreateUser(ctx, req)
@@ -83,7 +83,7 @@ func (a *Adapter) UpdateUser(ctx context.Context, updated *domain.User) error {
 	req := &postgres.UpdateUserParams{
 		ID:       updated.ID.I64(),
 		Login:    updated.Login.String(),
-		Password: updated.Password,
+		Password: updated.Password.Hashed(),
 		Username: updated.Username.String(),
 		AvatarID: updated.AvatarID.String(),
 	}

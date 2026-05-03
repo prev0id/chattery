@@ -11,6 +11,6 @@ func convertUserFromDB(user *postgres.User) *domain.User {
 		Username: domain.Username(user.Username),
 		AvatarID: domain.ImageID(user.AvatarID),
 		Login:    domain.Email(user.Login),
-		Password: user.Password,
+		Password: domain.NewHashedPassword(user.Password),
 	}
 }

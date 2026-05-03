@@ -15,3 +15,7 @@ func (i ImageID) String() string { return string(i) }
 type Username string
 
 func (u Username) String() string { return string(u) }
+
+type Email string
+
+func (u Email) String() string { return string(u) }
