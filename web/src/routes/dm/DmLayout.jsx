@@ -13,6 +13,7 @@ import { getDms } from "~/features/dm/api";
 import { DM_MESSAGES } from "~/features/dm/constants";
 import { DmContext } from "~/features/dm/context";
 import { createDmPreviewFromMessage } from "~/features/dm/model";
+import { normalizeChatMessage } from "~/features/chat/model";
 import { WSChannelType } from "~/lib/ws";
 import { routes } from "~/shared/config/routes";
 import { getUserErrorMessage } from "~/shared/api/errors";
@@ -83,7 +84,7 @@ export default function DmLayout(props) {
 
       const dmId = Number(channel.id);
       const knownDm = dms()?.some((dm) => dm.id === dmId);
-      updateDmPreview(dmId, payload);
+      updateDmPreview(dmId, normalizeChatMessage(payload));
       if (!knownDm) {
         refetchDms();
       }

@@ -7,7 +7,8 @@ import VoiceTopicSettingsModal from "~/features/voice/components/VoiceTopicSetti
 import VoiceTopicStatus from "~/features/voice/components/VoiceTopicStatus";
 import { useServerContext } from "~/features/server/context";
 import { userData } from "~/stores/auth";
-import { createCallMedia, createVoiceCall } from "~/stores/voice_topic";
+import { createVoiceCall } from "~/features/voice/call";
+import { createCallMedia } from "~/features/voice/media";
 
 const SETTINGS_MODAL_ID = "voice_topic_call_settings";
 

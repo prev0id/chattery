@@ -8,11 +8,7 @@ import {
   Show,
   untrack,
 } from "solid-js";
-import {
-  getDmMessages,
-  markDmRead,
-  sendDmMessage,
-} from "~/features/dm/api";
+import { getDmMessages, markDmRead, sendDmMessage } from "~/features/dm/api";
 import { DM_MESSAGES } from "~/features/dm/constants";
 import {
   CHAT_KIND,
@@ -20,10 +16,8 @@ import {
   LOAD_MORE_THRESHOLD_PX,
   SCROLL_BOTTOM_THRESHOLD_PX,
 } from "~/features/chat/constants";
-import {
-  getTopicMessages,
-  sendTopicMessage,
-} from "~/features/server/api";
+import { normalizeChatPage } from "~/features/chat/model";
+import { getTopicMessages, sendTopicMessage } from "~/features/server/api";
 import { SERVER_MESSAGES } from "~/features/server/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { toast } from "~/stores/toast";
@@ -32,7 +26,7 @@ import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 
 /**
- * @param {{chatID: number, type: string, channelType: string, onMessage?: (message: Object) => void}} props
+ * @param {{chatId: number, type: string, channelType: string, onMessage?: (message: Object) => void}} props
  */
 export function Chat(props) {
   const [messages, setMessages] = createSignal([]);
@@ -43,6 +37,7 @@ export function Chat(props) {
 
   let containerRef;
   let bottomRef;
+  let loadRequestId = 0;
 
   const scrollToBottom = (smooth = false) => {
     requestAnimationFrame(() => {
@@ -62,20 +57,20 @@ export function Chat(props) {
     );
   };
 
-  const normalizeMessages = (response) =>
-    response?.messages?.slice().reverse() ?? [];
-
   const loadChatMessages = async (chatId, chatKind) => {
+    const requestId = (loadRequestId += 1);
     setCurrentChat({ id: chatId, kind: chatKind });
     setLoading(true);
 
     try {
-      const response =
+      const rawResponse =
         chatKind === CHAT_KIND.topic
           ? await getTopicMessages(chatId)
           : await getDmMessages(chatId);
+      if (requestId !== loadRequestId) return;
 
-      setMessages(normalizeMessages(response));
+      const response = normalizeChatPage(rawResponse);
+      setMessages(response.messages.slice().reverse());
       setMessagesCursor(response?.cursor ?? null);
 
       scrollToBottom(false);
@@ -86,7 +81,9 @@ export function Chat(props) {
           : DM_MESSAGES.messagesFailed;
       toast.error(getUserErrorMessage(error, fallback));
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestId) {
+        setLoading(false);
+      }
     }
   };
 
@@ -103,12 +100,16 @@ export function Chat(props) {
     setLoading(true);
 
     try {
-      const response =
+      const rawResponse =
         chat.kind === CHAT_KIND.topic
           ? await getTopicMessages(chat.id, cursor)
           : await getDmMessages(chat.id, cursor);
+      if (chat.id !== currentChat()?.id || chat.kind !== currentChat()?.kind) {
+        return;
+      }
 
-      const olderMessages = normalizeMessages(response);
+      const response = normalizeChatPage(rawResponse);
+      const olderMessages = response.messages.slice().reverse();
       if (olderMessages.length > 0) {
         setMessages((prev) => [...olderMessages, ...prev]);
         setMessagesCursor(response?.cursor ?? null);
@@ -160,7 +161,7 @@ export function Chat(props) {
   createEffect(
     on(
       () => {
-        const chatId = props.chatID;
+        const chatId = props.chatId;
         const channelType = props.channelType;
         const chatKind =
           props.type === CHAT_TARGET.dm ? CHAT_KIND.dm : CHAT_KIND.topic;
@@ -169,7 +170,7 @@ export function Chat(props) {
           : "";
       },
       () => {
-        const chatId = untrack(() => props.chatID);
+        const chatId = untrack(() => props.chatId);
         const channelType = untrack(() => props.channelType);
         if (!chatId || !channelType) return;
 
@@ -185,15 +186,17 @@ export function Chat(props) {
           ({ channel: eventChannel, payload }) => {
             if (
               eventChannel?.type !== channel.type ||
-              eventChannel?.id !== channel.id
+              Number(eventChannel?.id) !== channel.id
             ) {
               return;
             }
-            addMessage(payload);
-            props.onMessage?.(payload);
+            const message = normalizeChatPage({ messages: [payload] })
+              .messages[0];
+            addMessage(message);
+            props.onMessage?.(message);
 
-            if (chatKind === CHAT_KIND.dm && payload?.id) {
-              markDmRead(chatId, payload.id).catch((error) => {
+            if (chatKind === CHAT_KIND.dm && message?.id) {
+              markDmRead(chatId, message.id).catch((error) => {
                 toast.error(
                   getUserErrorMessage(error, DM_MESSAGES.markReadFailed),
                 );
@@ -238,7 +241,7 @@ export function Chat(props) {
 
   return (
     <Show
-      when={props.chatID}
+      when={props.chatId}
       fallback={
         <div class="m-auto flex items-center justify-center gap-4">
           <ArrowLeftToLine class="size-10" />

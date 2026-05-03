@@ -1,6 +1,5 @@
 import { createSignal } from "solid-js";
 import Toasts from "~/shared/ui/Toasts";
-import { toast } from "../stores/toast";
 import TextField from "~/shared/ui/TextField";
 import Button from "~/shared/ui/Button";
 import { loginUser } from "~/features/auth/api";
@@ -12,9 +11,11 @@ export default function Login() {
   const [password, setPassword] = createSignal("");
   const [showPassword, setShowPassword] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(false);
+  const [formError, setFormError] = createSignal("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormError("");
     setIsLoading(true);
 
     try {
@@ -24,7 +25,7 @@ export default function Login() {
       });
       window.location.href = "/app/dm";
     } catch (error) {
-      toast.error(getUserErrorMessage(error, AUTH_MESSAGES.loginFailed));
+      setFormError(getUserErrorMessage(error, AUTH_MESSAGES.loginFailed));
     } finally {
       setIsLoading(false);
     }
@@ -79,6 +80,12 @@ export default function Login() {
         >
           Login
         </Button>
+
+        {formError() && (
+          <p class="mb-4 rounded-lg bg-red-200 px-4 py-1 text-red-700">
+            {formError()}
+          </p>
+        )}
 
         <div>
           Don't have an account?{" "}

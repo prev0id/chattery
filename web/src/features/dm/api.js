@@ -4,6 +4,7 @@ import {
   normalizeDmList,
   normalizeUserSearchResults,
 } from "~/features/dm/model";
+import { mapChatCursorToDto } from "~/features/chat/model";
 
 /**
  * Loads direct messages available to the current user.
@@ -44,18 +45,12 @@ export function createDm(participantId) {
  * Loads a page of direct message messages.
  *
  * @param {number} dmId
- * @param {{message_id: number, timestamp: string}=} cursor
+ * @param {import("~/features/chat/model").ChatCursor=} cursor
  * @returns {Promise<{messages: Array, cursor?: Object}>}
  */
 export function getDmMessages(dmId, cursor = null) {
   const body = {
-    cursor: cursor
-      ? {
-          dm_id: dmId,
-          message_id: cursor.message_id,
-          timestamp: cursor.timestamp,
-        }
-      : { dm_id: dmId },
+    cursor: mapChatCursorToDto("dm_id", dmId, cursor),
   };
 
   return apiRequest(API_ENDPOINTS.dm.messages, {

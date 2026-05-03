@@ -14,7 +14,7 @@ export default function DmChatPage() {
         <HeaderItem>{currentDm()?.user?.username}</HeaderItem>
       </Header>
       <Chat
-        chatID={currentDmId()}
+        chatId={currentDmId()}
         type={CHAT_TARGET.dm}
         channelType={WSChannelType.DM}
       />

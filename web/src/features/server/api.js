@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from "~/shared/api/endpoints";
 import { apiRequest } from "~/shared/api/client";
 import { normalizeServerList } from "~/features/server/model";
+import { mapChatCursorToDto } from "~/features/chat/model";
 
 /**
  * Loads servers joined by the current user.
@@ -82,13 +83,7 @@ export function deleteTopic(topicId) {
 
 export function getTopicMessages(topicId, cursor = null) {
   const body = {
-    cursor: cursor
-      ? {
-          topic_id: topicId,
-          message_id: cursor.message_id,
-          timestamp: cursor.timestamp,
-        }
-      : { topic_id: topicId },
+    cursor: mapChatCursorToDto("topic_id", topicId, cursor),
   };
 
   return apiRequest(API_ENDPOINTS.server.topicMessages, {

@@ -15,7 +15,7 @@ export default function ServerTextTopicPage() {
         <HeaderItem>{currentTopic()?.name}</HeaderItem>
       </Header>
       <Chat
-        chatID={currentTopic()?.id}
+        chatId={currentTopic()?.id}
         type={CHAT_TARGET.server}
         channelType={WSChannelType.TextTopic}
       />

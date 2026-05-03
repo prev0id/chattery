@@ -29,7 +29,7 @@ export function normalizeUserSearchResults(payload) {
 
 export function createDmPreviewFromMessage(message) {
   return {
-    date: message?.created_at,
+    date: message?.createdAt,
     content: message?.text ?? "",
   };
 }

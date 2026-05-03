@@ -52,9 +52,13 @@ export default function VoiceTopicStreamPreview(props) {
 
   createEffect(() => {
     if (!videoRef) return;
+    props.onVideoReady?.(videoRef);
+  });
+
+  createEffect(() => {
+    if (!videoRef) return;
     videoRef.volume = props.volume ?? 1;
     videoRef.muted = Boolean(props.muted);
-    props.onVideoReady?.(videoRef);
   });
 
   return (

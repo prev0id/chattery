@@ -17,7 +17,7 @@ export default function ChatMessage(props) {
                 ? "You"
                 : props.message?.sender?.username}
             </div>
-            <div class="text-sm">{props.message?.created_at}</div>
+            <div class="text-sm">{props.message?.createdAt}</div>
           </div>
           <p>{props.message?.text}</p>
         </div>

@@ -1,6 +1,6 @@
 import { useAction, useSubmission } from "@solidjs/router";
 import { Check, Trash2 } from "lucide-solid";
-import { For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import Button from "~/shared/ui/Button";
 import Header from "~/shared/ui/Header";
 import HeaderItem from "~/shared/ui/HeaderItem";
@@ -144,6 +144,7 @@ function AddTopicForm(props) {
 function UpdateTopicForm(props) {
   const update = useAction(updateTopicAction);
   const deleteTopic = useAction(deleteTopicAction);
+  const [isConfirmingDelete, setIsConfirmingDelete] = createSignal(false);
 
   const updateSubmission = useSubmission(updateTopicAction);
   const deleteSubmission = useSubmission(deleteTopicAction);
@@ -205,7 +206,8 @@ function UpdateTopicForm(props) {
           type="button"
           variant="rose"
           disabled={deleteSubmission.pending}
-          onClick={() => deleteTopic(props.topic.id)}
+          onClick={() => setIsConfirmingDelete(true)}
+          aria-label="Delete topic"
         >
           <Trash2 class="size-5" />
         </Button>
@@ -213,12 +215,25 @@ function UpdateTopicForm(props) {
 
       <Error>{updateError()}</Error>
       <Error>{deleteError()}</Error>
+      <ConfirmDialog
+        open={isConfirmingDelete()}
+        title="Delete topic"
+        message={`Delete topic "${props.topic.name}"? This action cannot be undone.`}
+        pending={deleteSubmission.pending}
+        onCancel={() => setIsConfirmingDelete(false)}
+        onConfirm={async () => {
+          await deleteTopic(props.topic.id);
+          setIsConfirmingDelete(false);
+        }}
+      />
     </>
   );
 }
 
 function DeleteServerForm(props) {
+  const deleteServer = useAction(deleteServerAction);
   const submission = useSubmission(deleteServerAction);
+  const [isConfirmingDelete, setIsConfirmingDelete] = createSignal(false);
 
   const deleteError = () => {
     const result = submission.result;
@@ -228,11 +243,58 @@ function DeleteServerForm(props) {
   };
 
   return (
-    <form action={deleteServerAction.with(props.server?.id)} method="post">
-      <Button type="submit" variant="rose" disabled={submission.pending}>
+    <>
+      <Button
+        type="button"
+        variant="rose"
+        disabled={submission.pending}
+        onClick={() => setIsConfirmingDelete(true)}
+      >
         Delete Server
       </Button>
       <Error>{deleteError()}</Error>
-    </form>
+      <ConfirmDialog
+        open={isConfirmingDelete()}
+        title="Delete server"
+        message={`Delete server "${props.server?.name}"? This action cannot be undone.`}
+        pending={submission.pending}
+        onCancel={() => setIsConfirmingDelete(false)}
+        onConfirm={async () => {
+          await deleteServer(props.server?.id);
+          setIsConfirmingDelete(false);
+        }}
+      />
+    </>
+  );
+}
+
+function ConfirmDialog(props) {
+  return (
+    <Show when={props.open}>
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-md rounded-xl border-3 bg-white p-4 neo-shadow-lg">
+          <h2 class="text-xl font-semibold">{props.title}</h2>
+          <p class="mt-2">{props.message}</p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="sky"
+              disabled={props.pending}
+              onClick={props.onCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="rose"
+              disabled={props.pending}
+              onClick={props.onConfirm}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Show>
   );
 }

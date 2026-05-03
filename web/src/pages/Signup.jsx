@@ -1,6 +1,5 @@
 import { createSignal } from "solid-js";
 import Toasts from "~/shared/ui/Toasts";
-import { toast } from "../stores/toast";
 import TextField from "~/shared/ui/TextField";
 import Button from "~/shared/ui/Button";
 import { createUser } from "~/features/auth/api";
@@ -15,13 +14,15 @@ export default function Signup() {
   const [showPassword, setShowPassword] = createSignal(false);
   const [showRepeatPassword, setShowRepeatPassword] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(false);
+  const [formError, setFormError] = createSignal("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormError("");
     setIsLoading(true);
 
     if (password() !== repeatPassword()) {
-      toast.error(AUTH_MESSAGES.passwordMismatch);
+      setFormError(AUTH_MESSAGES.passwordMismatch);
       setIsLoading(false);
       return;
     }
@@ -34,7 +35,7 @@ export default function Signup() {
       });
       window.location.href = "/app";
     } catch (error) {
-      toast.error(getUserErrorMessage(error, AUTH_MESSAGES.signupFailed));
+      setFormError(getUserErrorMessage(error, AUTH_MESSAGES.signupFailed));
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +114,12 @@ export default function Signup() {
         <Button type="submit" variant="sky" disabled={isLoading()} class="mb-4">
           {isLoading() ? "Creating..." : "Sign Up"}
         </Button>
+
+        {formError() && (
+          <p class="mb-4 rounded-lg bg-red-200 px-4 py-1 text-red-700">
+            {formError()}
+          </p>
+        )}
 
         <div>
           Already have an account?{" "}

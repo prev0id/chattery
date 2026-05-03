@@ -5,6 +5,8 @@ import {
   WSEventType,
 } from "~/lib/ws";
 
+const MAX_PENDING_EVENTS = 100;
+
 function parsePayload(payload) {
   if (typeof payload !== "string") return payload;
 
@@ -21,12 +23,17 @@ function sameChannel(left, right) {
   );
 }
 
+function channelKey(channel) {
+  return channel ? `${channel.type}:${Number(channel.id)}` : "";
+}
+
 function createAppWebSocket() {
   const [activeChannel, setActiveChannel] = createSignal(null);
   const eventHandlers = new Set();
   const messageHandlers = new Set();
   const errorHandlers = new Set();
   const pendingEvents = [];
+  const activeChannels = new Map();
 
   let client;
 
@@ -38,22 +45,36 @@ function createAppWebSocket() {
     });
   }
 
-  function sendLeave() {
-    client.sendJson({ type: WSEventType.Leave });
+  function sendLeave(channel) {
+    client.sendJson(
+      channel
+        ? { type: WSEventType.Leave, payload: channel }
+        : { type: WSEventType.Leave },
+    );
+  }
+
+  function syncActiveChannelSignal() {
+    setActiveChannel(activeChannels.values().next().value ?? null);
   }
 
   client = createWebSocketClient(websocketURL, {
     reconnect: true,
     onOpen: () => {
-      sendJoin(activeChannel());
+      activeChannels.forEach((channel) => sendJoin(channel));
       while (pendingEvents.length > 0) {
         client.sendJson(pendingEvents.shift());
       }
     },
-    onBeforeDisconnect: sendLeave,
+    onBeforeDisconnect: () => {
+      activeChannels.forEach((channel) => sendLeave(channel));
+    },
     onMessage: (event) => {
       if (!event || typeof event !== "object") return;
-      eventHandlers.forEach((handler) => handler(event));
+      eventHandlers.forEach((handler) => {
+        Promise.resolve(handler(event)).catch((error) => {
+          errorHandlers.forEach((errorHandler) => errorHandler(error));
+        });
+      });
 
       if (event.type === WSEventType.Ping) {
         client.sendJson({ type: WSEventType.Pong });
@@ -86,23 +107,19 @@ function createAppWebSocket() {
 
   function join(channel) {
     connect();
-    const previous = untrack(activeChannel);
-    if (sameChannel(previous, channel)) return;
+    const key = channelKey(channel);
+    if (!key || activeChannels.has(key)) return;
 
-    if (previous && untrack(client.status) === "open") {
-      sendLeave();
-    }
-
-    setActiveChannel(channel);
-
+    activeChannels.set(key, channel);
+    syncActiveChannelSignal();
     if (untrack(client.status) === "open") {
       sendJoin(channel);
     }
   }
 
   function leave(channel) {
-    const current = untrack(activeChannel);
-    if (!sameChannel(current, channel)) return;
+    const key = channelKey(channel);
+    if (!key || !activeChannels.has(key)) return;
 
     for (let i = pendingEvents.length - 1; i >= 0; i -= 1) {
       if (sameChannel(pendingEvents[i]?.channel, channel)) {
@@ -110,10 +127,11 @@ function createAppWebSocket() {
       }
     }
 
+    activeChannels.delete(key);
     if (untrack(client.status) === "open") {
-      sendLeave();
+      sendLeave(channel);
     }
-    setActiveChannel(null);
+    syncActiveChannelSignal();
   }
 
   function subscribeMessage(handler) {
@@ -130,6 +148,9 @@ function createAppWebSocket() {
     };
 
     if (untrack(client.status) !== "open") {
+      if (pendingEvents.length >= MAX_PENDING_EVENTS) {
+        pendingEvents.shift();
+      }
       pendingEvents.push(event);
       return;
     }
