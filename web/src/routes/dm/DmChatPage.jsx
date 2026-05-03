@@ -1,6 +1,6 @@
 import { Chat } from "~/features/chat/components/Chat";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
 import { CHAT_TARGET } from "~/features/chat/constants";
 import { useDmContext } from "~/features/dm/context";
 import { WSChannelType } from "~/lib/ws";

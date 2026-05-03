@@ -1,7 +1,8 @@
 import { createUniqueId, Show } from "solid-js";
 
-export default function FormTextInput(props) {
+export default function TextField(props) {
   const id = props.id ?? createUniqueId();
+
   return (
     <>
       <Show when={props.label}>
@@ -14,7 +15,7 @@ export default function FormTextInput(props) {
         id={id}
         type={props.type ?? "text"}
         value={props.value()}
-        onInput={(event) => props.onInput(event)}
+        onInput={props.onInput}
         required={props.required}
         autocomplete={props.autocomplete}
       />

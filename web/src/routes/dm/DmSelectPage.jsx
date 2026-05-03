@@ -1,6 +1,6 @@
 import { ArrowLeftToLine } from "lucide-solid";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
 
 export default function DmSelectPage() {
   return (

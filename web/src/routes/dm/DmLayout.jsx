@@ -6,8 +6,8 @@ import {
   For,
   onCleanup,
 } from "solid-js";
-import Button from "~/components/Button";
-import Toasts from "~/components/Toast";
+import Button from "~/shared/ui/Button";
+import Toasts from "~/shared/ui/Toasts";
 import DmSidebarItem from "~/features/dm/components/DmSidebarItem";
 import { getDms } from "~/features/dm/api";
 import { DM_MESSAGES } from "~/features/dm/constants";

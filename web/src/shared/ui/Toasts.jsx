@@ -1,7 +1,7 @@
-import { For, Match, Switch } from "solid-js";
-import { removeToast, toasts } from "../stores/toast";
 import { X } from "lucide-solid";
-import ProfilePicture from "./ProfilePicture";
+import { For, Match, Switch } from "solid-js";
+import ProfilePicture from "~/shared/ui/ProfilePicture";
+import { removeToast, toasts } from "~/stores/toast";
 
 export default function Toasts() {
   return (
@@ -31,26 +31,22 @@ function Toast(props) {
             <div class="flex-1">
               <Switch>
                 <Match when={variant === "error"}>
-                  <div class={`font-bold text-red-600 mb-0.5 tracking-widest`}>
+                  <div class="font-bold text-red-600 mb-0.5 tracking-widest">
                     ERROR
                   </div>
                 </Match>
                 <Match when={variant === "warning"}>
-                  <div
-                    class={`font-bold text-amber-600 mb-0.5 tracking-widest`}
-                  >
+                  <div class="font-bold text-amber-600 mb-0.5 tracking-widest">
                     WARN
                   </div>
                 </Match>
                 <Match when={variant === "info"}>
-                  <div class={`font-bold text-sky-600 mb-0.5 tracking-widest`}>
+                  <div class="font-bold text-sky-600 mb-0.5 tracking-widest">
                     INFO
                   </div>
                 </Match>
                 <Match when={variant === "success"}>
-                  <div
-                    class={`font-bold text-green-600 mb-0.5 tracking-widest`}
-                  >
+                  <div class="font-bold text-green-600 mb-0.5 tracking-widest">
                     SUCCESS
                   </div>
                 </Match>
@@ -78,6 +74,7 @@ function Toast(props) {
         <button
           type="button"
           onClick={() => removeToast(id)}
+          aria-label="Close toast"
           class="flex items-center justify-center rounded-full p-1 hover:bg-red-600 hover:text-white transition-all duration-300 ease-in-out"
         >
           <X class="size-4"></X>

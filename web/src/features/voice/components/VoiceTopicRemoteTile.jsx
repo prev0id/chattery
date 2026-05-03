@@ -1,5 +1,5 @@
 import { createEffect } from "solid-js";
-import VoiceTopicStreamPreview from "~/components/VoiceTopicStreamPreview";
+import VoiceTopicStreamPreview from "~/features/voice/components/VoiceTopicStreamPreview";
 
 export default function VoiceTopicRemoteTile(props) {
   let videoEl;

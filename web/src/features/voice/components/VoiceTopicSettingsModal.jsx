@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import Modal from "./Modal";
+import Modal from "~/shared/ui/Modal";
 
 export default function VoiceTopicSettingsModal(props) {
   return (
@@ -13,7 +13,9 @@ export default function VoiceTopicSettingsModal(props) {
             id="select_camera"
             class="bg-amber-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-amber-500 w-full"
             value={props.media.selectedCameraId()}
-            onChange={(e) => props.media.changeCamera(e.currentTarget.value)}
+            onChange={(event) =>
+              props.media.changeCamera(event.currentTarget.value)
+            }
           >
             <For each={props.media.devices().videoInputs}>
               {(device, index) => (
@@ -36,7 +38,7 @@ export default function VoiceTopicSettingsModal(props) {
             id="select_microphone"
             class="bg-sky-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
             value={props.media.selectedMicId()}
-            onChange={(e) => props.media.changeMic(e.currentTarget.value)}
+            onChange={(event) => props.media.changeMic(event.currentTarget.value)}
           >
             <For each={props.media.devices().audioInputs}>
               {(device, index) => (
@@ -57,7 +59,9 @@ export default function VoiceTopicSettingsModal(props) {
             class="bg-emerald-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-emerald-500 w-full"
             value={props.media.selectedSpeakerId()}
             disabled={!props.media.supportsSinkID}
-            onChange={(e) => props.media.changeSpeaker(e.currentTarget.value)}
+            onChange={(event) =>
+              props.media.changeSpeaker(event.currentTarget.value)
+            }
           >
             <For each={props.media.devices().audioOutputs}>
               {(device, index) => (

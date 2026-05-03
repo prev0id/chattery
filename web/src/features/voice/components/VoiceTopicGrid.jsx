@@ -1,6 +1,6 @@
 import { For, Show } from "solid-js";
-import VoiceTopicLocalTile from "~/components/VoiceTopicLocalTile";
-import VoiceTopicRemoteTile from "~/components/VoiceTopicRemoteTile";
+import VoiceTopicLocalTile from "~/features/voice/components/VoiceTopicLocalTile";
+import VoiceTopicRemoteTile from "~/features/voice/components/VoiceTopicRemoteTile";
 
 export default function VoiceTopicGrid(props) {
   return (

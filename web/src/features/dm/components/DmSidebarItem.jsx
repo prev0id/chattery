@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import ProfilePicture from "~/components/ProfilePicture";
+import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { routes } from "~/shared/config/routes";
 
 /**

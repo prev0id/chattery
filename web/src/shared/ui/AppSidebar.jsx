@@ -1,9 +1,9 @@
 import { useNavigate } from "@solidjs/router";
 import { Loader } from "lucide-solid";
 import { createSignal, onMount, Show, Suspense } from "solid-js";
-import Button from "~/components/Button";
-import { ProfileSettingsModal } from "~/components/ModalProfileSettings";
-import ProfilePicture from "~/components/ProfilePicture";
+import Button from "~/shared/ui/Button";
+import { ProfileSettingsModal } from "~/features/auth/components/ProfileSettingsModal";
+import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { routes } from "~/shared/config/routes";
 import { userData } from "~/stores/auth";
 

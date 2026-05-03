@@ -9,56 +9,72 @@ import {
   Settings,
 } from "lucide-solid";
 
-const IconClass = "size-8 my-2 mx-4";
-const IconButtonOnClass = "hover:bg-emerald-300 bg-emerald-100";
-const IconButtonOffClass = "hover:bg-rose-300 bg-rose-100";
+const ICON_CLASS = "size-8 my-2 mx-4";
+const ICON_BUTTON_ON_CLASS = "hover:bg-emerald-300 bg-emerald-100";
+const ICON_BUTTON_OFF_CLASS = "hover:bg-rose-300 bg-rose-100";
 
 export default function VoiceTopicMenu(props) {
   return (
     <div class="py-4 w-full flex justify-center">
       <div class="flex border-2 neo-shadow rounded-lg w-fit">
         <button
+          type="button"
+          aria-label="Toggle microphone"
           class={`border-r-2 rounded-l-lg ${
-            props.media.micActive() ? IconButtonOnClass : IconButtonOffClass
+            props.media.micActive()
+              ? ICON_BUTTON_ON_CLASS
+              : ICON_BUTTON_OFF_CLASS
           }`}
           onClick={() => props.media.toggleMic()}
         >
           <Show
             when={props.media.micActive()}
-            fallback={<MicOff class={IconClass} />}
+            fallback={<MicOff class={ICON_CLASS} />}
           >
-            <Mic class={IconClass} />
+            <Mic class={ICON_CLASS} />
           </Show>
         </button>
         <button
+          type="button"
+          aria-label="Toggle screen share"
           class={`border-r-2 ${
-            props.media.screenActive() ? IconButtonOnClass : IconButtonOffClass
+            props.media.screenActive()
+              ? ICON_BUTTON_ON_CLASS
+              : ICON_BUTTON_OFF_CLASS
           }`}
           onClick={() => props.media.toggleScreenShare()}
         >
           <Show
             when={props.media.screenActive()}
-            fallback={<ScreenShareOff class={IconClass} />}
+            fallback={<ScreenShareOff class={ICON_CLASS} />}
           >
-            <ScreenShare class={IconClass} />
+            <ScreenShare class={ICON_CLASS} />
           </Show>
         </button>
         <button
-          class={`border-r-2 ${props.media.cameraActive() ? IconButtonOnClass : IconButtonOffClass}`}
+          type="button"
+          aria-label="Toggle camera"
+          class={`border-r-2 ${
+            props.media.cameraActive()
+              ? ICON_BUTTON_ON_CLASS
+              : ICON_BUTTON_OFF_CLASS
+          }`}
           onClick={() => props.media.toggleCamera()}
         >
           <Show
             when={props.media.cameraActive()}
-            fallback={<CameraOff class={IconClass} />}
+            fallback={<CameraOff class={ICON_CLASS} />}
           >
-            <Camera class={IconClass} />
+            <Camera class={ICON_CLASS} />
           </Show>
         </button>
         <button
+          type="button"
+          aria-label="Open call settings"
           class="rounded-r-lg bg-white hover:bg-sky-200"
           popoverTarget={props.settingsModalID}
         >
-          <Settings class={IconClass} />
+          <Settings class={ICON_CLASS} />
         </button>
       </div>
     </div>

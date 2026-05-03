@@ -1,10 +1,10 @@
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import { MessageSquarePlus, Search } from "lucide-solid";
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
-import Button from "~/components/Button";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
-import ProfilePicture from "~/components/ProfilePicture";
+import Button from "~/shared/ui/Button";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
+import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { createDm, searchDmUsers } from "~/features/dm/api";
 import { DM_MESSAGES } from "~/features/dm/constants";
 import { useDmContext } from "~/features/dm/context";

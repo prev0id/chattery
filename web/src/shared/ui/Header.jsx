@@ -1,4 +1,4 @@
-import { children, Match, Show, Switch } from "solid-js";
+import { children, For, Match, Show, Switch } from "solid-js";
 import { ChevronRight, Mic, Settings, Sparkles } from "lucide-solid";
 import icon from "~/assets/icon.svg";
 

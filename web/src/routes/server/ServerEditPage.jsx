@@ -1,9 +1,9 @@
 import { useAction, useSubmission } from "@solidjs/router";
 import { Check, Trash2 } from "lucide-solid";
 import { For, Show } from "solid-js";
-import Button from "~/components/Button";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
+import Button from "~/shared/ui/Button";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
 import {
   addTopicAction,
   deleteServerAction,

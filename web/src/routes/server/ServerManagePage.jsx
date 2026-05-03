@@ -1,9 +1,9 @@
 import { revalidate, useNavigate, useSearchParams } from "@solidjs/router";
 import { LogOut, Search, Settings2, UserPlus } from "lucide-solid";
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
-import Button from "~/components/Button";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
+import Button from "~/shared/ui/Button";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
 import { getServersQuery } from "~/features/server/actions";
 import {
   joinServer,

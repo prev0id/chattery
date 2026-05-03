@@ -1,10 +1,10 @@
 import { createSignal } from "solid-js";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
-import VoiceTopicGrid from "~/components/VoiceTopicGrid";
-import VoiceTopicMenu from "~/components/VoiceTopicMenu";
-import VoiceTopicSettingsModal from "~/components/VoiceTopicSettingsModal";
-import VoiceTopicStatus from "~/components/VoiceTopicStatus";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
+import VoiceTopicGrid from "~/features/voice/components/VoiceTopicGrid";
+import VoiceTopicMenu from "~/features/voice/components/VoiceTopicMenu";
+import VoiceTopicSettingsModal from "~/features/voice/components/VoiceTopicSettingsModal";
+import VoiceTopicStatus from "~/features/voice/components/VoiceTopicStatus";
 import { useServerContext } from "~/features/server/context";
 import { userData } from "~/stores/auth";
 import { createCallMedia, createVoiceCall } from "~/stores/voice_topic";

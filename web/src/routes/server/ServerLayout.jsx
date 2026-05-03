@@ -1,6 +1,6 @@
 import { createAsync, useNavigate, useParams } from "@solidjs/router";
 import { createMemo, For } from "solid-js";
-import Button from "~/components/Button";
+import Button from "~/shared/ui/Button";
 import ServerSidebarItem from "~/features/server/components/ServerSidebarItem";
 import { getServersQuery } from "~/features/server/actions";
 import { ServerContext } from "~/features/server/context";
@@ -8,7 +8,7 @@ import { getUserErrorMessage } from "~/shared/api/errors";
 import { routes } from "~/shared/config/routes";
 import { parseRouteId } from "~/shared/lib/route";
 import AppSidebar from "~/shared/ui/AppSidebar";
-import Toasts from "~/components/Toast";
+import Toasts from "~/shared/ui/Toasts";
 import { toast } from "~/stores/toast";
 import { SERVER_MESSAGES } from "~/features/server/constants";
 

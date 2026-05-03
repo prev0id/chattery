@@ -1,8 +1,8 @@
 import { createSignal } from "solid-js";
-import Toasts from "../components/Toast";
+import Toasts from "~/shared/ui/Toasts";
 import { toast } from "../stores/toast";
-import FormTextInput from "../components/FormTextInput";
-import Button from "../components/Button";
+import TextField from "~/shared/ui/TextField";
+import Button from "~/shared/ui/Button";
 import { loginUser } from "~/features/auth/api";
 import { AUTH_MESSAGES } from "~/features/auth/constants";
 import { getUserErrorMessage } from "~/shared/api/errors";
@@ -42,7 +42,7 @@ export default function Login() {
         </div>
 
         <div class="mt-4">
-          <FormTextInput
+          <TextField
             label="Email"
             type="email"
             value={login}
@@ -52,7 +52,7 @@ export default function Login() {
         </div>
 
         <div class="mt-4">
-          <FormTextInput
+          <TextField
             label="Password"
             type={showPassword() ? "text" : "password"}
             value={password}

@@ -1,6 +1,6 @@
 import { Maximize, Minimize, Volume2 } from "lucide-solid";
 import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
-import ProfilePicture from "~/components/ProfilePicture";
+import ProfilePicture from "~/shared/ui/ProfilePicture";
 
 export default function VoiceTopicStreamPreview(props) {
   const [isFullscreen, setIsFullscreen] = createSignal(false);
@@ -64,7 +64,9 @@ export default function VoiceTopicStreamPreview(props) {
     >
       <div class="relative h-full w-full bg-slate-900">
         <video
-          class={`w-full h-full object-cover bg-black transition-opacity ${showVideo() ? "opacity-100" : "opacity-0"}`}
+          class={`w-full h-full object-cover bg-black transition-opacity ${
+            showVideo() ? "opacity-100" : "opacity-0"
+          }`}
           id={props.id}
           ref={(el) => {
             videoRef = el;
@@ -96,7 +98,9 @@ export default function VoiceTopicStreamPreview(props) {
         </Show>
       </div>
       <div
-        class={`absolute inset-x-0 bottom-0 px-2 pb-2 mx-auto flex gap-3 bg-linear-to-t from-black to-transparent ${isFullscreen() ? "justify-center gap-16" : "justify-between"}`}
+        class={`absolute inset-x-0 bottom-0 px-2 pb-2 mx-auto flex gap-3 bg-linear-to-t from-black to-transparent ${
+          isFullscreen() ? "justify-center gap-16" : "justify-between"
+        }`}
       >
         <p
           class="text-white font-semibold tracking-wider text-neo-shadow"
@@ -118,7 +122,9 @@ export default function VoiceTopicStreamPreview(props) {
               max="1"
               step="0.01"
               value={props.volume ?? 1}
-              onInput={(e) => props.onVolume?.(Number(e.currentTarget.value))}
+              onInput={(event) =>
+                props.onVolume?.(Number(event.currentTarget.value))
+              }
               class={`accent-sky-500 ${isFullscreen() ? "w-32" : "w-20"}`}
             />
           </div>
@@ -127,6 +133,7 @@ export default function VoiceTopicStreamPreview(props) {
         <button
           type="button"
           onClick={toggleFullscreen}
+          aria-label="Toggle fullscreen"
           class="text-white hover:opacity-80 transition"
         >
           <Show

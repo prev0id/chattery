@@ -1,7 +1,7 @@
 import { useSubmission } from "@solidjs/router";
-import Button from "~/components/Button";
-import Header from "~/components/Header";
-import HeaderItem from "~/components/HeaderItem";
+import Button from "~/shared/ui/Button";
+import Header from "~/shared/ui/Header";
+import HeaderItem from "~/shared/ui/HeaderItem";
 import { createServerAction } from "~/features/server/actions";
 
 export default function ServerCreatePage() {

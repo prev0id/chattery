@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import Button from "~/components/Button";
+import Button from "~/shared/ui/Button";
 
 export default function ChatInput(props) {
   const { onSend } = props;
