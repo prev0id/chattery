@@ -8,7 +8,6 @@ import { getUserErrorMessage } from "~/shared/api/errors";
 import { routes } from "~/shared/config/routes";
 import { parseRouteId } from "~/shared/lib/route";
 import AppSidebar from "~/shared/ui/AppSidebar";
-import Toasts from "~/shared/ui/Toasts";
 import { SERVER_MESSAGES } from "~/features/server/constants";
 
 export default function ServerLayout(props) {
@@ -78,7 +77,6 @@ export default function ServerLayout(props) {
           {props.children}
         </ServerContext.Provider>
       </main>
-      <Toasts />
     </>
   );
 }

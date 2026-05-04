@@ -16,14 +16,17 @@ async function parseJsonResponse(response) {
 
 export async function apiRequest(path, options = {}) {
   let response;
+  const headers = options.body instanceof FormData
+    ? { ...options.headers }
+    : {
+        "Content-Type": "application/json",
+        ...options.headers,
+      };
 
   try {
     response = await fetch(path, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
     });
   } catch {
     throw new NetworkError();

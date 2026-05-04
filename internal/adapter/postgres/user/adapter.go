@@ -55,6 +55,23 @@ func (a *Adapter) UserByID(ctx context.Context, userID domain.UserID) (*domain.U
 	return convertUserFromDB(user), nil
 }
 
+func (a *Adapter) UserByUsername(ctx context.Context, username domain.Username) (*domain.User, error) {
+	users, err := a.List(ctx)
+	if err != nil {
+		return nil, errutil.E(err).Debug("a.List")
+	}
+
+	for _, user := range users {
+		if user.Username == username {
+			return user, nil
+		}
+	}
+
+	return nil, errutil.E().
+		Kind(errutil.NotFound).
+		Messagef("user with username %s not found", username)
+}
+
 func (a *Adapter) CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error) {
 	req := &postgres.CreateUserParams{
 		Login:    user.Login.String(),

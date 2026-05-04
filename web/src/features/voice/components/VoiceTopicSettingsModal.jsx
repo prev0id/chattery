@@ -3,7 +3,12 @@ import Modal from "~/shared/ui/Modal";
 
 export default function VoiceTopicSettingsModal(props) {
   return (
-    <Modal id={props.id} name="Settings">
+    <Modal
+      id={props.id}
+      name="Settings"
+      open={props.open}
+      onClose={props.onClose}
+    >
       <div class="space-y-4 mt-2">
         <div class="space-y-2">
           <label class="block font-semibold tracking-wider" for="select_camera">

@@ -21,9 +21,10 @@ type GetUsersResponse struct {
 }
 
 type PostUpdateUserRequest struct {
-	Username string `json:"username"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	Username        string `json:"username"`
+	Login           string `json:"login"`
+	CurrentPassword string `json:"currentPassword"`
+	Password        string `json:"password"`
 }
 
 type GetMeResponse struct {

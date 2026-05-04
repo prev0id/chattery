@@ -27,7 +27,7 @@ func (s *Server) PostUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	updated := convertPostUpdateUserRequest(request, userID)
 
-	if err := s.user.UpdateUser(ctx, updated); err != nil {
+	if err := s.user.UpdateUser(ctx, updated, request.CurrentPassword); err != nil {
 		render.Error(w, r, err)
 		return
 	}
@@ -57,9 +57,6 @@ func validateUsername(username string) error {
 func validatePassword(password, login string) error {
 	if password == "" {
 		return nil
-	}
-	if err := validate.NotEmpty(login, validate.LoginFieldName); err != nil {
-		return err
 	}
 	return validate.Password(password)
 }

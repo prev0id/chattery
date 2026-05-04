@@ -31,6 +31,36 @@ export function createUser({ username, login, password }) {
   });
 }
 
+export function logoutUser() {
+  return fetch(API_ENDPOINTS.user.logout, {
+    method: "POST",
+    redirect: "manual",
+  });
+}
+
+export function updateCurrentUser({ username, login, currentPassword, password }) {
+  return apiRequest(API_ENDPOINTS.user.update, {
+    method: "PUT",
+    body: JSON.stringify({ username, login, currentPassword, password }),
+  });
+}
+
+export function uploadCurrentUserAvatar(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  return apiRequest(API_ENDPOINTS.image.upload, {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export function deleteCurrentUserAvatar() {
+  return apiRequest(API_ENDPOINTS.image.delete, {
+    method: "DELETE",
+  });
+}
+
 /**
  * Loads the current authenticated user.
  *

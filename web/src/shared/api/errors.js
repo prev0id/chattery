@@ -31,7 +31,7 @@ export function getUserErrorMessage(error, fallback = "Request failed") {
   }
 
   if (error instanceof ApiError) {
-    return fallback;
+    return error.message || fallback;
   }
 
   return fallback;

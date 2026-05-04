@@ -2,7 +2,13 @@ export const API_ENDPOINTS = {
   user: {
     me: "/v1/user/me",
     login: "/v1/user/login",
+    logout: "/v1/user/logout",
     create: "/v1/user/create",
+    update: "/v1/user/update",
+  },
+  image: {
+    upload: "/v1/image/upload",
+    delete: "/v1/image/delete",
   },
   dm: {
     list: "/v1/dm/list",

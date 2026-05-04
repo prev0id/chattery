@@ -5,6 +5,7 @@ import { routes } from "~/shared/config/routes";
 import { userData } from "~/shared/stores/auth";
 import { toast } from "~/shared/stores/toast";
 import { appWebSocket } from "~/shared/stores/websocket";
+import Toasts from "~/shared/ui/Toasts";
 
 function GlobalDmNotifications() {
   createEffect(() => {
@@ -30,6 +31,7 @@ export default function AppProviders(props) {
     <>
       <GlobalDmNotifications />
       {props.children}
+      <Toasts />
     </>
   );
 }

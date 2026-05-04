@@ -1,4 +1,4 @@
-import { createResource } from "solid-js";
+import { createResource, createSignal } from "solid-js";
 import { getCurrentUser } from "~/features/auth/api";
 import { AUTH_MESSAGES } from "~/features/auth/constants";
 import { AuthRequiredError, getUserErrorMessage } from "~/shared/api/errors";
@@ -20,3 +20,16 @@ async function fetchUserData() {
 
 export const [userData, { refetch: refetchUserData }] =
   createResource(fetchUserData);
+
+export const [avatarVersion, setAvatarVersion] = createSignal(Date.now());
+
+export function bumpAvatarVersion() {
+  setAvatarVersion(Date.now());
+}
+
+export function currentUserAvatar() {
+  const avatar = userData()?.avatar;
+  const version = avatarVersion();
+
+  return avatar ? `${avatar}?v=${version}` : avatar;
+}

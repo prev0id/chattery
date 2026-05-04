@@ -5,7 +5,7 @@ import { removeToast, toasts } from "~/shared/stores/toast";
 
 export default function Toasts() {
   return (
-    <div class="fixed top-4 right-4 flex flex-col gap-3 items-end pointer-events-none isolate">
+    <div class="fixed top-4 right-4 z-[60] flex flex-col gap-3 items-end pointer-events-none isolate">
       <For each={toasts}>
         {(toast) => (
           <Toast

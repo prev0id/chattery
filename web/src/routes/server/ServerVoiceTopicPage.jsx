@@ -21,6 +21,7 @@ export default function ServerVoiceTopicPage() {
     currentUser: userData,
   });
   const [volumes, setVolumes] = createSignal({});
+  const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
 
   function setVolume(id, value) {
     setVolumes((current) => ({ ...current, [id]: value }));
@@ -42,8 +43,16 @@ export default function ServerVoiceTopicPage() {
           setVolume={setVolume}
         />
       </div>
-      <VoiceTopicMenu media={media} settingsModalID={SETTINGS_MODAL_ID} />
-      <VoiceTopicSettingsModal media={media} id={SETTINGS_MODAL_ID} />
+      <VoiceTopicMenu
+        media={media}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+      <VoiceTopicSettingsModal
+        media={media}
+        id={SETTINGS_MODAL_ID}
+        open={isSettingsOpen()}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </>
   );
 }

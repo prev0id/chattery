@@ -22,6 +22,7 @@ type userService interface {
 type imageService interface {
 	GetUserImage(ctx context.Context, user *domain.User) ([]byte, error)
 	UploadUserImage(ctx context.Context, userID domain.UserID, source io.Reader, size int64) (string, error)
+	DeleteUserImage(ctx context.Context, userID domain.UserID) (string, error)
 }
 
 type Server struct {
@@ -50,5 +51,6 @@ func (s *Server) Route(router chi.Router) {
 	router.Group(func(withAuthRouter chi.Router) {
 		withAuthRouter.Use(s.user.AuthRequiredMiddleware)
 		withAuthRouter.Post("/upload", s.PostUploadImage)
+		withAuthRouter.Delete("/delete", s.DeleteImage)
 	})
 }

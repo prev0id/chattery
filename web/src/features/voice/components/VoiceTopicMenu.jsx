@@ -72,7 +72,7 @@ export default function VoiceTopicMenu(props) {
           type="button"
           aria-label="Open call settings"
           class="rounded-r-lg bg-white hover:bg-sky-200"
-          popoverTarget={props.settingsModalID}
+          onClick={props.onOpenSettings}
         >
           <Settings class={ICON_CLASS} />
         </button>

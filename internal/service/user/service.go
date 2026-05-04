@@ -91,13 +91,49 @@ func (s *Service) CreateUser(ctx context.Context, user *domain.User) (domain.Use
 	return resultID, err
 }
 
-func (s *Service) UpdateUser(ctx context.Context, user *domain.User) error {
+func (s *Service) UpdateUser(ctx context.Context, user *domain.User, currentPassword string) error {
 	return s.transaction.InTransaction(ctx, func(ctx context.Context) error {
-		if err := s.db.UpdateUser(ctx, user); err != nil {
+		existing, err := s.db.UserByID(ctx, user.ID)
+		if err != nil {
+			return errutil.E(err).Debug("s.db.UserByID")
+		}
+
+		updated := mergeUserUpdate(existing, user)
+		loginChanged := updated.Login != existing.Login
+		passwordChanged := user.Password.Plain() != ""
+
+		if loginChanged || passwordChanged {
+			if currentPassword == "" || !existing.Password.Equal(currentPassword, existing.Login) {
+				return errutil.E().
+					Kind(errutil.Permission).
+					Message("current password is invalid")
+			}
+		}
+
+		if passwordChanged {
+			updated.Password = domain.NewPassword(user.Password.Plain(), updated.Login)
+		} else if loginChanged {
+			updated.Password = domain.NewPassword(currentPassword, updated.Login)
+		}
+
+		if err := s.db.UpdateUser(ctx, updated); err != nil {
 			return errutil.E(err).Debug("s.db.UpdateUser")
 		}
 		return nil
 	})
+}
+
+func mergeUserUpdate(existing *domain.User, requested *domain.User) *domain.User {
+	updated := *existing
+
+	if requested.Username != "" {
+		updated.Username = requested.Username
+	}
+	if requested.Login != "" {
+		updated.Login = requested.Login
+	}
+
+	return &updated
 }
 
 func (s *Service) DeleteUser(ctx context.Context, id domain.UserID) error {

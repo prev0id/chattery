@@ -12,7 +12,7 @@ import (
 type userService interface {
 	GetByCredentials(ctx context.Context, login domain.Email, rawPassword string) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (domain.UserID, error)
-	UpdateUser(ctx context.Context, updated *domain.User) error
+	UpdateUser(ctx context.Context, updated *domain.User, currentPassword string) error
 	DeleteUser(ctx context.Context, userID domain.UserID) error
 	GetByID(ctx context.Context, userID domain.UserID) (*domain.User, error)
 	// TODO move to utils wrappers around http
