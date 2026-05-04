@@ -8,7 +8,7 @@ import { AUTH_MESSAGES } from "~/features/auth/constants";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { redirectToLogin } from "~/shared/config/navigation";
 import { routes } from "~/shared/config/routes";
-import { currentUserAvatar } from "~/shared/stores/auth";
+import { userData } from "~/shared/stores/auth";
 import { getUserErrorMessage } from "~/shared/api/errors";
 import { toast } from "~/shared/stores/toast";
 
@@ -71,7 +71,7 @@ export default function AppSidebar(props) {
             aria-expanded={isProfileMenuOpen()}
             onClick={() => setIsProfileMenuOpen((current) => !current)}
           >
-            <ProfilePicture src={currentUserAvatar()} />
+            <ProfilePicture src={userData()?.avatar} />
           </button>
 
           <Show when={isProfileMenuOpen()}>

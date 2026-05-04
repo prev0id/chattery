@@ -25,7 +25,7 @@ func (s *Server) GetImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Cache-Control", "public, max-age=600")
+	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Content-Type", "image/jpeg")
 	_, _ = w.Write(imgBytes) // #nosec G705 false-positive
 }

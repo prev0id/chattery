@@ -8,12 +8,7 @@ import { AUTH_MESSAGES } from "~/features/auth/constants";
 import Modal from "~/shared/ui/Modal";
 import ProfilePicture from "~/shared/ui/ProfilePicture";
 import { getUserErrorMessage } from "~/shared/api/errors";
-import {
-  bumpAvatarVersion,
-  currentUserAvatar,
-  refetchUserData,
-  userData,
-} from "~/shared/stores/auth";
+import { refetchUserData, userData } from "~/shared/stores/auth";
 import { toast } from "~/shared/stores/toast";
 
 export function ProfileSettingsModal(props) {
@@ -69,7 +64,6 @@ export function ProfileSettingsModal(props) {
     setIsAvatarPending(true);
     try {
       await uploadCurrentUserAvatar(file);
-      bumpAvatarVersion();
       await refetchUserData();
       resetAvatarDraft();
       toast.success(AUTH_MESSAGES.avatarUploadSucceeded);
@@ -87,7 +81,6 @@ export function ProfileSettingsModal(props) {
     try {
       await deleteCurrentUserAvatar();
       await refetchUserData();
-      bumpAvatarVersion();
       resetAvatarDraft();
       toast.success(AUTH_MESSAGES.avatarDeleteSucceeded);
     } catch (error) {
@@ -135,7 +128,7 @@ export function ProfileSettingsModal(props) {
 
         <div class="flex items-center gap-4 mb-6">
           <ProfilePicture
-            src={avatarPreview() || currentUserAvatar()}
+            src={avatarPreview() || userData()?.avatar}
             class="size-24 object-cover shrink-0"
           />
 
