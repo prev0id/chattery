@@ -40,7 +40,7 @@ func validatePostUpdateUserRequest(req *PostUpdateUserRequest) error {
 		return err
 	}
 
-	if err := validatePassword(req.Password, req.Login); err != nil {
+	if err := validatePassword(req.Password); err != nil {
 		return err
 	}
 
@@ -54,7 +54,7 @@ func validateUsername(username string) error {
 	return validate.Username(username)
 }
 
-func validatePassword(password, login string) error {
+func validatePassword(password string) error {
 	if password == "" {
 		return nil
 	}
