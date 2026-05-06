@@ -1,0 +1,13 @@
+name: chattery-migrations
+
+services:
+  migrations:
+    image: kukymbr/goose-docker:3.27.1
+    restart: "no"
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: ${POSTGRES_URL:?POSTGRES_URL is required}
+    volumes:
+      - ../migrations:/migrations:ro
+    entrypoint: ["goose"]
+    command: ["-dir", "/migrations", "up"]
