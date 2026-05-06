@@ -1,0 +1,67 @@
+name: chattery-backend
+
+x-backend-env: &backend-env
+  APP_DEBUG: "false"
+  APP_NAME: chattery
+  APP_VERSION: production
+  HTTP_HOST: 0.0.0.0
+  HTTP_PORT: "8080"
+  POSTGRES_URL: ${POSTGRES_URL:?POSTGRES_URL is required}
+  REDIS_ADDRESS: ${REDIS_ADDRESS:?REDIS_ADDRESS is required}
+  REDIS_USERNAME: ${REDIS_USERNAME:-default}
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+  S3_ENDPOINT: ${S3_ENDPOINT:?S3_ENDPOINT is required}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?S3_ACCESS_KEY_ID is required}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY is required}
+  S3_BUCKET: ${S3_BUCKET:?S3_BUCKET is required}
+  S3_USE_SSL: ${S3_USE_SSL:-false}
+  SESSION_KEY: ${SESSION_KEY:?SESSION_KEY is required}
+  SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-}
+  VOICE_STUN_SERVER: ${VOICE_STUN_SERVER:-stun:stun.l.google.com:19302}
+  VOICE_OWNER_TTL: ${VOICE_OWNER_TTL:-30s}
+  VOICE_ICE_PUBLIC_IP: ${VOICE_ICE_PUBLIC_IP:-}
+
+x-backend: &backend
+  build:
+    context: ..
+    dockerfile: deployments/Dockerfile.backend
+  restart: unless-stopped
+  expose:
+    - "8080"
+  healthcheck:
+    test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  networks:
+    - backend_private
+    - s3_private
+
+services:
+  backend-1:
+    <<: *backend
+    ports:
+      - "40000-40049:40000-40049/udp"
+    environment:
+      <<: *backend-env
+      VOICE_NODE_ID: backend-1
+      VOICE_ICE_UDP_PORT_MIN: "40000"
+      VOICE_ICE_UDP_PORT_MAX: "40049"
+
+  backend-2:
+    <<: *backend
+    ports:
+      - "40050-40099:40050-40099/udp"
+    environment:
+      <<: *backend-env
+      VOICE_NODE_ID: backend-2
+      VOICE_ICE_UDP_PORT_MIN: "40050"
+      VOICE_ICE_UDP_PORT_MAX: "40099"
+
+networks:
+  backend_private:
+    name: chattery-backend-private
+    external: true
+  s3_private:
+    name: chattery-s3-private
+    external: true

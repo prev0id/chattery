@@ -22,25 +22,20 @@ RUN go mod download
 COPY . .
 COPY --from=web-builder /src/web/dist ./web/dist
 
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -trimpath \
-    -ldflags="-s -w" \
-    -o /out/chattery \
-    ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/chattery ./cmd/main.go
 
-FROM alpine:${ALPINE_VERSION} AS runtime
+FROM alpine:${ALPINE_VERSION}
 
 RUN addgroup -S chattery && adduser -S -D -H -G chattery chattery
 
 WORKDIR /app
-
 COPY --from=go-builder /out/chattery /app/chattery
 
 ENV APP_DEBUG=false \
-    HTTP_HOST=0.0.0.0 \
-    HTTP_PORT=8080 \
     APP_NAME=chattery \
-    APP_VERSION=production
+    APP_VERSION=production \
+    HTTP_HOST=0.0.0.0 \
+    HTTP_PORT=8080
 
 USER chattery
 EXPOSE 8080
