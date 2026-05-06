@@ -11,13 +11,13 @@ type Config struct {
 	Redis    Redis
 	HTTP     HTTP
 	Postgres Postgres
-	App      App
 	S3       S3
-	Voice    Voice
+	App      App
 	Session  Session
+	Voice    Voice
+	Image    Image
 	Cache    Cache
 	Chat     Chat
-	Image    Image
 }
 
 type App struct {
@@ -74,9 +74,12 @@ type Cache struct {
 }
 
 type Voice struct {
-	NodeID     string
-	STUNServer string
-	OwnerTTL   time.Duration
+	NodeID        string
+	STUNServer    string
+	ICEPublicIP   string
+	ICEUDPPortMin int
+	ICEUDPPortMax int
+	OwnerTTL      time.Duration
 }
 
 func Init() *Config {
@@ -121,9 +124,12 @@ func Init() *Config {
 			DMStoreSyncTimeout:     bind.EnvDuration("CACHE_DM_SYNC_TIMEOUT", 30*time.Second),
 		},
 		Voice: Voice{
-			NodeID:     bind.EnvString("VOICE_NODE_ID", hostname),
-			OwnerTTL:   bind.EnvDuration("VOICE_OWNER_TTL", 30*time.Second),
-			STUNServer: bind.EnvString("VOICE_STUN_SERVER", "stun:stun.l.google.com:19302"),
+			NodeID:        bind.EnvString("VOICE_NODE_ID", hostname),
+			OwnerTTL:      bind.EnvDuration("VOICE_OWNER_TTL", 30*time.Second),
+			STUNServer:    bind.EnvString("VOICE_STUN_SERVER", "stun:stun.l.google.com:19302"),
+			ICEPublicIP:   bind.EnvString("VOICE_ICE_PUBLIC_IP", ""),
+			ICEUDPPortMin: bind.EnvInt("VOICE_ICE_UDP_PORT_MIN", 0),
+			ICEUDPPortMax: bind.EnvInt("VOICE_ICE_UDP_PORT_MAX", 0),
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),

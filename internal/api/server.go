@@ -21,8 +21,6 @@ const MiB = 1024 * 1024
 
 const (
 	readHeaderTimeout = 5 * time.Second
-	readTimeout       = 30 * time.Second
-	writeTimeout      = 30 * time.Second
 	idleTimeout       = 120 * time.Second
 	shutdownTimeout   = 10 * time.Second
 )
@@ -74,9 +72,8 @@ func (s *Server) Run(ctx context.Context) error {
 		Addr:              s.address,
 		Handler:           s.mux,
 		ReadHeaderTimeout: readHeaderTimeout,
-		ReadTimeout:       readTimeout,
-		WriteTimeout:      writeTimeout,
-		IdleTimeout:       idleTimeout,
+		// ReadTimeout and WriteTimeout плохо дружат с websocket соединением
+		IdleTimeout: idleTimeout,
 	}
 
 	errCh := make(chan error)
