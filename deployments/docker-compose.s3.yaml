@@ -1,7 +1,7 @@
 name: chattery-s3
 services:
   s3:
-    image: ghcr.io/librefs/librefs:latest
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
     restart: unless-stopped
     command: server /data --address ":9000" --console-address ":9001"
     environment:
