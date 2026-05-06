@@ -21,6 +21,14 @@ x-backend-env: &backend-env
   VOICE_OWNER_TTL: ${VOICE_OWNER_TTL:-30s}
   VOICE_ICE_PUBLIC_IP: ${VOICE_ICE_PUBLIC_IP:-}
 
+x-traefik-labels: &traefik-labels
+  - traefik.enable=true
+  - traefik.http.routers.chattery.rule=Host(`chattery.space`)
+  - traefik.http.routers.chattery.entrypoints=websecure
+  - traefik.http.routers.chattery.tls.certresolver=letsencrypt
+  - traefik.http.routers.chattery.service=chattery
+  - traefik.http.services.chattery.loadbalancer.server.port=8080
+
 x-backend: &backend
   build:
     context: ..
@@ -35,7 +43,9 @@ x-backend: &backend
     retries: 5
   networks:
     - backend_private
+    - dokploy_network
     - s3_private
+  labels: *traefik-labels
 
 services:
   backend-1:
@@ -59,6 +69,9 @@ services:
       VOICE_ICE_UDP_PORT_MAX: "40099"
 
 networks:
+  dokploy_network:
+    name: dokploy-network
+    external: true
   backend_private:
     name: chattery-backend-private
     external: true
