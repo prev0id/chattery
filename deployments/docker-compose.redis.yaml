@@ -1,0 +1,23 @@
+name: chattery-redis-ui
+
+services:
+  tinyrdm:
+    image: ghcr.io/tiny-craft/tiny-rdm:1.2.7
+    restart: unless-stopped
+    environment:
+      ADMIN_USERNAME: ${REDIS_UI_USERNAME:?REDIS_UI_USERNAME is required}
+      ADMIN_PASSWORD: ${REDIS_UI_PASSWORD:?REDIS_UI_PASSWORD is required}
+    volumes:
+      - tinyrdm_data:/app/tinyrdm
+    expose:
+      - "8086"
+    networks:
+      - dokploy_network
+
+volumes:
+  tinyrdm_data:
+
+networks:
+  dokploy_network:
+    name: dokploy-network
+    external: true
