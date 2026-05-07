@@ -8,26 +8,26 @@
 
 Список задач, по которому можно отслеживать прогресс проекта.
 
-**Прогресс**: 98/108 (~91%)
-Задач всего: 108
-Выполнено: 98
-Осталось: 10
+**Прогресс**: 107/107 (100%)
+Задач всего: 107
+Выполнено: 107
+Осталось: 0
 
-### Infra (4/9 ~44%)
+### Infra (9/9 ~100%)
 Задачи, связанные с инфраструктурой сервиса, деплоем и локальной разработкой.
 - (4/4) Локальная разработка
     - [x] docker-compose
     - [x] Makefile
     - [x] Air (live reload)
     - [x] Миграции
-- (0/5) Деплой
-    - [ ] Домен
-    - [ ] DNS
-    - [ ] Postgres
-    - [ ] Redis
-    - [ ] Server
+- (5/5) Деплой
+    - [x] Домен
+    - [x] DNS
+    - [x] Postgres
+    - [x] Redis
+    - [x] Server
 
-### Backend (49/51 ~96%)
+### Backend (50/50 100%)
 Задачи на серверную часть проекта.
 1. (13/13) User service
     - [x] Миграция БД
@@ -78,15 +78,14 @@
     - [x] Call room management для voice топиков
     - [x] Нотификация дисконекта участников звонка
     - [x] Broadcast участникам звонка
-5. (5/6) Voice Topic Service
-    - [ ] Domain: Call, CallParticipant структуры
+5. (5/5) Voice Topic Service
     - [x] Redis: хранение активных звонков
     - [x] Создание/удаление комнаты звонка
     - [x] Вход/выход участников
     - [x] Signaling: обработка offer/answer
     - [x] Signaling: обработка ICE candidates
 
-### Frontend (45/48 ~94%)
+### Frontend (48/48 ~100%)
 Задачи на клиентскую часть проекта (SolidJS).
 1. (4/4) Общее
     - [x] Vite + SolidJS зависимость
@@ -97,7 +96,7 @@
     - [x] Страница логина (UI + API)
     - [x] Страница регистрации (UI + API)
     - [x] Главная страница App (UI + роутинг)
-3. (17/20) Sidebar
+3. (20/20) Sidebar
     - [x] Tab switching (direct/servers)
     - [x] Компоненты SidebarServer, SidebarDM
     - [x] API: загрузка списка серверов
@@ -111,9 +110,9 @@
     - [x] UI/API: создание, обновление и удаление сервера
     - [x] UI/API: создание, обновление и удаление топика
     - [x] UI: каркас модалки настроек профиля
-    - [ ] API/UI: обновление профиля
-    - [ ] API/UI: загрузка и удаление аватара
-    - [ ] API/UI: разлогин
+    - [x] API/UI: обновление профиля
+    - [x] API/UI: загрузка и удаление аватара
+    - [x] API/UI: разлогин
     - [x] JS: menu-bar + content-bar communication
     - [x] JS: состояние вкладок через URL (`/dm`, `/server`)
     - [x] JS: получение данных профиля
@@ -144,10 +143,10 @@
 
 ### To fix
 - [x] sort services, topics, dms
-- [ ] Подключить profile settings modal к реальным `/v1/user/*` endpoint'ам вместо неподключенных HTML form handlers
+- [x] Подключить profile settings modal к реальным `/v1/user/*` endpoint'ам вместо неподключенных HTML form handlers
 - [x] Дописать закомментированный `internal/service/voice_topic`
 - [ ] Добавить e2e/unit тесты для сервисов и API handlers
-- [ ] перенести toast в entry
+- [x] перенести toast в entry
 
 ### Extra (на подумать)
 - [ ] Turn server
