@@ -1,0 +1,29 @@
+@startuml
+title Доставка сообщения через REST, PostgreSQL, Redis и WebSocket
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 120
+
+actor "Пользователь A" as user_a
+participant "Frontend A\nChat component" as frontend_a
+participant "REST endpoint\n/v1/dm/message или\n/v1/server/topic/message" as api
+participant "DM / text topic service" as service
+database "PostgreSQL" as postgres
+queue "Redis\nuser:<id>" as redis
+participant "WebSocket manager" as ws_manager
+participant "Frontend B" as frontend_b
+
+user_a -> frontend_a : ввод текста
+frontend_a -> api : POST message
+api -> service : create message
+service -> service : check access
+service -> postgres : INSERT message\nUPDATE last state
+postgres --> service : message id, created_at
+service --> api
+api --> frontend_a : HTTP response
+service -> redis : PUBLISH message\nto participants
+redis -> ws_manager : pub/sub event
+ws_manager -> frontend_b : WSS event "message"
+frontend_b -> frontend_b : update UI
+@enduml

@@ -1,0 +1,104 @@
+@startuml
+title Логическая модель данных Chattery
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+entity "users" as users {
+  * id : BIGSERIAL
+  --
+  username : TEXT <<UNIQUE>>
+  login : TEXT <<UNIQUE>>
+  password : BYTEA
+  avatar_id : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "dms" as dms {
+  * id : BIGSERIAL
+  --
+  last_message_id : BIGINT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "dm_participants" as dm_participants {
+  * dm_id : BIGINT
+  * user_id : BIGINT
+  --
+  last_read_message_id : BIGINT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  UNIQUE(dm_id, user_id)
+}
+
+entity "dm_messages" as dm_messages {
+  * id : BIGSERIAL
+  --
+  dm_id : BIGINT
+  user_id : BIGINT
+  text : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  INDEX(dm_id, created_at, id)
+}
+
+entity "servers" as servers {
+  * id : BIGSERIAL
+  --
+  name : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "server_participants" as server_participants {
+  * server_id : BIGINT
+  * user_id : BIGINT
+  --
+  role : owner/member
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  UNIQUE(server_id, user_id)
+}
+
+entity "topics" as topics {
+  * id : BIGSERIAL
+  --
+  server_id : BIGINT
+  name : TEXT
+  type : text/voice
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  UNIQUE(server_id, name, type)
+}
+
+entity "topic_messages" as topic_messages {
+  * id : BIGSERIAL
+  --
+  topic_id : BIGINT
+  user_id : BIGINT
+  text : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+users ||--o{ dm_participants : участвует
+dms ||--o{ dm_participants : содержит
+dms ||--o{ dm_messages : история
+users ||--o{ dm_messages : отправляет
+dms ..> dm_messages : last_message_id
+
+users ||--o{ server_participants : входит
+servers ||--o{ server_participants : участники
+servers ||--o{ topics : топики
+topics ||--o{ topic_messages : история
+users ||--o{ topic_messages : отправляет
+
+note bottom
+Связи на диаграмме являются логическими:
+они отражают доменную модель и запросы
+end note
+@enduml

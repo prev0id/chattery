@@ -3,6 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english,russian]{babel}
+\usepackage{svg}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -11,6 +12,7 @@
 \usepackage{graphicx}
 \usepackage{colortbl}
 \usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 \usepackage{pgf}
 \usepackage{subcaption}
 \usepackage{listings}
@@ -305,6 +307,15 @@ TeamSpeak & серверы и голосовые каналы & постоянн
     \item указать, что \texttt{cmd/main.go} является composition root: создаёт конфигурацию, logger, подключения к Postgres/Redis/S3, transaction manager, adapters, stores, services, syncers, WebSocket manager и HTTP server.
 \end{itemize}
 
+Общая структура приложения, которую необходимо раскрыть в данном подразделе, представлена на Рисунке \ref{fig:chattery_architecture}. Схема отделяет пользовательский браузер, серверную часть и внешние хранилища, а также показывает разные контуры взаимодействия: REST, WebSocket, Redis pub/sub и WebRTC.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{chattery_architecture.png}
+\caption{Общая архитектура веб-приложения Chattery}
+\label{fig:chattery_architecture}
+\end{figure}
+
 \subsection{Модель данных}
 \begin{itemize}
     \item описать таблицу \texttt{users}: идентификатор, username, login, hashed password, avatar id, даты создания и обновления;
@@ -313,8 +324,17 @@ TeamSpeak & серверы и голосовые каналы & постоянн
     \item объяснить роли \texttt{owner} и \texttt{member}; владелец создаёт и изменяет структуру сервера, участник получает доступ к топикам;
     \item описать ограничения уникальности: уникальные логины и имена пользователей, уникальный участник в DM или server, уникальное имя топика одного типа внутри сервера;
     \item описать индексы сообщений DM по \texttt{dm\_id}, \texttt{created\_at} и \texttt{id}, так как история загружается постранично в обратном хронологическом порядке;
-    \item в финальной версии добавить ER-диаграмму или схему таблиц, если её можно подготовить без перегрузки текста.
+    \item использовать ER-диаграмму на Рисунке \ref{fig:chattery_data_model} как опорную схему для описания таблиц и связей.
 \end{itemize}
+
+Логическая модель данных представлена на Рисунке \ref{fig:chattery_data_model}. На схеме показаны связи уровня предметной области; они используются в сервисах и SQL-запросах даже там, где миграции не задают физические внешние ключи.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{chattery_data_model.png}
+\caption{Логическая модель данных Chattery}
+\label{fig:chattery_data_model}
+\end{figure}
 
 \subsection{Backend-архитектура}
 \begin{itemize}
@@ -328,6 +348,15 @@ TeamSpeak & серверы и голосовые каналы & постоянн
     \item объяснить, почему выбран \texttt{chi}: лёгкий router и middleware для request id, recovery, heartbeat и request logging.
 \end{itemize}
 
+Разделение серверной части по слоям показано на Рисунке \ref{fig:chattery_backend_layers}. Такая схема нужна, чтобы визуально отделить HTTP/WebSocket handlers от бизнес-логики, доменной модели и инфраструктурных адаптеров.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.6\textwidth]{chattery_backend_layers.png}
+\caption{Слоистая архитектура серверной части}
+\label{fig:chattery_backend_layers}
+\end{figure}
+
 \subsection{WebSocket и доставка сообщений}
 \begin{itemize}
     \item описать endpoint \texttt{/ws/}, доступный только после аутентификации;
@@ -338,17 +367,35 @@ TeamSpeak & серверы и голосовые каналы & постоянн
     \item описать поведение frontend: singleton WebSocket store поддерживает переподключение, повторно отправляет \texttt{join} для активных каналов и буферизует события при временном отсутствии соединения.
 \end{itemize}
 
+Последовательность доставки текстового сообщения показана на Рисунке \ref{fig:chattery_message_delivery}. Рисунок связывает REST-запрос отправителя, транзакционную запись сообщения и асинхронную доставку события получателям через Redis и WebSocket.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{chattery_message_delivery.png}
+\caption{Доставка сообщения через REST, PostgreSQL, Redis и WebSocket}
+\label{fig:chattery_message_delivery}
+\end{figure}
+
 \subsection{WebRTC и голосовые топики}
 \begin{itemize}
     \item описать назначение voice topic service: управление комнатами звонков внутри голосовых топиков;
-    \item описать выбор владельца комнаты через Redis key \texttt{voice:topic:<id>:owner}; если несколько backend-узлов обслуживают систему, события join/leave/signal перенаправляются владельцу комнаты;
-    \item описать хранение активных участников через Redis sorted set \texttt{voice:topic:<id>:participants} и периодическое обновление TTL;
+    \item описать выбор владельца комнаты через Redis key \texttt{voice:topic:}\allowbreak\texttt{<id>:owner}; если несколько backend-узлов обслуживают систему, события join/leave/signal перенаправляются владельцу комнаты;
+    \item описать хранение активных участников через Redis sorted set \texttt{voice:topic:}\allowbreak\texttt{<id>:participants} и периодическое обновление TTL;
     \item описать signaling-события: offer, answer, ICE candidate и batch ICE candidates;
     \item описать использование библиотеки Pion WebRTC на backend: создание peer connection, регистрация кодеков, STUN server, настройка публичного IP и диапазона UDP-портов;
     \item описать forwarding медиапотоков: backend принимает remote track от участника, создаёт local track и добавляет его другим участникам комнаты;
     \item описать renegotiation при появлении или исчезновении треков, а также запрос ключевых кадров для восстановления видео;
     \item описать ограничения: без TURN server соединения могут быть нестабильны за строгими NAT; TURN следует вынести в перспективы развития.
 \end{itemize}
+
+Архитектура голосового топика показана на Рисунке \ref{fig:chattery_voice_topic}. Схема фиксирует две разные плоскости взаимодействия: сигнальные события проходят через WebSocket и Redis, а медиапотоки обрабатываются WebRTC-соединениями на стороне backend.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{chattery_voice_topic.png}
+\caption{Архитектура голосового топика и WebRTC signaling}
+\label{fig:chattery_voice_topic}
+\end{figure}
 
 \subsection{Frontend-архитектура}
 \begin{itemize}
@@ -360,6 +407,15 @@ TeamSpeak & серверы и голосовые каналы & постоянн
     \item описать chat component: загрузка первой страницы, догрузка истории при скролле вверх, дедупликация сообщений, автопрокрутка вниз, отправка сообщений;
     \item описать voice UI: local tile, remote tiles, статус звонка, меню микрофона/камеры/экрана, настройки media devices.
 \end{itemize}
+
+Структура клиентской части показана на Рисунке \ref{fig:chattery_frontend_architecture}. Диаграмма нужна для связи маршрутов, feature-модулей и общих клиентских сервисов, которые используются несколькими пользовательскими сценариями.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{chattery_frontend_architecture.png}
+\caption{Архитектура клиентской части и навигации}
+\label{fig:chattery_frontend_architecture}
+\end{figure}
 
 \section{Реализация}
 
