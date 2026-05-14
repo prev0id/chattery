@@ -3,7 +3,6 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english,russian]{babel}
-\usepackage{svg}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
@@ -12,7 +11,6 @@
 \usepackage{graphicx}
 \usepackage{colortbl}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 \usepackage{pgf}
 \usepackage{subcaption}
 \usepackage{listings}
@@ -449,7 +447,7 @@ DM-интерфейс включает sidebar со списком личных 
 Модальное окно профиля подключено к реальным endpoint-ам backend. Пользователь может обновить имя, login и пароль, загрузить новый аватар или удалить текущий. После успешного изменения frontend повторно запрашивает данные текущего пользователя и обновляет отображение аватара в sidebar, сообщениях и уведомлениях.
 
 \subsection{Инфраструктура и развёртывание}
-Для локальной разработки используется compose-конфигурация с PostgreSQL, Redis, MinIO, контейнером создания bucket и вспомогательным Redis UI. Команда \texttt{make up} поднимает локальные сервисы и применяет миграции Goose, \texttt{make run} запускает backend через \texttt{air}, \texttt{make run-web} запускает Vite dev server, а \texttt{make test} выполняет \texttt{go test ./...}. SQL-код генерируется sqlc из файлов \texttt{queries/*.sql} и схемы миграций.
+Для локальной разработки используется compose-конфигурация с PostgreSQL, Redis, MinIO, контейнером создания bucket и вспомогательным Redis UI. С помощью Makefile сделаны команды для поднятия локального окружения и применения миграций с помощью \texttt{Goose} \cite{goose}, live-reload для backend сервиса через \texttt{air} \cite{air}, и запуск Vite dev server для локальной разработки frontend, а так же выполняет генерация SQLc-кода для взаимодействия с PostgreSQL.
 
 Непрерывная проверка реализована через GitHub Actions в workflow \texttt{ci}. Он запускается при pull request и при push в ветку \texttt{master}. Для всех job используется версия Go из \texttt{go.mod} и кэширование модулей. Job \texttt{lint} запускает \texttt{golangci-lint} версии \texttt{v2.11.4} \cite{golangci_lint}, job \texttt{test} выполняет \texttt{go test ./...}, job \texttt{build} проверяет сборку командой \texttt{go build ./...}. Эти проверки фиксируют базовую компилируемость backend и отсутствие нарушений правил линтера перед обновлением сервиса.
 
