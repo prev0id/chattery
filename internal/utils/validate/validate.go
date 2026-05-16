@@ -18,24 +18,20 @@ const (
 )
 
 var (
-	onlyWords = regexp.MustCompile(`^[\w- ]+$`)
+	onlyWords              = regexp.MustCompile(`^[\w- ]+$`)
+	onlyUsernameCharacters = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 )
 
 func Username(username string) error {
-	if err := minLength(username, 5, UsernameFieldName); err != nil {
-		return err
-	}
-	if err := maxLength(username, 20, UsernameFieldName); err != nil {
-		return err
-	}
-	if err := startWithLowercaseLetter(username, UsernameFieldName); err != nil {
-		return err
-	}
-	if err := endWithLowercaseLetter(username, UsernameFieldName); err != nil {
+	if err := NotEmpty(username, UsernameFieldName); err != nil {
 		return err
 	}
 
-	return containsOnlyLowerCaseAndUnderscore(username, UsernameFieldName)
+	if err := maxLength(username, 25, UsernameFieldName); err != nil {
+		return err
+	}
+
+	return containsOnlyUsernameCharacters(username, UsernameFieldName)
 }
 
 func Login(login string) error {
@@ -106,25 +102,6 @@ func maxLength(str string, length int, field string) error {
 	return nil
 }
 
-func startWithLowercaseLetter(str string, field string) error {
-	if str[0] < 'a' || str[0] > 'z' {
-		return errutil.E().
-			Kind(errutil.InvalidRequest).
-			Messagef("%s must start with a lowercase letter", field)
-	}
-	return nil
-}
-
-func endWithLowercaseLetter(str, field string) error {
-	lastIdx := len(str) - 1
-	if str[lastIdx] < 'a' || str[lastIdx] > 'z' {
-		return errutil.E().
-			Kind(errutil.InvalidRequest).
-			Messagef("%s must end with a lowercase letter", field)
-	}
-	return nil
-}
-
 func hasLowerCaseLetter(str, field string) error {
 	for _, c := range str {
 		if 'a' <= c && c <= 'z' {
@@ -168,20 +145,13 @@ func validEmail(str, field string) error {
 		Messagef("%s must be a valid email address", field)
 }
 
-func containsOnlyLowerCaseAndUnderscore(str, field string) error {
-	invalid := false
-	for _, char := range str {
-		if char != '_' && (char < 'a' || char > 'z') {
-			invalid = true
-			break
-		}
-	}
-	if !invalid {
+func containsOnlyUsernameCharacters(str, field string) error {
+	if onlyUsernameCharacters.MatchString(str) {
 		return nil
 	}
 	return errutil.E().
 		Kind(errutil.InvalidRequest).
-		Messagef("%s can only contain lowercase letters (a-z) and underscores", field)
+		Messagef("%s can only contain letters (a-z, A-Z), digits, underscores and dashes", field)
 }
 
 func containsOnlyWords(str, field string) error {
