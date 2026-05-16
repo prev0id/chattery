@@ -49,7 +49,7 @@ lint: install-golangci
 
 .PHONY: test
 test:
-	go test ./...
+	go test -p 4 -race -v ./...
 
 .PHONY: install-golangci
 install-golangci:

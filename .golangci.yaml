@@ -103,6 +103,9 @@ linters:
   exclusions:
     generated: lax
     rules:
+      - path: _test\.go
+        linters:
+          - dupl
       - path: (.+)\.go$
         text: don't use an underscore in package name
       - path: (.+)\.go$

@@ -526,7 +526,48 @@ func (s *Server) Run(ctx context.Context) error {
 
 ## Tests and generated code
 
+Unit tests пишутся через `github.com/stretchr/testify`: для проверок использовать `assert`/`require`, а для тестовой ошибки - `assert.AnError`.
+
+Моки генерируются только через Uber GoMock (`go.uber.org/mock`). `go:generate` команды для mockgen должны лежать рядом с интерфейсами: в файлах, где объявлены интерфейсы, или в главных файлах пакета вроде `server.go`, `service.go`, `adapter.go`, после `package ...` но перед кодом.
+
+```go
+//go:generate go run go.uber.org/mock/mockgen -source=service.go -destination=mock_test.go -package=mock_user
+```
+
+Мок пакеты должны иметь пакет с названием mock_<package_name> 
+
+Table-driven tests генерируются от целевой функции командой:
+
+```sh
+gotests -w -only '$FUNC_NAME' $FILE
+```
+
+Все unit tests и subtests должны запускаться параллельно через `t.Parallel()`. Исключение - проверки конкурентного поведения, где дополнительная параллельность тест-раннера мешает проверить саму конкурентность.
+
+В table tests ожидаемые значения хранятся в отдельной структуре `expected`, даже если ожидается одно значение:
+
+```go
+type expected struct {
+    err error
+}
+```
+
+Подготовка моков в table tests делается через поле `prepare`, которое получает `*fields` и настраивает ожидания:
+
+```go
+prepare: func(f *fields) {
+    f.visitorLister.EXPECT().
+        ListVisitors(party.NiceVisitor).
+        Return([]*domain.Visitor{visitor}, nil)
+},
+```
+
+Повторяющиеся данные и константы выноси в начало функции теста, после parallel но перед другим кодом.
+
+Подтесты называются в snake_case
+
 Минимальная проверка перед сдачей backend изменений:
+
 
 ```sh
 make test

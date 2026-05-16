@@ -19,6 +19,7 @@ require (
 	github.com/pion/webrtc/v4 v4.2.12
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/rrivera/identicon v0.0.0-20240116195454-d5ba35832c0d
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.48.0
 )
 
@@ -95,6 +96,7 @@ require (
 	github.com/pion/stun/v3 v3.1.2 // indirect
 	github.com/pion/transport/v4 v4.0.1 // indirect
 	github.com/pion/turn/v5 v5.0.3 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pressly/goose/v3 v3.26.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
