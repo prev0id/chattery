@@ -17,7 +17,11 @@ x-backend-env: &backend-env
   S3_USE_SSL: ${S3_USE_SSL:-false}
   SESSION_KEY: ${SESSION_KEY:?SESSION_KEY is required}
   SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-}
-  VOICE_STUN_SERVER: ${VOICE_STUN_SERVER:-stun:stun.l.google.com:19302}
+  VOICE_STUN_SERVER: ${VOICE_STUN_SERVER:-stun:turn.chattery.space:3478}
+  VOICE_STUN_SERVERS: ${VOICE_STUN_SERVERS:-stun:turn.chattery.space:3478}
+  VOICE_TURN_SERVERS: ${VOICE_TURN_SERVERS:-turn:turn.chattery.space:3478?transport=udp,turn:turn.chattery.space:3478?transport=tcp}
+  VOICE_TURN_AUTH_SECRET: ${TURN_STATIC_AUTH_SECRET:?TURN_STATIC_AUTH_SECRET is required}
+  VOICE_TURN_CREDENTIAL_TTL: ${VOICE_TURN_CREDENTIAL_TTL:-10m}
   VOICE_OWNER_TTL: ${VOICE_OWNER_TTL:-30s}
   VOICE_ICE_PUBLIC_IP: ${VOICE_ICE_PUBLIC_IP:-}
 
@@ -48,6 +52,32 @@ x-backend: &backend
   labels: *traefik-labels
 
 services:
+  coturn:
+    image: coturn/coturn:4.11.0-r0-alpine
+    restart: unless-stopped
+    command:
+      - -n
+      - --log-file=stdout
+      - --listening-port=3478
+      - --fingerprint
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_STATIC_AUTH_SECRET:?TURN_STATIC_AUTH_SECRET is required}
+      - --realm=${TURN_REALM:-turn.chattery.space}
+      - --server-name=${TURN_REALM:-turn.chattery.space}
+      - --external-ip=${TURN_EXTERNAL_IP:?TURN_EXTERNAL_IP is required}
+      - --min-port=49160
+      - --max-port=49259
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --no-multicast-peers
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49160-49259:49160-49259/udp"
+    networks:
+      - backend_private
+
   backend-1:
     <<: *backend
     ports:

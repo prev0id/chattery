@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
 import { createStore } from "solid-js/store";
+import { getVoiceIceServers } from "~/features/voice/api";
 import { WS_CHANNEL_TYPE, WS_EVENT_TYPE } from "~/lib/ws";
 import { appWebSocket } from "~/shared/stores/websocket";
 
@@ -331,8 +332,8 @@ export function createVoiceCall(props) {
     }
   }
 
-  function createPeerConnection() {
-    const connection = new RTCPeerConnection();
+  function createPeerConnection(iceServers) {
+    const connection = new RTCPeerConnection({ iceServers });
 
     connection.addTransceiver("audio", { direction: "recvonly" });
     connection.addTransceiver("video", { direction: "recvonly" });
@@ -464,18 +465,32 @@ export function createVoiceCall(props) {
 
     stop();
     const generation = startGeneration;
+    const channel = { type: WS_CHANNEL_TYPE.VoiceTopic, id };
 
-    currentChannel = { type: WS_CHANNEL_TYPE.VoiceTopic, id };
     setStatus("connecting");
     setError("");
     setParticipants([]);
 
-    pc = createPeerConnection();
+    let iceServers;
+    try {
+      iceServers = await getVoiceIceServers();
+    } catch (err) {
+      if (generation === startGeneration) {
+        setCallError(err, "Unable to load voice connection settings");
+      }
+      return;
+    }
+    if (generation !== startGeneration) {
+      return;
+    }
+
+    currentChannel = channel;
+    pc = createPeerConnection(iceServers);
     appWebSocket.join(currentChannel);
     await syncLocalTracks(false);
     if (
       generation !== startGeneration ||
-      !sameChannel(currentChannel, { type: WS_CHANNEL_TYPE.VoiceTopic, id })
+      !sameChannel(currentChannel, channel)
     ) {
       return;
     }

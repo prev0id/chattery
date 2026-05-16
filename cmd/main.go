@@ -15,6 +15,7 @@ import (
 	image_api "chattery/internal/api/image"
 	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
+	voice_api "chattery/internal/api/voice"
 	web_api "chattery/internal/api/web"
 	websocket_api "chattery/internal/api/websocket"
 	"chattery/internal/client/redis"
@@ -104,6 +105,7 @@ func main() {
 			user_api.New(userService),
 			image_api.New(userService, userStore, imageService, cfg),
 			dm_api.New(userService, dmService, userStore),
+			voice_api.New(userService, voiceTopicService),
 			web_api.New(),
 			server_api.New(userService, serverService, textTopicService, userStore),
 		)

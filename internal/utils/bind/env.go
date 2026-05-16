@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,23 @@ func EnvString(envName string, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+func EnvStrings(envName string, defaultValue []string) []string {
+	fromEnv := os.Getenv(envName)
+	if fromEnv == "" {
+		return defaultValue
+	}
+
+	values := strings.Split(fromEnv, ",")
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	return result
 }
 
 func EnvInt(envName string, defaultValue int) int {

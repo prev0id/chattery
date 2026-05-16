@@ -50,11 +50,6 @@ type VoiceStatePayload struct {
 	TopicID      int64                     `json:"topic_id"`
 }
 
-type VoiceSignalAckPayload struct {
-	NodeID  string `json:"node_id"`
-	TopicID int64  `json:"topic_id"`
-}
-
 type VoiceSessionDescriptionPayload struct {
 	Type string `json:"type"`
 	SDP  string `json:"sdp"`

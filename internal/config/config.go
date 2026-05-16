@@ -74,12 +74,16 @@ type Cache struct {
 }
 
 type Voice struct {
-	NodeID        string
-	STUNServer    string
-	ICEPublicIP   string
-	ICEUDPPortMin int
-	ICEUDPPortMax int
-	OwnerTTL      time.Duration
+	NodeID            string
+	STUNServer        string
+	TURNAuthSecret    string
+	ICEPublicIP       string
+	STUNServers       []string
+	TURNServers       []string
+	ICEUDPPortMin     int
+	ICEUDPPortMax     int
+	OwnerTTL          time.Duration
+	TURNCredentialTTL time.Duration
 }
 
 func Init() *Config {
@@ -87,6 +91,7 @@ func Init() *Config {
 	if hostname == "" {
 		hostname = "local"
 	}
+	stunServer := bind.EnvString("VOICE_STUN_SERVER", "stun:stun.l.google.com:19302")
 
 	return &Config{
 		App: App{
@@ -124,12 +129,16 @@ func Init() *Config {
 			DMStoreSyncTimeout:     bind.EnvDuration("CACHE_DM_SYNC_TIMEOUT", 30*time.Second),
 		},
 		Voice: Voice{
-			NodeID:        bind.EnvString("VOICE_NODE_ID", hostname),
-			OwnerTTL:      bind.EnvDuration("VOICE_OWNER_TTL", 30*time.Second),
-			STUNServer:    bind.EnvString("VOICE_STUN_SERVER", "stun:stun.l.google.com:19302"),
-			ICEPublicIP:   bind.EnvString("VOICE_ICE_PUBLIC_IP", ""),
-			ICEUDPPortMin: bind.EnvInt("VOICE_ICE_UDP_PORT_MIN", 0),
-			ICEUDPPortMax: bind.EnvInt("VOICE_ICE_UDP_PORT_MAX", 0),
+			NodeID:            bind.EnvString("VOICE_NODE_ID", hostname),
+			OwnerTTL:          bind.EnvDuration("VOICE_OWNER_TTL", 30*time.Second),
+			STUNServer:        stunServer,
+			STUNServers:       bind.EnvStrings("VOICE_STUN_SERVERS", []string{stunServer}),
+			TURNServers:       bind.EnvStrings("VOICE_TURN_SERVERS", nil),
+			TURNAuthSecret:    bind.EnvString("VOICE_TURN_AUTH_SECRET", ""),
+			TURNCredentialTTL: bind.EnvDuration("VOICE_TURN_CREDENTIAL_TTL", 10*time.Minute),
+			ICEPublicIP:       bind.EnvString("VOICE_ICE_PUBLIC_IP", ""),
+			ICEUDPPortMin:     bind.EnvInt("VOICE_ICE_UDP_PORT_MIN", 0),
+			ICEUDPPortMax:     bind.EnvInt("VOICE_ICE_UDP_PORT_MAX", 0),
 		},
 		Postgres: Postgres{
 			URL: bind.EnvString("POSTGRES_URL", "postgresql://user:password@localhost:5432/chattery?sslmode=disable"),

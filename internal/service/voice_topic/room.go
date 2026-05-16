@@ -291,7 +291,7 @@ func (r *topic) ensurePeerConnection(ctx context.Context, userID domain.UserID) 
 		return participant, nil
 	}
 
-	pc, err := r.service.webrtc.newPeerConnection()
+	pc, err := r.service.webrtc.newPeerConnection(userID)
 	if err != nil {
 		return nil, errutil.E(err).Debug("webrtc.NewPeerConnection")
 	}

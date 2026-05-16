@@ -32,4 +32,7 @@ export const API_ENDPOINTS = {
     topicMessages: "/v1/server/topic/messages",
     sendTopicMessage: "/v1/server/topic/message",
   },
+  voice: {
+    iceServers: "/v1/voice/ice-servers",
+  },
 };
