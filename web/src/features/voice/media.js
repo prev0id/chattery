@@ -15,6 +15,12 @@ const MEDIA_ERROR_MESSAGES = {
   screen:
     "Unable to start screen share. Check browser permissions and try again.",
   speaker: "Unable to change output device.",
+  deviceLabelsPermission:
+    "Allow microphone or camera access to load real device names.",
+  deviceLabelsUnavailable:
+    "Connect a microphone or camera to load real device names.",
+  deviceLabels:
+    "Unable to load real device names. Check browser permissions and device availability.",
 };
 
 function stopStream(stream) {
@@ -70,6 +76,41 @@ function createMediaError(message) {
   return error;
 }
 
+function hiddenDeviceLabel(kind, index) {
+  if (kind === "videoinput") {
+    return `Camera ${index + 1} (name hidden until access is granted)`;
+  }
+  if (kind === "audioinput") {
+    return `Microphone ${index + 1} (name hidden until access is granted)`;
+  }
+  return `Speaker ${index + 1} (name hidden until access is granted)`;
+}
+
+function hasHiddenLabels(deviceList) {
+  return deviceList.some((device) => !device.label);
+}
+
+function labelRequestError(err) {
+  if (err?.name === "MediaDeviceError") {
+    return err.message;
+  }
+  if (
+    err?.name === "NotAllowedError" ||
+    err?.name === "PermissionDeniedError" ||
+    err?.name === "SecurityError"
+  ) {
+    return MEDIA_ERROR_MESSAGES.deviceLabelsPermission;
+  }
+  if (
+    err?.name === "NotFoundError" ||
+    err?.name === "DevicesNotFoundError" ||
+    err?.name === "OverconstrainedError"
+  ) {
+    return MEDIA_ERROR_MESSAGES.deviceLabelsUnavailable;
+  }
+  return MEDIA_ERROR_MESSAGES.deviceLabels;
+}
+
 function assertUserMediaSupported() {
   if (!navigator.mediaDevices?.getUserMedia) {
     throw createMediaError(MEDIA_ERROR_MESSAGES.unsupported);
@@ -118,6 +159,9 @@ export function createCallMedia() {
     screen: "",
     speaker: "",
   });
+  const [deviceLabelsPending, setDeviceLabelsPending] = createSignal(false);
+  const [deviceLabelsError, setDeviceLabelsError] = createSignal("");
+  let deviceLabelsRequest = null;
 
   async function refreshDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) return;
@@ -159,6 +203,106 @@ export function createCallMedia() {
     });
   }
 
+  async function requestTemporaryDeviceAccess(constraints) {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    stopStream(stream);
+  }
+
+  async function ensureDeviceLabels() {
+    if (deviceLabelsRequest) {
+      return deviceLabelsRequest;
+    }
+
+    deviceLabelsRequest = (async () => {
+      setDeviceLabelsPending(true);
+      setDeviceLabelsError("");
+
+      try {
+        assertUserMediaSupported();
+        await refreshDevices();
+
+        const currentDevices = devices();
+        const needsVideo = hasHiddenLabels(currentDevices.videoInputs);
+        const needsAudio =
+          hasHiddenLabels(currentDevices.audioInputs) ||
+          hasHiddenLabels(currentDevices.audioOutputs);
+
+        if (!needsVideo && !needsAudio) {
+          return;
+        }
+
+        try {
+          await requestTemporaryDeviceAccess({
+            video: needsVideo,
+            audio: needsAudio,
+          });
+        } catch (err) {
+          const shouldRetrySeparately =
+            needsVideo &&
+            needsAudio &&
+            (err?.name === "NotFoundError" ||
+              err?.name === "DevicesNotFoundError" ||
+              err?.name === "OverconstrainedError");
+
+          if (!shouldRetrySeparately) {
+            throw err;
+          }
+
+          let recovered = false;
+
+          if (needsAudio) {
+            try {
+              await requestTemporaryDeviceAccess({
+                video: false,
+                audio: true,
+              });
+              recovered = true;
+            } catch (audioErr) {
+              if (
+                audioErr?.name !== "NotFoundError" &&
+                audioErr?.name !== "DevicesNotFoundError" &&
+                audioErr?.name !== "OverconstrainedError"
+              ) {
+                throw audioErr;
+              }
+            }
+          }
+
+          if (needsVideo) {
+            try {
+              await requestTemporaryDeviceAccess({
+                video: true,
+                audio: false,
+              });
+              recovered = true;
+            } catch (videoErr) {
+              if (
+                videoErr?.name !== "NotFoundError" &&
+                videoErr?.name !== "DevicesNotFoundError" &&
+                videoErr?.name !== "OverconstrainedError"
+              ) {
+                throw videoErr;
+              }
+            }
+          }
+
+          if (!recovered) {
+            throw err;
+          }
+        }
+
+        await refreshDevices();
+      } catch (err) {
+        setDeviceLabelsError(labelRequestError(err));
+      } finally {
+        setDeviceLabelsPending(false);
+        deviceLabelsRequest = null;
+      }
+    })();
+
+    return deviceLabelsRequest;
+  }
+
   async function startCamera(deviceId = selectedCameraId()) {
     try {
       assertUserMediaSupported();
@@ -177,7 +321,9 @@ export function createCallMedia() {
       });
       stopStream(previousScreen);
       stopStream(previousCamera);
+      await refreshDevices();
       setErrors((prev) => ({ ...prev, camera: "" }));
+      setDeviceLabelsError("");
       return stream;
     } catch (err) {
       setErrors((prev) => ({
@@ -225,7 +371,9 @@ export function createCallMedia() {
       stopStream(micStream());
       setMicStream(stream);
       setMicActive(true);
+      await refreshDevices();
       setErrors((prev) => ({ ...prev, mic: "" }));
+      setDeviceLabelsError("");
       return stream;
     } catch (err) {
       setErrors((prev) => ({
@@ -402,8 +550,12 @@ export function createCallMedia() {
     micActive,
     screenActive,
     errors,
+    deviceLabelsPending,
+    deviceLabelsError,
+    getHiddenDeviceLabel: hiddenDeviceLabel,
     supportsSinkID: supportsSinkID(),
     refreshDevices,
+    ensureDeviceLabels,
     startCamera,
     stopCamera,
     toggleCamera,

@@ -1,7 +1,12 @@
-import { For } from "solid-js";
+import { createEffect, For, Show } from "solid-js";
 import Modal from "~/shared/ui/Modal";
 
 export default function VoiceTopicSettingsModal(props) {
+  createEffect(() => {
+    if (!props.open) return;
+    void props.media.ensureDeviceLabels();
+  });
+
   return (
     <Modal
       id={props.id}
@@ -25,7 +30,8 @@ export default function VoiceTopicSettingsModal(props) {
             <For each={props.media.devices().videoInputs}>
               {(device, index) => (
                 <option value={device.deviceId}>
-                  {device.label || `Camera ${index() + 1}`}
+                  {device.label ||
+                    props.media.getHiddenDeviceLabel("videoinput", index())}
                 </option>
               )}
             </For>
@@ -48,7 +54,8 @@ export default function VoiceTopicSettingsModal(props) {
             <For each={props.media.devices().audioInputs}>
               {(device, index) => (
                 <option value={device.deviceId}>
-                  {device.label || `Microphone ${index() + 1}`}
+                  {device.label ||
+                    props.media.getHiddenDeviceLabel("audioinput", index())}
                 </option>
               )}
             </For>
@@ -71,7 +78,8 @@ export default function VoiceTopicSettingsModal(props) {
             <For each={props.media.devices().audioOutputs}>
               {(device, index) => (
                 <option value={device.deviceId}>
-                  {device.label || `Speaker ${index() + 1}`}
+                  {device.label ||
+                    props.media.getHiddenDeviceLabel("audiooutput", index())}
                 </option>
               )}
             </For>
@@ -82,6 +90,15 @@ export default function VoiceTopicSettingsModal(props) {
             </p>
           )}
         </div>
+
+        <Show when={props.media.deviceLabelsPending()}>
+          <p class="text-sm text-slate-600">
+            Loading real device names from browser permissions...
+          </p>
+        </Show>
+        <Show when={props.media.deviceLabelsError()}>
+          <p class="text-sm text-rose-700">{props.media.deviceLabelsError()}</p>
+        </Show>
 
         <div class="mt-2">
           <div class="font-semibold tracking-wider mb-2">Media errors</div>
