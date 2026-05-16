@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -62,6 +64,33 @@ func MustGetMe(t testing.TB, cookies ...*http.Cookie) *Response {
 	t.Helper()
 
 	return mustDo(t, http.MethodGet, "/v1/user/me", nil, "", cookies...)
+}
+
+func MustGetImage(t testing.TB, username string, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDo(t, http.MethodGet, "/v1/image/"+url.PathEscape(username)+".jpeg", nil, "", cookies...)
+}
+
+func MustPostUploadImage(t testing.TB, filename string, body []byte, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	var request bytes.Buffer
+	writer := multipart.NewWriter(&request)
+	part, err := writer.CreateFormFile("image", filename)
+	require.NoError(t, err)
+
+	_, err = part.Write(body)
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+
+	return mustDo(t, http.MethodPost, "/v1/image/upload", &request, writer.FormDataContentType(), cookies...)
+}
+
+func MustDeleteImage(t testing.TB, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDo(t, http.MethodDelete, "/v1/image/delete", nil, "", cookies...)
 }
 
 func MustGetServers(t testing.TB, cookies ...*http.Cookie) *Response {

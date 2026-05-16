@@ -21,6 +21,8 @@ import (
 const (
 	seededPassword = "password123"
 	validPassword  = "Password123"
+
+	userCacheSyncWait = 1500 * time.Millisecond
 )
 
 var uniqueUserCounter atomic.Int64
@@ -187,6 +189,12 @@ func cleanupSession(t *testing.T, session *http.Cookie) {
 		response.RequireStatus(t, http.StatusSeeOther)
 		response.RequireClearedSessionCookie(t)
 	})
+}
+
+func waitUserCacheSync(t testing.TB) {
+	t.Helper()
+
+	time.Sleep(userCacheSyncWait)
 }
 
 func requireMe(t testing.TB, session *http.Cookie, username, login string) {
