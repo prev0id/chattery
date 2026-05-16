@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
 	"chattery/internal/domain"
 )
@@ -60,6 +61,54 @@ func MustGetMe(t testing.TB, cookies ...*http.Cookie) *Response {
 	t.Helper()
 
 	return mustDo(t, http.MethodGet, "/v1/user/me", nil, "", cookies...)
+}
+
+func MustGetServers(t testing.TB, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDo(t, http.MethodGet, "/v1/server/list", nil, "", cookies...)
+}
+
+func MustPostCreateServer(t testing.TB, request *server_api.PostCreateServerRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/create", request, cookies...)
+}
+
+func MustPostUpdateServer(t testing.TB, request *server_api.PostUpdateServerRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/update", request, cookies...)
+}
+
+func MustDeleteServer(t testing.TB, request *server_api.DeleteServerRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodDelete, "/v1/server/delete", request, cookies...)
+}
+
+func MustPostJoinServer(t testing.TB, request *server_api.PostJoinServerRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/join", request, cookies...)
+}
+
+func MustPostCreateTopic(t testing.TB, request *server_api.PostCreateTopicRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/topic/create", request, cookies...)
+}
+
+func MustPostUpdateTopic(t testing.TB, request *server_api.PostUpdateTopicRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/topic/update", request, cookies...)
+}
+
+func MustDeleteTopic(t testing.TB, request *server_api.DeleteTopicRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodDelete, "/v1/server/topic/delete", request, cookies...)
 }
 
 func (r *Response) RequireStatus(t testing.TB, status int) {

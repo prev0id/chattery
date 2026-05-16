@@ -5,6 +5,7 @@ package e2e
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"chattery/e2e/client"
+	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
 )
 
@@ -25,16 +27,36 @@ var uniqueUserCounter atomic.Int64
 func uniqueCreateUser(t testing.TB, prefix string) *user_api.PostCreateUserRequest {
 	t.Helper()
 
-	suffix := strconv.FormatInt(time.Now().UnixNano(), 36) +
-		strconv.FormatInt(uniqueUserCounter.Add(1), 36)
-	username := prefix + suffix
-	require.LessOrEqual(t, len(username), 25)
+	username := uniqueName(t, prefix, 25)
 
 	return &user_api.PostCreateUserRequest{
 		Username: username,
 		Login:    username + "@example.com",
 		Password: validPassword,
 	}
+}
+
+func uniqueServerName(t testing.TB, prefix string) string {
+	t.Helper()
+
+	return uniqueName(t, prefix, 25)
+}
+
+func uniqueTopicName(t testing.TB, prefix string) string {
+	t.Helper()
+
+	return uniqueName(t, prefix, 20)
+}
+
+func uniqueName(t testing.TB, prefix string, maxLen int) string {
+	t.Helper()
+
+	suffix := strconv.FormatInt(time.Now().UnixNano(), 36) +
+		strconv.FormatInt(uniqueUserCounter.Add(1), 36)
+	name := strings.ToLower(prefix + suffix)
+	require.LessOrEqual(t, len(name), maxLen)
+
+	return name
 }
 
 func createUser(t testing.TB, prefix string) (*user_api.PostCreateUserRequest, *http.Cookie) {
@@ -59,6 +81,68 @@ func loginUser(t testing.TB, login, password string) *http.Cookie {
 	require.Empty(t, response.Body)
 
 	return response.RequireSessionCookie(t)
+}
+
+func createServer(t testing.TB, session *http.Cookie, name string) int64 {
+	t.Helper()
+
+	response := client.MustPostCreateServer(t, &server_api.PostCreateServerRequest{
+		Name: name,
+	}, session)
+	response.RequireStatus(t, http.StatusOK)
+
+	var body server_api.PostCreateServerResponse
+	response.RequireJSON(t, &body)
+	require.NotZero(t, body.ID)
+
+	return body.ID
+}
+
+func createTopic(t testing.TB, session *http.Cookie, serverID int64, name string, topicType string) int64 {
+	t.Helper()
+
+	response := client.MustPostCreateTopic(t, &server_api.PostCreateTopicRequest{
+		ServerID: serverID,
+		Name:     name,
+		Type:     topicType,
+	}, session)
+	response.RequireStatus(t, http.StatusOK)
+
+	var body server_api.PostCreateTopicResponse
+	response.RequireJSON(t, &body)
+	require.NotZero(t, body.ID)
+
+	return body.ID
+}
+
+func cleanupCreatedServer(t *testing.T, session *http.Cookie, serverID int64) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		response := client.MustDeleteServer(t, &server_api.DeleteServerRequest{
+			ServerID: serverID,
+		}, session)
+		if response.StatusCode == http.StatusForbidden || response.StatusCode == http.StatusNotFound {
+			return
+		}
+
+		response.RequireStatus(t, http.StatusOK)
+	})
+}
+
+func cleanupCreatedTopic(t *testing.T, session *http.Cookie, topicID int64) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		response := client.MustDeleteTopic(t, &server_api.DeleteTopicRequest{
+			TopicID: topicID,
+		}, session)
+		if response.StatusCode == http.StatusForbidden || response.StatusCode == http.StatusNotFound {
+			return
+		}
+
+		response.RequireStatus(t, http.StatusOK)
+	})
 }
 
 func cleanupCreatedUser(t *testing.T, session *http.Cookie) {
