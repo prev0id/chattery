@@ -37,11 +37,39 @@ func uniqueCreateUser(t testing.TB, prefix string) *user_api.PostCreateUserReque
 	}
 }
 
+func createUser(t testing.TB, prefix string) (*user_api.PostCreateUserRequest, *http.Cookie) {
+	t.Helper()
+
+	user := uniqueCreateUser(t, prefix)
+	response := client.MustPostCreateUser(t, user)
+	response.RequireStatus(t, http.StatusOK)
+	require.Empty(t, response.Body)
+
+	return user, response.RequireSessionCookie(t)
+}
+
+func loginUser(t testing.TB, login, password string) *http.Cookie {
+	t.Helper()
+
+	response := client.MustPostLogin(t, &user_api.PostLoginRequest{
+		Login:    login,
+		Password: password,
+	})
+	response.RequireStatus(t, http.StatusOK)
+	require.Empty(t, response.Body)
+
+	return response.RequireSessionCookie(t)
+}
+
 func cleanupCreatedUser(t *testing.T, session *http.Cookie) {
 	t.Helper()
 
 	t.Cleanup(func() {
 		response := client.MustDeleteMe(t, session)
+		if response.StatusCode == http.StatusUnauthorized {
+			return
+		}
+
 		response.RequireStatus(t, http.StatusOK)
 		response.RequireClearedSessionCookie(t)
 	})

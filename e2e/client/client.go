@@ -44,6 +44,12 @@ func MustPostLogout(t testing.TB, cookies ...*http.Cookie) *Response {
 	return mustDo(t, http.MethodPost, "/v1/user/logout", nil, "", cookies...)
 }
 
+func MustPutUpdateUser(t testing.TB, request *user_api.PostUpdateUserRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPut, "/v1/user/update", request, cookies...)
+}
+
 func MustDeleteMe(t testing.TB, cookies ...*http.Cookie) *Response {
 	t.Helper()
 
