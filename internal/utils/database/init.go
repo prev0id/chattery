@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	std_errors "errors"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -44,7 +44,7 @@ func IsConstraintViolation(err error, constraintName string) bool {
 	}
 
 	pgxErr := &pgconn.PgError{}
-	if ok := std_errors.As(err, &pgxErr); ok {
+	if ok := errors.As(err, &pgxErr); ok {
 		return pgxErr.ConstraintName == constraintName
 	}
 	return false
@@ -54,8 +54,5 @@ func NotFound(err error) bool {
 	if err == nil {
 		return false
 	}
-	if std_errors.Is(err, pgx.ErrNoRows) {
-		return true
-	}
-	return false
+	return errors.Is(err, pgx.ErrNoRows)
 }
