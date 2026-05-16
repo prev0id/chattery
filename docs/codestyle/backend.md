@@ -566,6 +566,13 @@ prepare: func(f *fields) {
 
 Подтесты называются в snake_case
 
+Фикс fieldalignment
+```
+fieldalignment -fix $DIRNAME
+```
+
+## ВАЖНО
+
 Минимальная проверка перед сдачей backend изменений:
 
 

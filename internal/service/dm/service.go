@@ -1,5 +1,7 @@
 package dm
 
+//go:generate go run go.uber.org/mock/mockgen -source=service.go -destination=mock_dm/service.go -package=mock_dm
+
 import (
 	"context"
 
