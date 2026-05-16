@@ -17,6 +17,7 @@ func (s *Server) Websocket(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	conn.SetReadLimit(readMessageLimit)
 
 	connection := s.ws.NewConnection(ctx, userID, conn)
 

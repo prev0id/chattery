@@ -1,11 +1,57 @@
 import { createEffect, For, Show } from "solid-js";
 import Modal from "~/shared/ui/Modal";
 
+function selectedAvailableDeviceValue(devices, selectedId) {
+  if (!selectedId) return "";
+  return devices.some((device) => device.deviceId === selectedId)
+    ? selectedId
+    : "";
+}
+
 export default function VoiceTopicSettingsModal(props) {
   createEffect(() => {
     if (!props.open) return;
     void props.media.ensureDeviceLabels();
   });
+
+  const handleCameraInput = (event) => {
+    const deviceId = event.currentTarget.value;
+    if (deviceId === props.media.selectedCameraId()) return;
+    void props.media.changeCamera(deviceId);
+  };
+
+  const handleMicInput = (event) => {
+    const deviceId = event.currentTarget.value;
+    if (deviceId === props.media.selectedMicId()) return;
+    void props.media.changeMic(deviceId);
+  };
+
+  const handleSpeakerInput = (event) => {
+    const deviceId = event.currentTarget.value;
+    if (deviceId === props.media.selectedSpeakerId()) return;
+    props.media.changeSpeaker(deviceId);
+  };
+
+  const selectedCameraValue = () => {
+    return selectedAvailableDeviceValue(
+      props.media.devices().videoInputs,
+      props.media.selectedCameraId(),
+    );
+  };
+
+  const selectedMicValue = () => {
+    return selectedAvailableDeviceValue(
+      props.media.devices().audioInputs,
+      props.media.selectedMicId(),
+    );
+  };
+
+  const selectedSpeakerValue = () => {
+    return selectedAvailableDeviceValue(
+      props.media.devices().audioOutputs,
+      props.media.selectedSpeakerId(),
+    );
+  };
 
   return (
     <Modal
@@ -22,10 +68,9 @@ export default function VoiceTopicSettingsModal(props) {
           <select
             id="select_camera"
             class="bg-amber-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-amber-500 w-full"
-            value={props.media.selectedCameraId()}
-            onChange={(event) =>
-              props.media.changeCamera(event.currentTarget.value)
-            }
+            value={selectedCameraValue()}
+            onInput={handleCameraInput}
+            onChange={handleCameraInput}
           >
             <For each={props.media.devices().videoInputs}>
               {(device, index) => (
@@ -48,8 +93,9 @@ export default function VoiceTopicSettingsModal(props) {
           <select
             id="select_microphone"
             class="bg-sky-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-sky-500 w-full"
-            value={props.media.selectedMicId()}
-            onChange={(event) => props.media.changeMic(event.currentTarget.value)}
+            value={selectedMicValue()}
+            onInput={handleMicInput}
+            onChange={handleMicInput}
           >
             <For each={props.media.devices().audioInputs}>
               {(device, index) => (
@@ -63,17 +109,19 @@ export default function VoiceTopicSettingsModal(props) {
         </div>
 
         <div class="space-y-2">
-          <label class="block font-semibold tracking-wider" for="select_speaker">
+          <label
+            class="block font-semibold tracking-wider"
+            for="select_speaker"
+          >
             Speaker device
           </label>
           <select
             id="select_speaker"
             class="bg-emerald-200 px-2 py-0.5 border-2 neo-shadow rounded-lg focus:outline-none focus:border-emerald-500 w-full"
-            value={props.media.selectedSpeakerId()}
+            value={selectedSpeakerValue()}
             disabled={!props.media.supportsSinkID}
-            onChange={(event) =>
-              props.media.changeSpeaker(event.currentTarget.value)
-            }
+            onInput={handleSpeakerInput}
+            onChange={handleSpeakerInput}
           >
             <For each={props.media.devices().audioOutputs}>
               {(device, index) => (

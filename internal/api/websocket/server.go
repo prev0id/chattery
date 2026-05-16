@@ -6,6 +6,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 
+	"chattery/internal/api"
 	wsmanager "chattery/internal/service/websocket_manager"
 )
 
@@ -13,6 +14,10 @@ var (
 	wsOptions = &websocket.AcceptOptions{
 		CompressionMode: websocket.CompressionContextTakeover,
 	}
+)
+
+const (
+	readMessageLimit = api.MiB
 )
 
 type userService interface {

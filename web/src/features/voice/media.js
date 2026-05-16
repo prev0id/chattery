@@ -163,7 +163,7 @@ export function createCallMedia() {
   const [deviceLabelsError, setDeviceLabelsError] = createSignal("");
   let deviceLabelsRequest = null;
 
-  async function refreshDevices() {
+  async function refreshDevices({ reconcileSelections = true } = {}) {
     if (!navigator.mediaDevices?.enumerateDevices) return;
 
     const all = await navigator.mediaDevices.enumerateDevices();
@@ -176,6 +176,10 @@ export function createCallMedia() {
       audioInputs,
       audioOutputs,
     });
+
+    if (!reconcileSelections) {
+      return;
+    }
 
     setSelectedCameraId((current) => {
       const next = availableDeviceID(
@@ -219,7 +223,7 @@ export function createCallMedia() {
 
       try {
         assertUserMediaSupported();
-        await refreshDevices();
+        await refreshDevices({ reconcileSelections: false });
 
         const currentDevices = devices();
         const needsVideo = hasHiddenLabels(currentDevices.videoInputs);
@@ -291,7 +295,7 @@ export function createCallMedia() {
           }
         }
 
-        await refreshDevices();
+        await refreshDevices({ reconcileSelections: false });
       } catch (err) {
         setDeviceLabelsError(labelRequestError(err));
       } finally {
@@ -321,7 +325,7 @@ export function createCallMedia() {
       });
       stopStream(previousScreen);
       stopStream(previousCamera);
-      await refreshDevices();
+      await refreshDevices({ reconcileSelections: false });
       setErrors((prev) => ({ ...prev, camera: "" }));
       setDeviceLabelsError("");
       return stream;
@@ -371,7 +375,7 @@ export function createCallMedia() {
       stopStream(micStream());
       setMicStream(stream);
       setMicActive(true);
-      await refreshDevices();
+      await refreshDevices({ reconcileSelections: false });
       setErrors((prev) => ({ ...prev, mic: "" }));
       setDeviceLabelsError("");
       return stream;
