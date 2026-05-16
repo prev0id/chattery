@@ -3,6 +3,7 @@ package validate_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"chattery/internal/domain"
@@ -260,7 +261,7 @@ func TestTopicName(t *testing.T) {
 			},
 		},
 		{
-			name:      "invalidCharacters",
+			name:      "invalid_characters",
 			topicName: "topic!",
 			expected: expected{
 				errMessage: "name can only contain letters (a-z, A-Z), digits, spaces, underscores and dashes -",
@@ -336,11 +337,11 @@ func TestNotEmpty(t *testing.T) {
 		expected expected
 	}{
 		{
-			name:  "stringValueIsValid",
+			name:  "string_value_is_valid",
 			value: "value",
 		},
 		{
-			name:  "zeroStringIsInvalid",
+			name:  "zero_string_is_invalid",
 			value: "",
 			expected: expected{
 				errMessage: "field must be provided",
@@ -365,11 +366,11 @@ func TestNotEmpty(t *testing.T) {
 		value    int
 	}{
 		{
-			name:  "intValueIsValid",
+			name:  "int_value_is_valid",
 			value: 1,
 		},
 		{
-			name:  "zeroIntIsInvalid",
+			name:  "zero_int_is_invalid",
 			value: 0,
 			expected: expected{
 				errMessage: "field must be provided",
@@ -398,6 +399,6 @@ func requireValidationResult(t *testing.T, err error, wantKind errutil.Kind, wan
 	}
 
 	require.Error(t, err)
-	require.True(t, errutil.Is(wantKind, err))
-	require.Equal(t, wantMessage, errutil.E(err).GetMessage())
+	assert.True(t, errutil.Is(wantKind, err))
+	assert.Equal(t, wantMessage, errutil.E(err).GetMessage())
 }

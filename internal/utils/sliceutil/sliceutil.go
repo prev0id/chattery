@@ -37,11 +37,11 @@ func Find[T any](in []T, pred func(T) bool) (T, bool) {
 	return empty, false
 }
 
-func EnsureLengthNotExceeding[T any](in []T, maxLeght int) []T {
-	if len(in) > maxLeght {
+func EnsureLengthNotExceeding[T any](in []T, maxLength int) []T {
+	if len(in) <= maxLength {
 		return in
 	}
-	return in[:maxLeght]
+	return in[:maxLength]
 }
 
 func GroupBy[T any, K comparable](in []T, keyFunc func(T) K) map[K][]T {

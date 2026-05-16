@@ -1,5 +1,7 @@
 package transaction
 
+//go:generate go run go.uber.org/mock/mockgen -destination=mock_transaction/tx.go -package=mock_transaction github.com/jackc/pgx/v5 Tx,Row
+
 import (
 	"context"
 
