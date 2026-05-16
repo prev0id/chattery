@@ -1,0 +1,29 @@
+name: chattery-pgweb
+
+services:
+  pgweb:
+    image: sosedoff/pgweb:0.17.0
+    restart: unless-stopped
+    environment:
+      PGWEB_DATABASE_URL: ${POSTGRES_URL:?POSTGRES_URL is required}
+      PGWEB_AUTH_USER: ${PGWEB_AUTH_USER:?PGWEB_AUTH_USER is required}
+      PGWEB_AUTH_PASS: ${PGWEB_AUTH_PASS:?PGWEB_AUTH_PASS is required}
+      PGWEB_LOCK_SESSION: "1"
+    expose:
+      - "8081"
+    networks:
+      - backend_private
+      - dokploy_network
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  backend_private:
+    name: chattery-backend-private
+    external: true
+  dokploy_network:
+    name: dokploy-network
+    external: true
