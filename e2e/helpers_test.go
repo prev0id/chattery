@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"chattery/e2e/client"
+	dm_api "chattery/internal/api/dm"
 	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
 )
@@ -115,6 +116,21 @@ func createTopic(t testing.TB, session *http.Cookie, serverID int64, name string
 	return body.ID
 }
 
+func createDM(t testing.TB, session *http.Cookie, participantID int64) int64 {
+	t.Helper()
+
+	response := client.MustPostCreateDM(t, &dm_api.PostCreateDMRequest{
+		ParticipantID: participantID,
+	}, session)
+	response.RequireStatus(t, http.StatusOK)
+
+	var body dm_api.PostCreateDMResponse
+	response.RequireJSON(t, &body)
+	require.NotZero(t, body.ID)
+
+	return body.ID
+}
+
 func cleanupCreatedServer(t *testing.T, session *http.Cookie, serverID int64) {
 	t.Helper()
 
@@ -175,6 +191,15 @@ func cleanupSession(t *testing.T, session *http.Cookie) {
 
 func requireMe(t testing.TB, session *http.Cookie, username, login string) {
 	t.Helper()
+
+	me := getMe(t, session)
+	require.Equal(t, username, me.Username)
+	require.Equal(t, login, me.Email)
+	require.NotZero(t, me.ID)
+}
+
+func getMe(t testing.TB, session *http.Cookie) user_api.User {
+	t.Helper()
 	require.NotNil(t, session)
 
 	response := client.MustGetMe(t, session)
@@ -182,7 +207,7 @@ func requireMe(t testing.TB, session *http.Cookie, username, login string) {
 
 	var body user_api.GetMeResponse
 	response.RequireJSON(t, &body)
-	require.Equal(t, username, body.Me.Username)
-	require.Equal(t, login, body.Me.Email)
 	require.NotZero(t, body.Me.ID)
+
+	return body.Me
 }

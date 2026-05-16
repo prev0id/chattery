@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	dm_api "chattery/internal/api/dm"
 	server_api "chattery/internal/api/server"
 	user_api "chattery/internal/api/user"
 	"chattery/internal/domain"
@@ -109,6 +110,36 @@ func MustDeleteTopic(t testing.TB, request *server_api.DeleteTopicRequest, cooki
 	t.Helper()
 
 	return mustDoJSON(t, http.MethodDelete, "/v1/server/topic/delete", request, cookies...)
+}
+
+func MustPostTopicMessage(t testing.TB, request *server_api.PostMessageRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/topic/message", request, cookies...)
+}
+
+func MustPostTopicMessages(t testing.TB, request *server_api.PostTopicMessagesRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/server/topic/messages", request, cookies...)
+}
+
+func MustPostCreateDM(t testing.TB, request *dm_api.PostCreateDMRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/dm/create", request, cookies...)
+}
+
+func MustPostDMMessage(t testing.TB, request *dm_api.PostMessageRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/dm/message", request, cookies...)
+}
+
+func MustPostDMMessages(t testing.TB, request *dm_api.PostMessagesRequest, cookies ...*http.Cookie) *Response {
+	t.Helper()
+
+	return mustDoJSON(t, http.MethodPost, "/v1/dm/messages", request, cookies...)
 }
 
 func (r *Response) RequireStatus(t testing.TB, status int) {
