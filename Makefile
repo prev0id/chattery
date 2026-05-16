@@ -51,6 +51,10 @@ lint: install-golangci
 test:
 	go test -p 4 -race -v ./...
 
+.PHONY: test-e2e
+test-e2e:
+	go test -tags=e2e -count=1 -v ./e2e/...
+
 .PHONY: install-golangci
 install-golangci:
 	GOBIN=$(PWD)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
