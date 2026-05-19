@@ -20,15 +20,18 @@ const messagesPageLimit = 20
 func Test_TextTopicMessages(t *testing.T) {
 	t.Parallel()
 
-	var owner user_api.User
-	var member user_api.User
-	var ownerSession *http.Cookie
-	var memberSession *http.Cookie
-	var outsiderSession *http.Cookie
-	var serverID int64
-	var textTopicID int64
-	var voiceTopicID int64
-	var firstPage server_api.PostTopicMessagesResponse
+	var (
+		owner           user_api.User
+		member          user_api.User
+		ownerSession    *http.Cookie
+		memberSession   *http.Cookie
+		outsiderSession *http.Cookie
+		serverID        int64
+		textTopicID     int64
+		voiceTopicID    int64
+		firstPage       server_api.PostTopicMessagesResponse
+	)
+
 	serverName := uniqueServerName(t, "msgsrv")
 	textTopicName := uniqueTopicName(t, "mt")
 	voiceTopicName := uniqueTopicName(t, "mv")
@@ -41,6 +44,7 @@ func Test_TextTopicMessages(t *testing.T) {
 		owner = getMe(t, ownerSession)
 		member = getMe(t, memberSession)
 	})
+
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
 	require.NotNil(t, memberSession)
@@ -53,6 +57,7 @@ func Test_TextTopicMessages(t *testing.T) {
 	t.Run("create_server", func(t *testing.T) {
 		serverID = createServer(t, ownerSession, serverName)
 	})
+
 	require.NotZero(t, serverID)
 	cleanupCreatedServer(t, ownerSession, serverID)
 
@@ -68,6 +73,7 @@ func Test_TextTopicMessages(t *testing.T) {
 		textTopicID = createTopic(t, ownerSession, serverID, textTopicName, "text")
 		voiceTopicID = createTopic(t, ownerSession, serverID, voiceTopicName, "voice")
 	})
+
 	require.NotZero(t, textTopicID)
 	cleanupCreatedTopic(t, ownerSession, textTopicID)
 	require.NotZero(t, voiceTopicID)
@@ -168,6 +174,7 @@ func Test_TextTopicMessages(t *testing.T) {
 		require.Equal(t, member.ID, firstPage.Messages[0].SenderID)
 		require.Equal(t, member.Username, firstPage.Messages[0].Sender.Username)
 	})
+
 	require.NotNil(t, firstPage.Cursor)
 
 	t.Run("member_reads_same_first_page", func(t *testing.T) {
@@ -201,13 +208,16 @@ func Test_TextTopicMessages(t *testing.T) {
 func Test_DMMessages(t *testing.T) {
 	t.Parallel()
 
-	var userA user_api.User
-	var userB user_api.User
-	var userASession *http.Cookie
-	var userBSession *http.Cookie
-	var outsiderSession *http.Cookie
-	var dmID int64
-	var firstPage dm_api.PostMessagesResponse
+	var (
+		userA           user_api.User
+		userB           user_api.User
+		userASession    *http.Cookie
+		userBSession    *http.Cookie
+		outsiderSession *http.Cookie
+		dmID            int64
+		firstPage       dm_api.PostMessagesResponse
+	)
+
 	messageTexts := uniqueMessageTexts(t, "dm", messagesPageLimit+4)
 
 	t.Run("create_users", func(t *testing.T) {
@@ -217,6 +227,7 @@ func Test_DMMessages(t *testing.T) {
 		userA = getMe(t, userASession)
 		userB = getMe(t, userBSession)
 	})
+
 	require.NotNil(t, userASession)
 	cleanupCreatedUser(t, userASession)
 	require.NotNil(t, userBSession)
@@ -229,6 +240,7 @@ func Test_DMMessages(t *testing.T) {
 	t.Run("create_dm", func(t *testing.T) {
 		dmID = createDM(t, userASession, userB.ID)
 	})
+
 	require.NotZero(t, dmID)
 
 	t.Run("reject_send_without_session", func(t *testing.T) {
@@ -307,6 +319,7 @@ func Test_DMMessages(t *testing.T) {
 		require.Equal(t, userB.ID, firstPage.Messages[0].Sender.ID)
 		require.Equal(t, userB.Username, firstPage.Messages[0].Sender.Username)
 	})
+
 	require.NotNil(t, firstPage.Cursor)
 
 	t.Run("first_user_reads_same_first_page", func(t *testing.T) {

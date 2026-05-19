@@ -32,6 +32,7 @@ func Test_WebSocketConnection(t *testing.T) {
 	t.Run("create_user", func(t *testing.T) {
 		_, session = createUser(t, "wsconn")
 	})
+
 	require.NotNil(t, session)
 	cleanupCreatedUser(t, session)
 
@@ -50,13 +51,17 @@ func Test_WebSocketConnection(t *testing.T) {
 func Test_WebSocketJoinLeave(t *testing.T) {
 	t.Parallel()
 
-	var owner user_api.User
-	var member user_api.User
-	var ownerSession *http.Cookie
-	var memberSession *http.Cookie
-	var outsiderSession *http.Cookie
-	var serverID int64
-	var topicID int64
+	var (
+		owner           user_api.User
+		member          user_api.User
+		ownerSession    *http.Cookie
+		memberSession   *http.Cookie
+		outsiderSession *http.Cookie
+		serverID        int64
+		topicID         int64
+		ownerConn       *websocket.Conn
+	)
+
 	serverName := uniqueServerName(t, "wssrv")
 	topicName := uniqueTopicName(t, "ws")
 	messageText := uniqueMessageTexts(t, "wsjl", 1)[0]
@@ -69,6 +74,7 @@ func Test_WebSocketJoinLeave(t *testing.T) {
 		owner = getMe(t, ownerSession)
 		member = getMe(t, memberSession)
 	})
+
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
 	require.NotNil(t, memberSession)
@@ -82,6 +88,7 @@ func Test_WebSocketJoinLeave(t *testing.T) {
 		serverID = createServer(t, ownerSession, serverName)
 		topicID = createTopic(t, ownerSession, serverID, topicName, "text")
 	})
+
 	require.NotZero(t, serverID)
 	cleanupCreatedServer(t, ownerSession, serverID)
 	require.NotZero(t, topicID)
@@ -95,11 +102,11 @@ func Test_WebSocketJoinLeave(t *testing.T) {
 		require.Empty(t, response.Body)
 	})
 
-	var ownerConn *websocket.Conn
 	t.Run("owner_joins_topic", func(t *testing.T) {
 		ownerConn = client.MustDialWebsocket(t, ownerSession)
 		wsJoinTextTopic(t, ownerConn, topicID)
 	})
+
 	require.NotNil(t, ownerConn)
 	t.Cleanup(func() { client.MustCloseWebsocket(t, ownerConn) })
 
@@ -129,12 +136,15 @@ func Test_WebSocketJoinLeave(t *testing.T) {
 func Test_WebSocketDMMessages(t *testing.T) {
 	t.Parallel()
 
-	var userA user_api.User
-	var userB user_api.User
-	var userASession *http.Cookie
-	var userBSession *http.Cookie
-	var outsiderSession *http.Cookie
-	var dmID int64
+	var (
+		userA           user_api.User
+		userB           user_api.User
+		userASession    *http.Cookie
+		userBSession    *http.Cookie
+		outsiderSession *http.Cookie
+		dmID            int64
+	)
+
 	messageText := uniqueMessageTexts(t, "wsdm", 1)[0]
 
 	t.Run("create_users", func(t *testing.T) {
@@ -144,6 +154,7 @@ func Test_WebSocketDMMessages(t *testing.T) {
 		userA = getMe(t, userASession)
 		userB = getMe(t, userBSession)
 	})
+
 	require.NotNil(t, userASession)
 	cleanupCreatedUser(t, userASession)
 	require.NotNil(t, userBSession)
@@ -155,14 +166,15 @@ func Test_WebSocketDMMessages(t *testing.T) {
 
 	t.Run("create_dm", func(t *testing.T) {
 		dmID = createDM(t, userASession, userB.ID)
+		require.NotZero(t, dmID)
 	})
-	require.NotZero(t, dmID)
 
 	var userAConn *websocket.Conn
 	t.Run("first_user_joins_dm", func(t *testing.T) {
 		userAConn = client.MustDialWebsocket(t, userASession)
 		wsJoinDM(t, userAConn, dmID)
 	})
+
 	require.NotNil(t, userAConn)
 	t.Cleanup(func() { client.MustCloseWebsocket(t, userAConn) })
 
@@ -183,14 +195,17 @@ func Test_WebSocketDMMessages(t *testing.T) {
 func Test_WebSocketDMNotificationFromAnotherChat(t *testing.T) {
 	t.Parallel()
 
-	var userA user_api.User
-	var userB user_api.User
-	var userC user_api.User
-	var userASession *http.Cookie
-	var userBSession *http.Cookie
-	var userCSession *http.Cookie
-	var dmABID int64
-	var dmACID int64
+	var (
+		userA        user_api.User
+		userB        user_api.User
+		userC        user_api.User
+		userASession *http.Cookie
+		userBSession *http.Cookie
+		userCSession *http.Cookie
+		dmABID       int64
+		dmACID       int64
+		userAConn    *websocket.Conn
+	)
 	messageText := uniqueMessageTexts(t, "wsdn", 1)[0]
 
 	t.Run("create_users", func(t *testing.T) {
@@ -201,6 +216,7 @@ func Test_WebSocketDMNotificationFromAnotherChat(t *testing.T) {
 		userB = getMe(t, userBSession)
 		userC = getMe(t, userCSession)
 	})
+
 	require.NotNil(t, userASession)
 	cleanupCreatedUser(t, userASession)
 	require.NotNil(t, userBSession)
@@ -215,14 +231,15 @@ func Test_WebSocketDMNotificationFromAnotherChat(t *testing.T) {
 		dmABID = createDM(t, userASession, userB.ID)
 		dmACID = createDM(t, userASession, userC.ID)
 	})
+
 	require.NotZero(t, dmABID)
 	require.NotZero(t, dmACID)
 
-	var userAConn *websocket.Conn
 	t.Run("first_user_joins_first_dm", func(t *testing.T) {
 		userAConn = client.MustDialWebsocket(t, userASession)
 		wsJoinDM(t, userAConn, dmABID)
 	})
+
 	require.NotNil(t, userAConn)
 	t.Cleanup(func() { client.MustCloseWebsocket(t, userAConn) })
 
@@ -235,13 +252,17 @@ func Test_WebSocketDMNotificationFromAnotherChat(t *testing.T) {
 func Test_WebSocketTextTopicFiltering(t *testing.T) {
 	t.Parallel()
 
-	var owner user_api.User
-	var member user_api.User
-	var ownerSession *http.Cookie
-	var memberSession *http.Cookie
-	var serverID int64
-	var topicAID int64
-	var topicBID int64
+	var (
+		owner         user_api.User
+		member        user_api.User
+		ownerSession  *http.Cookie
+		memberSession *http.Cookie
+		serverID      int64
+		topicAID      int64
+		topicBID      int64
+		ownerConn     *websocket.Conn
+	)
+
 	serverName := uniqueServerName(t, "wsflt")
 	topicAName := uniqueTopicName(t, "wa")
 	topicBName := uniqueTopicName(t, "wb")
@@ -254,6 +275,7 @@ func Test_WebSocketTextTopicFiltering(t *testing.T) {
 		owner = getMe(t, ownerSession)
 		member = getMe(t, memberSession)
 	})
+
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
 	require.NotNil(t, memberSession)
@@ -266,6 +288,7 @@ func Test_WebSocketTextTopicFiltering(t *testing.T) {
 		topicAID = createTopic(t, ownerSession, serverID, topicAName, "text")
 		topicBID = createTopic(t, ownerSession, serverID, topicBName, "text")
 	})
+
 	require.NotZero(t, serverID)
 	cleanupCreatedServer(t, ownerSession, serverID)
 	require.NotZero(t, topicAID)
@@ -281,11 +304,11 @@ func Test_WebSocketTextTopicFiltering(t *testing.T) {
 		require.Empty(t, response.Body)
 	})
 
-	var ownerConn *websocket.Conn
 	t.Run("owner_joins_first_topic", func(t *testing.T) {
 		ownerConn = client.MustDialWebsocket(t, ownerSession)
 		wsJoinTextTopic(t, ownerConn, topicAID)
 	})
+
 	require.NotNil(t, ownerConn)
 	t.Cleanup(func() { client.MustCloseWebsocket(t, ownerConn) })
 

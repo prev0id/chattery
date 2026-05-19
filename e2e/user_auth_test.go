@@ -24,6 +24,7 @@ func Test_CreateUser(t *testing.T) {
 		session = response.RequireSessionCookie(t)
 		require.Empty(t, response.Body)
 	})
+
 	require.NotNil(t, session)
 	cleanupCreatedUser(t, session)
 
@@ -120,8 +121,10 @@ func Test_Login(t *testing.T) {
 func Test_Logout(t *testing.T) {
 	t.Parallel()
 
-	var session *http.Cookie
-	var closedSession *http.Cookie
+	var (
+		session       *http.Cookie
+		closedSession *http.Cookie
+	)
 
 	t.Run("login_user", func(t *testing.T) {
 		response := client.MustPostLogin(t, &user_api.PostLoginRequest{

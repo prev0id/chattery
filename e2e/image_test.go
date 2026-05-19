@@ -20,16 +20,19 @@ import (
 func Test_ImageLifecycle(t *testing.T) {
 	t.Parallel()
 
-	var user *user_api.PostCreateUserRequest
-	var session *http.Cookie
-	var defaultAvatar []byte
-	var uploadedAvatar []byte
+	var (
+		user           *user_api.PostCreateUserRequest
+		session        *http.Cookie
+		defaultAvatar  []byte
+		uploadedAvatar []byte
+	)
 	uploadedImage := testJPEG(t, color.RGBA{R: 230, G: 40, B: 40, A: 255})
 
 	t.Run("create_user", func(t *testing.T) {
 		user, session = createUser(t, "imglife")
 		waitUserCacheSync(t)
 	})
+
 	require.NotNil(t, user)
 	require.NotNil(t, session)
 	cleanupCreatedUser(t, session)
@@ -97,12 +100,14 @@ func Test_ImageLifecycle(t *testing.T) {
 func Test_ImageAccessIsolation(t *testing.T) {
 	t.Parallel()
 
-	var owner *user_api.PostCreateUserRequest
-	var other *user_api.PostCreateUserRequest
-	var ownerSession *http.Cookie
-	var otherSession *http.Cookie
-	var ownerAvatar []byte
-	var otherAvatar []byte
+	var (
+		owner        *user_api.PostCreateUserRequest
+		other        *user_api.PostCreateUserRequest
+		ownerSession *http.Cookie
+		otherSession *http.Cookie
+		ownerAvatar  []byte
+		otherAvatar  []byte
+	)
 	ownerImage := testJPEG(t, color.RGBA{R: 30, G: 90, B: 220, A: 255})
 	otherImage := testJPEG(t, color.RGBA{R: 40, G: 190, B: 80, A: 255})
 
@@ -111,6 +116,7 @@ func Test_ImageAccessIsolation(t *testing.T) {
 		other, otherSession = createUser(t, "imgoth")
 		waitUserCacheSync(t)
 	})
+
 	require.NotNil(t, owner)
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
@@ -122,6 +128,7 @@ func Test_ImageAccessIsolation(t *testing.T) {
 		response := client.MustPostUploadImage(t, "owner.jpeg", ownerImage, ownerSession)
 		response.RequireStatus(t, http.StatusOK)
 	})
+
 	cleanupUserImage(t, ownerSession)
 
 	t.Run("get_owner_image", func(t *testing.T) {
@@ -134,6 +141,7 @@ func Test_ImageAccessIsolation(t *testing.T) {
 		response := client.MustPostUploadImage(t, "other.jpeg", otherImage, otherSession)
 		response.RequireStatus(t, http.StatusOK)
 	})
+
 	cleanupUserImage(t, otherSession)
 
 	t.Run("get_other_image", func(t *testing.T) {
@@ -141,6 +149,7 @@ func Test_ImageAccessIsolation(t *testing.T) {
 		otherAvatar = requireJPEGResponse(t, response)
 		require.NotEqual(t, ownerAvatar, otherAvatar)
 	})
+
 	require.NotEmpty(t, otherAvatar)
 
 	t.Run("other_upload_does_not_change_owner_image", func(t *testing.T) {

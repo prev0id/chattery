@@ -20,10 +20,12 @@ api -> service : create message
 service -> service : check access
 service -> postgres : INSERT message\nUPDATE last state
 postgres --> service : message id, created_at
-service --> api
+group Goroutine [for all participants]
+    service -> redis : PUBLISH message\nto participants
+    redis -> ws_manager : pub/sub event
+    ws_manager -> frontend_b : WSS event "message"
+    frontend_b -> frontend_b : update UI
+end
+service --> api : return ok/error
 api --> frontend_a : HTTP response
-service -> redis : PUBLISH message\nto participants
-redis -> ws_manager : pub/sub event
-ws_manager -> frontend_b : WSS event "message"
-frontend_b -> frontend_b : update UI
 @enduml

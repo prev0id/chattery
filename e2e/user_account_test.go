@@ -15,11 +15,13 @@ import (
 func Test_GetMe(t *testing.T) {
 	t.Parallel()
 
-	var sessionA *http.Cookie
-	var sessionB *http.Cookie
-	var closedSession *http.Cookie
-	var userA *user_api.PostCreateUserRequest
-	var userB *user_api.PostCreateUserRequest
+	var (
+		sessionA      *http.Cookie
+		sessionB      *http.Cookie
+		closedSession *http.Cookie
+		userA         *user_api.PostCreateUserRequest
+		userB         *user_api.PostCreateUserRequest
+	)
 
 	t.Run("create_users", func(t *testing.T) {
 		userA, sessionA = createUser(t, "mea")
@@ -72,10 +74,12 @@ func Test_GetMe(t *testing.T) {
 func Test_UpdateUser(t *testing.T) {
 	t.Parallel()
 
-	var session *http.Cookie
-	var duplicateSession *http.Cookie
-	var user *user_api.PostCreateUserRequest
-	var duplicate *user_api.PostCreateUserRequest
+	var (
+		session          *http.Cookie
+		duplicateSession *http.Cookie
+		user             *user_api.PostCreateUserRequest
+		duplicate        *user_api.PostCreateUserRequest
+	)
 	oldLogin := ""
 	updatedUsername := uniqueCreateUser(t, "updname").Username
 	updatedLogin := uniqueCreateUser(t, "updlogin").Login
@@ -240,10 +244,12 @@ func Test_UpdateUser(t *testing.T) {
 func Test_UpdateUserAccessIsolation(t *testing.T) {
 	t.Parallel()
 
-	var owner *user_api.PostCreateUserRequest
-	var ownerSession *http.Cookie
-	var other *user_api.PostCreateUserRequest
-	var otherSession *http.Cookie
+	var (
+		owner        *user_api.PostCreateUserRequest
+		ownerSession *http.Cookie
+		other        *user_api.PostCreateUserRequest
+		otherSession *http.Cookie
+	)
 	otherUsername := uniqueCreateUser(t, "othername").Username
 
 	t.Run("create_users", func(t *testing.T) {
@@ -278,10 +284,12 @@ func Test_UpdateUserAccessIsolation(t *testing.T) {
 func Test_DeleteMe(t *testing.T) {
 	t.Parallel()
 
-	var owner *user_api.PostCreateUserRequest
-	var ownerSession *http.Cookie
-	var other *user_api.PostCreateUserRequest
-	var otherSession *http.Cookie
+	var (
+		owner        *user_api.PostCreateUserRequest
+		ownerSession *http.Cookie
+		other        *user_api.PostCreateUserRequest
+		otherSession *http.Cookie
+	)
 
 	t.Run("create_users", func(t *testing.T) {
 		owner, ownerSession = createUser(t, "delown")

@@ -15,10 +15,13 @@ import (
 func Test_ServerManagement(t *testing.T) {
 	t.Parallel()
 
-	var ownerSession *http.Cookie
-	var serverID int64
-	var textTopicID int64
-	var voiceTopicID int64
+	var (
+		ownerSession *http.Cookie
+		serverID     int64
+		textTopicID  int64
+		voiceTopicID int64
+	)
+
 	serverName := uniqueServerName(t, "server")
 	updatedServerName := uniqueServerName(t, "srvupd")
 	textTopicName := uniqueTopicName(t, "text")
@@ -28,12 +31,14 @@ func Test_ServerManagement(t *testing.T) {
 	t.Run("create_owner", func(t *testing.T) {
 		_, ownerSession = createUser(t, "srvowner")
 	})
+
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
 
 	t.Run("create_server", func(t *testing.T) {
 		serverID = createServer(t, ownerSession, serverName)
 	})
+
 	require.NotZero(t, serverID)
 	cleanupCreatedServer(t, ownerSession, serverID)
 
@@ -58,12 +63,14 @@ func Test_ServerManagement(t *testing.T) {
 	t.Run("create_text_topic", func(t *testing.T) {
 		textTopicID = createTopic(t, ownerSession, serverID, textTopicName, "text")
 	})
+
 	require.NotZero(t, textTopicID)
 	cleanupCreatedTopic(t, ownerSession, textTopicID)
 
 	t.Run("create_voice_topic", func(t *testing.T) {
 		voiceTopicID = createTopic(t, ownerSession, serverID, voiceTopicName, "voice")
 	})
+
 	require.NotZero(t, voiceTopicID)
 	cleanupCreatedTopic(t, ownerSession, voiceTopicID)
 
@@ -117,10 +124,13 @@ func Test_ServerManagement(t *testing.T) {
 func Test_ServerManagementAccess(t *testing.T) {
 	t.Parallel()
 
-	var ownerSession *http.Cookie
-	var memberSession *http.Cookie
-	var serverID int64
-	var topicID int64
+	var (
+		ownerSession  *http.Cookie
+		memberSession *http.Cookie
+		serverID      int64
+		topicID       int64
+	)
+
 	serverName := uniqueServerName(t, "access")
 	updatedServerName := uniqueServerName(t, "accupd")
 	topicName := uniqueTopicName(t, "topic")
@@ -130,6 +140,7 @@ func Test_ServerManagementAccess(t *testing.T) {
 		_, ownerSession = createUser(t, "srvown")
 		_, memberSession = createUser(t, "srvmem")
 	})
+
 	require.NotNil(t, ownerSession)
 	cleanupCreatedUser(t, ownerSession)
 	require.NotNil(t, memberSession)
@@ -147,6 +158,7 @@ func Test_ServerManagementAccess(t *testing.T) {
 	t.Run("create_server", func(t *testing.T) {
 		serverID = createServer(t, ownerSession, serverName)
 	})
+
 	require.NotZero(t, serverID)
 	cleanupCreatedServer(t, ownerSession, serverID)
 
@@ -161,6 +173,7 @@ func Test_ServerManagementAccess(t *testing.T) {
 	t.Run("owner_creates_topic", func(t *testing.T) {
 		topicID = createTopic(t, ownerSession, serverID, topicName, "text")
 	})
+
 	require.NotZero(t, topicID)
 	cleanupCreatedTopic(t, ownerSession, topicID)
 
